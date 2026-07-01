@@ -19,10 +19,12 @@ Write one file. Generate everything.
 
 ## Installation
 
+Install as dev dependencies in your project. Pinning to a version avoids unexpected breakage if a new major is published.
+
 ```bash
-npm install @quoin/core @quoin/generator-typescript
+npm install -D @quoin/core @quoin/generator-typescript
 # or
-pnpm add @quoin/core @quoin/generator-typescript
+pnpm add -D @quoin/core @quoin/generator-typescript
 ```
 
 ---
@@ -90,7 +92,7 @@ export default fabric()
   )
 ```
 
-### 2. Create `quoin.config.ts`
+### 2. Create `quoin.config.ts` in your project root
 
 ```typescript
 import { defineConfig } from '@quoin/core'
@@ -105,20 +107,35 @@ export default defineConfig({
 })
 ```
 
-### 3. Run the CLI
+### 3. Add scripts to `package.json`
+
+Run quoin through your local install, not `npx`, so you always use the exact version you have pinned.
+
+```json
+{
+  "scripts": {
+    "validate":    "quoin validate",
+    "inspect":     "quoin inspect",
+    "generate":    "quoin generate",
+    "check-drift": "quoin check-drift"
+  }
+}
+```
+
+Then run:
 
 ```bash
 # Validate fabric.ts — no files written
-npx quoin validate
+npm run validate
 
 # Print the full Internal Representation as JSON
-npx quoin inspect
+npm run inspect
 
 # Generate all artifacts
-npx quoin generate
+npm run generate
 
 # Check if any generated file was manually edited
-npx quoin check-drift
+npm run check-drift
 ```
 
 After `generate`, `src/generated/typescript/index.ts` contains:
