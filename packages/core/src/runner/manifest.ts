@@ -1,0 +1,52 @@
+import * as fs from 'fs'
+import * as path from 'path'
+import * as crypto from 'crypto'
+import type { GeneratorOutput } from './types'
+
+export const MANIFEST_FILE = 'quoin.manifest.json'
+
+export interface ManifestEntry {
+  path: string
+  generator: string
+  contentHash: string
+  fromSchemaHash: string
+}
+
+export interface Manifest {
+  generatedAt: string
+  schemaHash: string
+  files: ManifestEntry[]
+}
+
+export function hashContent(content: string): string {
+  return 'sha256:' + crypto.createHash('sha256').update(content).digest('hex')
+}
+
+export function hashSchema(schema: unknown): string {
+  return hashContent(JSON.stringify(schema))
+}
+
+export function writeManifest(outputDir: string, manifest: Manifest): void {
+  const manifestPath = path.join(outputDir, MANIFEST_FILE)
+  fs.mkdirSync(outputDir, { recursive: true })
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
+}
+
+export function readManifest(outputDir: string): Manifest | null {
+  const manifestPath = path.join(outputDir, MANIFEST_FILE)
+  if (!fs.existsSync(manifestPath)) return null
+  return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as Manifest
+}
+
+export function buildManifestEntries(
+  generatorName: string,
+  output: GeneratorOutput,
+  schemaHash: string,
+): ManifestEntry[] {
+  return output.files.map(f => ({
+    path: f.path,
+    generator: generatorName,
+    contentHash: hashContent(f.content),
+    fromSchemaHash: schemaHash,
+  }))
+}

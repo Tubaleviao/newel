@@ -1,0 +1,15 @@
+{
+  "name": "rest-api-example",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Worked example: order management REST API using quoin",
+  "scripts": {
+    "validate": "quoin validate -s ./src/fabric.ts",
+    "inspect": "quoin inspect -s ./src/fabric.ts",
+    "generate": "quoin generate -c ./quoin.config.ts"
+  },
+  "dependencies": {
+    "@quoin/core": "workspace:*",
+    "@quoin/generator-typescript": "workspace:*"
+  }
+}

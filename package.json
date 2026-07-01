@@ -1,10 +1,8 @@
 {
   "name": "quoin",
   "version": "0.0.1",
-  "description": "Typescript library to help you define your application's meaning, behavior, entities and state machine",
-  "keywords": [
-    "quoin"
-  ],
+  "description": "TypeScript library to define your application's meaning, behavior, entities and state machines — generate all artifacts from a single source of truth",
+  "keywords": ["quoin", "codegen", "schema", "openapi", "rdf", "owl"],
   "homepage": "https://github.com/Tubaleviao/quoin#readme",
   "bugs": {
     "url": "https://github.com/Tubaleviao/quoin/issues"
@@ -15,9 +13,18 @@
   },
   "license": "MIT",
   "author": "Tubaleviao",
-  "type": "commonjs",
-  "main": "index.js",
+  "private": false,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
   }
 }

@@ -11,7 +11,7 @@ The closest existing tools:
 - **Prisma** — describes data and generates DB + client, no behavior
 - **XState** — models state machines, no data or API layer
 
-**semantic-fabric** covers all three, declaratively, in one file, with full semantic
+**quoin** covers all three, declaratively, in one file, with full semantic
 meaning attached to every construct.
 
 ---

@@ -1,0 +1,19 @@
+{
+  "name": "@quoin/generator-typescript",
+  "version": "0.0.1",
+  "description": "TypeScript + Zod schema generator for quoin",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@quoin/core": "workspace:*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

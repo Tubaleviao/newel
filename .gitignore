@@ -1,0 +1,24 @@
+node_modules/
+dist/
+*.js.map
+*.d.ts.map
+
+# generated artifacts
+src/generated/
+quoin.manifest.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+*.swp
+
+# env
+.env
+.env.*
+
+# local-only
+CLAUDE.md
