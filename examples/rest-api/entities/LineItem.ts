@@ -6,7 +6,7 @@ export default defineEntity({
   fields: {
     id:        { type: 'uuid',    primaryKey: true },
     orderId:   { type: 'uuid',    foreignKey: 'Order.id' },
-    productId: { type: 'uuid',    foreignKey: 'Product.id' },
+    productId: { type: 'uuid' },
     quantity:  { type: 'integer', description: 'Number of units ordered' },
     unitPrice: { type: 'decimal', description: 'Price per unit at time of order' },
     subtotal:  { type: 'decimal', description: 'quantity × unitPrice' },

@@ -50,6 +50,10 @@ export interface RelationSchema {
 
 export interface AuthSchema {
   roles: string[]
+  /** Field on the entity that holds the owning user's ID. When set, access is
+   *  granted if the caller's ID matches this field value OR the caller has one
+   *  of the listed roles. */
+  ownerField?: string
 }
 
 export interface BehaviorSchema {

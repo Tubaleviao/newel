@@ -53,6 +53,15 @@ function validateStateMachine(sm: StateMachineSchema, entity: EntitySchema, enti
 function validateEntity(name: string, entity: EntitySchema, schema: FabricSchema): ValidationError[] {
   const errors: ValidationError[] = []
 
+  for (const [bName, behavior] of Object.entries(entity.behaviors)) {
+    if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {
+      errors.push(err(
+        `entities.${name}.behaviors.${bName}.auth.ownerField`,
+        `ownerField "${behavior.auth.ownerField}" does not exist on entity "${name}"`,
+      ))
+    }
+  }
+
   for (const [fieldName, field] of Object.entries(entity.fields)) {
     const base = `entities.${name}.fields.${fieldName}`
     if (field.type === 'enum' && (!field.enumValues || field.enumValues.length === 0)) {
@@ -87,6 +96,14 @@ function validateApis(schema: FabricSchema): ValidationError[] {
       const base = `apis.${apiName}.endpoints["${key}"]`
       if (endpoint.returns && !(endpoint.returns in schema.entities)) {
         errors.push(err(`${base}.returns`, `references unknown entity "${endpoint.returns}"`))
+      }
+
+      if (endpoint.auth?.ownerField) {
+        const [entityName] = (endpoint.behavior ?? '').split('.')
+        const entity = entityName ? schema.entities[entityName] : undefined
+        if (entity && !(endpoint.auth.ownerField in entity.fields)) {
+          errors.push(err(`${base}.auth.ownerField`, `ownerField "${endpoint.auth.ownerField}" does not exist on entity "${entityName}"`))
+        }
       }
     }
   }

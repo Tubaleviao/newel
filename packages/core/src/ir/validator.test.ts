@@ -112,6 +112,48 @@ describe('validateSchema', () => {
     expect(result.errors.some(e => e.message.includes('"NonExistentEntity"'))).toBe(true)
   })
 
+  it('errors on behavior ownerField referencing unknown field', () => {
+    const schema = makeSchema({
+      entities: {
+        Order: {
+          fields: { id: { type: 'uuid', primaryKey: true } },
+          behaviors: {
+            cancel: {
+              description: 'Cancel',
+              rules: [],
+              auth: { roles: ['customer'], ownerField: 'nonExistentField' },
+            },
+          },
+        },
+      },
+    })
+    const result = validateSchema(schema)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.message.includes('nonExistentField'))).toBe(true)
+  })
+
+  it('accepts valid ownerField on behavior', () => {
+    const schema = makeSchema({
+      entities: {
+        Order: {
+          fields: {
+            id:         { type: 'uuid', primaryKey: true },
+            customerId: { type: 'uuid' },
+          },
+          behaviors: {
+            cancel: {
+              description: 'Cancel',
+              rules: [],
+              auth: { roles: ['customer'], ownerField: 'customerId' },
+            },
+          },
+        },
+      },
+    })
+    const result = validateSchema(schema)
+    expect(result.valid).toBe(true)
+  })
+
   it('errors on relation referencing unknown entity', () => {
     const schema = makeSchema({
       entities: {

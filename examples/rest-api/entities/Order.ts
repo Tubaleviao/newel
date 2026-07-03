@@ -42,11 +42,21 @@ export default defineEntity({
       rules: ['Payment amount must match order total'],
       auth: { roles: ['payment-service'] },
     },
+    ship: {
+      description: 'Marks the order as handed to a carrier',
+      rules: ['Order must be in paid state'],
+      auth: { roles: ['admin'] },
+    },
+    deliver: {
+      description: 'Marks the order as received by the customer',
+      rules: ['Order must be in shipped state'],
+      auth: { roles: ['admin'] },
+    },
     cancel: {
       description: 'Cancels an order and records the reason',
       rules: ['Only the owning customer or an admin may cancel'],
       input: { reason: { type: 'string', description: 'Why the order was cancelled' } },
-      auth: { roles: ['customer', 'admin'] },
+      auth: { roles: ['customer', 'admin'], ownerField: 'customerId' },
     },
   },
   relations: {

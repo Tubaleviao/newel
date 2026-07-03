@@ -56,6 +56,18 @@ function generateZodType(field: FieldSchema): string {
 
 function generateEntityInterface(entity: EntitySchema): string {
   const lines: string[] = []
+
+  // Collect ownerFields declared across behaviors for JSDoc
+  const ownerFields = [...new Set(
+    Object.values(entity.behaviors)
+      .filter(b => b.auth?.ownerField)
+      .map(b => b.auth!.ownerField!)
+  )]
+
+  if (ownerFields.length > 0) {
+    lines.push(`/** @ownerField ${ownerFields.join(', ')} — ownership-based access control */`)
+  }
+
   lines.push(`export interface ${entity.name} {`)
   for (const [, field] of Object.entries(entity.fields)) {
     const tsType = fieldToTsType(field)

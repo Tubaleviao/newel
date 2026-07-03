@@ -194,6 +194,9 @@ function renderEndpoint(
     for (const req of buildSecurityRequirements(endpoint.auth.roles)) {
       lines.push(`${indent(depth + 2)}- ${req}`)
     }
+    if (endpoint.auth.ownerField) {
+      lines.push(`${indent(depth + 1)}x-owner-field: ${yamlStr(endpoint.auth.ownerField)}`)
+    }
   }
 
   // requestBody

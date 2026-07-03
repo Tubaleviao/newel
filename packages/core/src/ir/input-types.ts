@@ -50,6 +50,7 @@ export type StateMachineInput = {
 
 export type AuthInput = {
   roles: string[]
+  ownerField?: string
 }
 
 export type BehaviorInput = {
