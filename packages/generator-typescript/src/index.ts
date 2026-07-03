@@ -1,4 +1,4 @@
-import type { Generator, GeneratorContext, GeneratorOutput, FabricSchema, EntitySchema, FieldSchema } from '@quoin/core'
+import type { Generator, GeneratorContext, GeneratorOutput, FabricSchema, EntitySchema, FieldSchema, RelationSchema } from '@quoin/core'
 
 const FIELD_TYPE_MAP: Record<string, string> = {
   string: 'string',
@@ -20,6 +20,17 @@ function fieldToTsType(field: FieldSchema): string {
     return field.enumValues.map(v => JSON.stringify(v)).join(' | ')
   }
   return FIELD_TYPE_MAP[field.type] ?? 'unknown'
+}
+
+function relationToTsType(rel: RelationSchema): string {
+  switch (rel.kind) {
+    case 'hasMany':
+    case 'manyToMany':
+      return `${rel.target}[]`
+    case 'hasOne':
+    case 'belongsTo':
+      return rel.target
+  }
 }
 
 function generateZodType(field: FieldSchema): string {
@@ -50,6 +61,10 @@ function generateEntityInterface(entity: EntitySchema): string {
     const tsType = fieldToTsType(field)
     const optional = field.nullable ? '?' : ''
     lines.push(`  ${field.name}${optional}: ${tsType}`)
+  }
+  for (const [, rel] of Object.entries(entity.relations)) {
+    const tsType = relationToTsType(rel)
+    lines.push(`  ${rel.name}?: ${tsType}`)
   }
   lines.push('}')
   return lines.join('\n')
