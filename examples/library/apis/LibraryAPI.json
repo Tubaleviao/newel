@@ -1,0 +1,9 @@
+{
+  "endpoints": {
+    "POST /loans":              { "description": "Borrow a book",                       "auth": { "roles": ["member"] } },
+    "DELETE /loans/:id":        { "description": "Return a borrowed book",              "auth": { "roles": ["member", "librarian"] } },
+    "GET /books":               { "description": "List all books",                      "returns": "Book",   "auth": { "roles": ["member", "librarian"] } },
+    "GET /books/:id":           { "description": "Get details of a single book",        "returns": "Book",   "auth": { "roles": ["member", "librarian"] } },
+    "GET /members/:id/loans":   { "description": "Get loan history for a member",       "returns": "Loan",   "auth": { "roles": ["member", "librarian"] } }
+  }
+}

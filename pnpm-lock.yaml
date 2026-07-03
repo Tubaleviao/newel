@@ -15,8 +15,17 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
-  examples/rest-api:
+  examples/library:
     dependencies:
+      '@quoin/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@quoin/generator-typescript':
+        specifier: workspace:*
+        version: link:../../packages/generator-typescript
+
+  examples/rest-api:
+    devDependencies:
       '@quoin/core':
         specifier: workspace:*
         version: link:../../packages/core

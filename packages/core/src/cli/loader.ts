@@ -2,6 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import type { FabricSchema } from '../ir/types'
 import type { QuoinConfig } from '../config'
+import { normalizeSchema } from '../ir/normalizer'
 
 export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
   const resolved = path.resolve(fabricPath)
@@ -11,12 +12,20 @@ export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
 
   delete require.cache[resolved]
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const mod = require(resolved) as { default?: { toIR?: () => FabricSchema } } | { toIR?: () => FabricSchema }
-  const builder = 'default' in mod ? mod.default : mod
-  if (!builder || typeof (builder as { toIR?: unknown }).toIR !== 'function') {
-    throw new Error(`${resolved} must export a FabricBuilder with a toIR() method as default export`)
+  const mod = require(resolved) as { default?: unknown } | Record<string, unknown>
+  const exported = ('default' in mod && mod.default !== undefined) ? mod.default : mod
+
+  if (exported && typeof (exported as { toIR?: unknown }).toIR === 'function') {
+    return (exported as { toIR: () => FabricSchema }).toIR()
   }
-  return (builder as { toIR: () => FabricSchema }).toIR()
+
+  if (exported && typeof exported === 'object') {
+    return normalizeSchema(exported)
+  }
+
+  throw new Error(
+    `${resolved} must export either a FabricBuilder (with toIR()) or a plain object with { meta, entities, apis }`
+  )
 }
 
 export async function loadConfig(configPath: string): Promise<QuoinConfig> {

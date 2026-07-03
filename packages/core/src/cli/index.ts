@@ -14,14 +14,14 @@ program
 
 program
   .command('validate')
-  .description('Check for errors in fabric.ts without writing files')
-  .option('-s, --schema <path>', 'path to fabric.ts', './src/fabric.ts')
+  .description('Check for errors in fabric.js without writing files')
+  .option('-s, --schema <path>', 'path to fabric.js', './src/fabric.js')
   .action((opts: { schema: string }) => validateCommand(opts.schema))
 
 program
   .command('inspect')
   .description('Print the resolved IR as JSON')
-  .option('-s, --schema <path>', 'path to fabric.ts', './src/fabric.ts')
+  .option('-s, --schema <path>', 'path to fabric.js', './src/fabric.js')
   .action((opts: { schema: string }) => inspectCommand(opts.schema))
 
 program

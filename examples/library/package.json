@@ -1,0 +1,15 @@
+{
+  "name": "library-example",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Worked example: library management system using quoin",
+  "scripts": {
+    "validate": "quoin validate -s ./fabric.js",
+    "inspect":  "quoin inspect  -s ./fabric.js",
+    "generate": "quoin generate -c ./quoin.config.js"
+  },
+  "dependencies": {
+    "@quoin/core": "workspace:*",
+    "@quoin/generator-typescript": "workspace:*"
+  }
+}

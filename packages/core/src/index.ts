@@ -7,6 +7,8 @@ export { BehaviorBuilder } from './builders/behavior'
 export { StateMachineBuilder } from './builders/statemachine'
 export { ApiBuilder } from './builders/api'
 
+export { normalizeSchema } from './ir/normalizer'
+
 export type {
   FabricSchema,
   EntitySchema,

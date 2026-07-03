@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest --testPathPattern=src",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
