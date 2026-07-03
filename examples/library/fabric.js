@@ -1,6 +1,8 @@
-// Assemble the schema from individual JSON files.
+// @ts-check
+// Assemble the schema from individual entity files.
 // Each entity lives in its own file — organize however suits your project.
 
+/** @type {import('@quoin/core').FabricInput} */
 module.exports = {
   meta: {
     name: 'LibrarySystem',
@@ -9,12 +11,12 @@ module.exports = {
   },
 
   entities: {
-    Book:   require('./entities/Book.json'),
-    Member: require('./entities/Member.json'),
-    Loan:   require('./entities/Loan.json'),
+    Book:   require('./entities/Book'),
+    Member: require('./entities/Member'),
+    Loan:   require('./entities/Loan'),
   },
 
   apis: {
-    LibraryAPI: require('./apis/LibraryAPI.json'),
+    LibraryAPI: require('./apis/LibraryAPI'),
   },
 }

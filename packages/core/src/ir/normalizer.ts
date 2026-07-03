@@ -2,103 +2,27 @@ import type {
   FabricSchema,
   EntitySchema,
   FieldSchema,
-  FieldType,
-  RelationSchema,
   BehaviorSchema,
   StateMachineSchema,
   TransitionSchema,
   StateSchema,
   ApiSchema,
   EndpointSchema,
-  SchemaMeta,
   GdprCategory,
-  GdprLegalBasis,
-  AuthSchema,
 } from './types'
+import type {
+  FabricInput,
+  EntityInput,
+  FieldInput,
+  StateMachineInput,
+  BehaviorInput,
+  ApiInput,
+  EndpointInput,
+} from './input-types'
 
 const CURRENT_IR_VERSION = '1.0.0'
 
-type RawGdpr = {
-  category?: GdprCategory
-  retention?: string
-  legalBasis?: GdprLegalBasis
-}
-
-type RawField = {
-  type: FieldType
-  description?: string
-  nullable?: boolean
-  primaryKey?: boolean
-  values?: string[]
-  enumValues?: string[]
-  foreignKey?: string
-  pii?: boolean
-  gdpr?: RawGdpr
-  gdprCategory?: GdprCategory
-  gdprRetention?: string
-  gdprLegalBasis?: GdprLegalBasis
-}
-
-type RawTransition = {
-  from: string | string[]
-  to: string
-  trigger: string
-  guard?: string
-  guards?: string[]
-  effect?: string
-  effects?: string[]
-}
-
-type RawState = {
-  description?: string
-  terminal?: boolean
-}
-
-type RawStateMachine = {
-  field: string
-  initial: string
-  states: Record<string, RawState | string>
-  transitions: RawTransition[]
-}
-
-type RawAuth = { roles: string[] }
-
-type RawBehavior = {
-  description: string
-  rules?: string[]
-  input?: Record<string, RawField>
-  output?: string
-  auth?: RawAuth
-  transitions?: string[]
-}
-
-type RawEndpoint = {
-  description?: string
-  behavior?: string
-  returns?: string
-  auth?: RawAuth
-}
-
-type RawApi = {
-  endpoints: Record<string, RawEndpoint>
-}
-
-type RawEntity = {
-  description?: string
-  goal?: string
-  fields?: Record<string, RawField>
-  relations?: Record<string, RelationSchema>
-  behaviors?: Record<string, RawBehavior>
-  stateMachine?: RawStateMachine
-}
-
-type RawSchema = {
-  meta: Partial<SchemaMeta> & { name: string }
-  entities?: Record<string, RawEntity>
-  apis?: Record<string, RawApi>
-}
-
-function normalizeField(name: string, raw: RawField): FieldSchema {
+function normalizeField(name: string, raw: FieldInput): FieldSchema {
   if (!raw.type) throw new Error(`Field "${name}" is missing required property "type"`)
 
   const gdprCategory = raw.gdprCategory ?? raw.gdpr?.category
@@ -120,20 +44,20 @@ function normalizeField(name: string, raw: RawField): FieldSchema {
   }
 }
 
-function normalizeTransition(raw: RawTransition): TransitionSchema {
+function normalizeTransition(raw: { from: string | string[], to: string, trigger: string, guard?: string, guards?: string[], effect?: string, effects?: string[] }): TransitionSchema {
   const guards = raw.guards ?? (raw.guard ? [raw.guard] : [])
   const effects = raw.effects ?? (raw.effect ? [raw.effect] : [])
   return { from: raw.from, to: raw.to, trigger: raw.trigger, guards, effects }
 }
 
-function normalizeState(name: string, raw: RawState | string): StateSchema {
+function normalizeState(name: string, raw: { description?: string, terminal?: boolean } | string): StateSchema {
   if (typeof raw === 'string') {
     return { name, description: raw, terminal: false }
   }
   return { name, description: raw.description ?? '', terminal: raw.terminal ?? false }
 }
 
-function normalizeStateMachine(raw: RawStateMachine): StateMachineSchema {
+function normalizeStateMachine(raw: StateMachineInput): StateMachineSchema {
   const states: Record<string, StateSchema> = {}
   for (const [name, s] of Object.entries(raw.states)) {
     states[name] = normalizeState(name, s)
@@ -146,7 +70,7 @@ function normalizeStateMachine(raw: RawStateMachine): StateMachineSchema {
   }
 }
 
-function normalizeBehavior(name: string, raw: RawBehavior): BehaviorSchema {
+function normalizeBehavior(name: string, raw: BehaviorInput): BehaviorSchema {
   const input: Record<string, FieldSchema> | undefined = raw.input
     ? Object.fromEntries(Object.entries(raw.input).map(([k, v]) => [k, normalizeField(k, v)]))
     : undefined
@@ -161,7 +85,7 @@ function normalizeBehavior(name: string, raw: RawBehavior): BehaviorSchema {
   }
 }
 
-function normalizeEntity(name: string, raw: RawEntity): EntitySchema {
+function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
   const fields: Record<string, FieldSchema> = {}
   const pii: string[] = []
   const gdpr: Record<string, GdprCategory> = {}
@@ -191,14 +115,14 @@ function normalizeEntity(name: string, raw: RawEntity): EntitySchema {
   }
 }
 
-function normalizeEndpoint(key: string, raw: RawEndpoint): EndpointSchema {
+function normalizeEndpoint(key: string, raw: EndpointInput): EndpointSchema {
   const spaceIdx = key.indexOf(' ')
   const method = spaceIdx === -1 ? key : key.slice(0, spaceIdx).toUpperCase()
   const path = spaceIdx === -1 ? '' : key.slice(spaceIdx + 1)
   return { method, path, description: raw.description, behavior: raw.behavior, returns: raw.returns, auth: raw.auth }
 }
 
-function normalizeApi(name: string, raw: RawApi): ApiSchema {
+function normalizeApi(name: string, raw: ApiInput): ApiSchema {
   const endpoints: Record<string, EndpointSchema> = {}
   for (const [key, rawEp] of Object.entries(raw.endpoints ?? {})) {
     endpoints[key] = normalizeEndpoint(key, rawEp)
@@ -207,7 +131,7 @@ function normalizeApi(name: string, raw: RawApi): ApiSchema {
 }
 
 export function normalizeSchema(raw: unknown): FabricSchema {
-  const r = raw as RawSchema
+  const r = raw as FabricInput
   if (!r || typeof r !== 'object') throw new Error('fabric export must be a plain object')
   if (!r.meta?.name) throw new Error('fabric export must have a "meta.name" field')
 

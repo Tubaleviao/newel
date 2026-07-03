@@ -8,6 +8,20 @@ export { StateMachineBuilder } from './builders/statemachine'
 export { ApiBuilder } from './builders/api'
 
 export { normalizeSchema } from './ir/normalizer'
+export { defineEntity, defineApi, defineFabric } from './ir/define'
+export type {
+  FabricInput,
+  EntityInput,
+  FieldInput,
+  ApiInput,
+  EndpointInput,
+  BehaviorInput,
+  StateMachineInput,
+  TransitionInput,
+  StateInput,
+  AuthInput,
+  GdprInput,
+} from './ir/input-types'
 
 export type {
   FabricSchema,
