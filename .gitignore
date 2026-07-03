@@ -4,7 +4,7 @@ dist/
 *.d.ts.map
 
 # generated artifacts
-src/generated/
+**/src/generated/
 quoin.manifest.json
 
 # OS
@@ -22,3 +22,7 @@ Thumbs.db
 
 # local-only
 CLAUDE.md
+.claude/
+
+# build caches
+.turbo/
