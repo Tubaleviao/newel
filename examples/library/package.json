@@ -4,9 +4,9 @@
   "private": true,
   "description": "Worked example: library management system using quoin",
   "scripts": {
-    "validate": "quoin validate -s ./fabric.js",
-    "inspect":  "quoin inspect  -s ./fabric.js",
-    "generate": "quoin generate -c ./quoin.config.js"
+    "validate": "quoin validate -s ./fabric.ts",
+    "inspect":  "quoin inspect  -s ./fabric.ts",
+    "generate": "quoin generate -c ./quoin.config.ts"
   },
   "dependencies": {
     "@quoin/core": "workspace:*",

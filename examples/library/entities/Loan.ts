@@ -1,6 +1,6 @@
-const { defineEntity } = require('@quoin/core')
+import { defineEntity } from '@quoin/core'
 
-module.exports = defineEntity({
+export default defineEntity({
   description: 'A record of a book being borrowed by a member',
   goal: 'Track the full lifecycle of a lending transaction',
   fields: {

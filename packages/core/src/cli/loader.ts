@@ -4,11 +4,18 @@ import type { FabricSchema } from '../ir/types'
 import type { QuoinConfig } from '../config'
 import { normalizeSchema } from '../ir/normalizer'
 
+function registerTsx() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('tsx/cjs')
+}
+
 export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
   const resolved = path.resolve(fabricPath)
   if (!fs.existsSync(resolved)) {
     throw new Error(`fabric file not found: ${resolved}`)
   }
+
+  if (resolved.endsWith('.ts')) registerTsx()
 
   delete require.cache[resolved]
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -33,6 +40,8 @@ export async function loadConfig(configPath: string): Promise<QuoinConfig> {
   if (!fs.existsSync(resolved)) {
     throw new Error(`config file not found: ${resolved}`)
   }
+  if (resolved.endsWith('.ts')) registerTsx()
+
   delete require.cache[resolved]
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mod = require(resolved) as { default?: QuoinConfig } | QuoinConfig
