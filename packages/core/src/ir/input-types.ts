@@ -69,6 +69,7 @@ export type EndpointInput = {
 }
 
 export type ApiInput = {
+  baseUrl?: string
   endpoints: Record<string, EndpointInput>
 }
 

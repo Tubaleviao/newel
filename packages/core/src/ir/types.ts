@@ -106,6 +106,7 @@ export interface EndpointSchema {
 
 export interface ApiSchema {
   name: string
+  baseUrl?: string
   endpoints: Record<string, EndpointSchema>
 }
 

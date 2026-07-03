@@ -127,7 +127,7 @@ function normalizeApi(name: string, raw: ApiInput): ApiSchema {
   for (const [key, rawEp] of Object.entries(raw.endpoints ?? {})) {
     endpoints[key] = normalizeEndpoint(key, rawEp)
   }
-  return { name, endpoints }
+  return { name, baseUrl: raw.baseUrl, endpoints }
 }
 
 export function normalizeSchema(raw: unknown): FabricSchema {
