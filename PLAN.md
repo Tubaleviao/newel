@@ -607,7 +607,7 @@ without breaking drift detection.
 
 ---
 
-### Phase 10 — `generator-ui`
+### Phase 10 — `generator-ui` ✅ Done
 **Goal:** The demo that makes the value tangible in ten seconds.
 
 State machines and field metadata contain everything needed to render a correct UI.
