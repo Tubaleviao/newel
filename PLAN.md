@@ -298,6 +298,14 @@ State machines are first-class in the IR, not an afterthought. Key decisions:
 - **Guards and effects are declarative strings** — the SQL generator uses them as
   comments in migration files; the docs generator renders them as human-readable rules;
   a future runtime generator could compile them to executable code.
+- **Guards must not duplicate behavior rules.** A transition's `guard` and its linked
+  behavior's `rules` are two sources of truth for the same invariant — they will diverge.
+  The preferred pattern: behavior rules are the authoritative list; a transition `guard`
+  should either be derived from the behavior's rules (the normaliser can do this
+  automatically for single-transition behaviors) or expressed as a structured predicate
+  with an optional prose label rather than a free string. Free-string guards are
+  acceptable only for transition-level preconditions that have no corresponding behavior
+  rule (e.g. `"Order must not already be in a terminal state"`).
 - **Terminal states** are marked explicitly — the SQL generator can add a CHECK
   constraint; the OpenAPI generator suppresses mutation endpoints for terminal-state
   resources.
@@ -405,7 +413,7 @@ semantic-fabric/
 
 ## Development Phases
 
-### Phase 1 — IR + Builder DSL
+### Phase 1 — IR + Builder DSL ✅ Done
 **Goal:** The schema can be expressed and serialized. Nothing is generated yet.
 
 - Define all IR types (`FabricSchema`, `EntitySchema`, `StateMachineSchema`, etc.)
@@ -420,7 +428,27 @@ semantic-fabric/
 
 ---
 
-### Phase 2 — Generator Interface + DAG Runner
+### Phase 1b — Guard deduplication in normaliser
+**Goal:** Eliminate the two-sources-of-truth between transition guards and behavior rules.
+**Must complete before Phase 4** — OpenAPI and SQL both emit guards/rules; encoding the
+duplication into their output format makes it a rework, not a fix.
+
+- In the normaliser (the `toIR()` path), when a transition's `trigger` maps to exactly
+  one behavior, automatically derive `guards` from that behavior's `rules` if no explicit
+  `guard`/`guards` is set on the transition
+- If both are set and differ, emit a validation warning identifying the mismatch
+- Structured predicate type for guards (`{ rule: string, label?: string }`) so generators
+  can render the prose label separately from the machine-readable rule
+- Free-string guards remain valid only for transition-level preconditions with no
+  corresponding behavior rule (validated by convention, not enforced)
+- Update the State Machine Design section of this plan and the builder DSL accordingly
+
+**Deliverable:** Running `validate` on a fabric with duplicate guard strings produces a
+warning; the normaliser auto-derives guards for single-transition behaviors.
+
+---
+
+### Phase 2 — Generator Interface + DAG Runner ✅ Done
 **Goal:** The plugin system works. Generators can be wired and executed in order.
 
 - Define `Generator`, `GeneratorContext`, `GeneratorOutput`, `GeneratedFile` interfaces
@@ -437,7 +465,27 @@ semantic-fabric/
 
 ---
 
-### Phase 3 — `generator-typescript`
+### Phase 2b — IR snapshot writing in runner
+**Goal:** Every `generate` run records the full resolved IR so future generators can
+diff across versions.
+**Must complete before Phase 5** — the SQL generator's migration-diffing reads snapshots.
+If the runner doesn't write them, Phase 5 would have to implement its own snapshot write
+at the wrong layer, requiring a rework when the runner is later amended.
+
+- After resolving and patching the IR (and before executing generators), the runner writes
+  `quoin.ir-snapshot.json` alongside the manifest
+- The snapshot contains the full `FabricSchema` as serialized JSON plus `generatedAt` and
+  `schemaHash`
+- `check-drift` and `diff` are updated to be snapshot-aware
+- The previous snapshot (if any) is available to generators via `ctx.previousSnapshot`
+  so that downstream generators (SQL) can compute their own diffs
+
+**Deliverable:** Each `generate` run produces `quoin.ir-snapshot.json`; the runner exposes
+`ctx.previousSnapshot` to generators.
+
+---
+
+### Phase 3 — `generator-typescript` ✅ Done
 **Goal:** Entities become TypeScript types.
 
 - TS interface per entity (all fields, nullability, enums)
@@ -468,18 +516,24 @@ semantic-fabric/
 
 ### Phase 5 — `generator-sql`
 **Goal:** Entities become database tables with migration files.
+**Requires Phase 2b** — reads `ctx.previousSnapshot` to diff IR versions safely.
 
 - `CREATE TABLE` per entity with correct column types and constraints
 - Foreign keys from `.relation()`
 - CHECK constraints from terminal state machine states
 - Enum types from `.field().enum()`
 - Migration file naming: `000001_init.sql`, `000002_add_cancelled_at.sql`, etc.
+- **Safe incremental migrations**: diff `ctx.previousSnapshot` against the current IR to
+  produce additive migrations — new NOT NULL columns with defaults, enum additions, column
+  renames detected via heuristic, dropped columns moved to a `-- MANUAL REVIEW` block
+  rather than silently dropped
 - Drift detection: compare IR hash of last migration against current IR; if different,
   generate a new migration
 - Reset script (separate CLI command on the generator, not in fabric.ts)
 - `dependsOn: ['typescript']`
 
-**Deliverable:** `migrations/` directory with incremental SQL files.
+**Deliverable:** `migrations/` directory with safe incremental SQL files derived from
+IR-to-IR diffs.
 
 ---
 
@@ -522,6 +576,55 @@ triple store.
   call (not just a type error)
 - VS Code extension hint: `// @semantic-fabric` region markers in generated files link
   back to the source entity in `fabric.ts`
+
+---
+
+### Phase 9 — Customization patches (drift absorption)
+**Goal:** Users can customize generated output without editing generated files.
+
+The `check-drift` command catches manual edits, but that only forbids customization —
+it doesn't absorb it. Every predecessor to this kind of tool eventually died here:
+users need escape hatches.
+
+The answer is **semantic patches**: a separate user-authored file (e.g.
+`fabric.patches.ts`) that expresses intent against the IR, not against generated
+text. Generators apply patches during generation, so the output reflects both the
+fabric and the patches, and drift detection remains meaningful.
+
+- Define a `Patch` type in the IR: `{ target: 'entity.Book.fields.title', op: 'merge', value: {...} }`
+- The runner applies patches to the resolved IR before handing it to generators
+- Generators are unaware of patches — they only see the patched IR
+- `check-drift` compares against the patched IR hash, not the raw IR hash
+- `diff` shows which patches affected which files
+
+Patches cover the common cases:
+- Override a generated field's metadata (description, validation, column type)
+- Append to a generated file's imports
+- Suppress generation of a specific file
+
+**Deliverable:** Users can write `fabric.patches.ts` to safely customize output
+without breaking drift detection.
+
+---
+
+### Phase 10 — `generator-ui`
+**Goal:** The demo that makes the value tangible in ten seconds.
+
+State machines and field metadata contain everything needed to render a correct UI.
+This generator produces form and action components that are always in sync with the
+fabric — no manual wiring needed.
+
+- **Entity forms**: one form component per entity, fields derived from IR field types
+  and validation rules (required, enum options, max length, etc.)
+- **State-machine-aware action buttons**: only transitions valid from the current
+  state are rendered; guards appear as tooltip copy or disabled states
+- **Role-aware rendering**: fields and actions gated by `auth` are hidden or disabled
+  for unauthorized roles (driven by IR, not ad-hoc `if` statements)
+- Target: React + TypeScript by default; plain HTML as a zero-dependency fallback
+- `dependsOn: ['typescript']`
+
+**Deliverable:** `ui/` directory with one form component and one action panel per
+entity, directly importable into a React app.
 
 ---
 
