@@ -122,9 +122,13 @@ export class TypeScriptGenerator implements Generator {
       const iface = generateEntityInterface(entity)
       const zod = generateZodSchema(entity)
       const stateEnum = generateStateEnum(entity)
+
+      sections.push(`// #region ${entity.name}`)
       if (stateEnum) sections.push(stateEnum, '')
       sections.push(iface, '')
-      sections.push(zod, '')
+      sections.push(zod)
+      sections.push(`// #endregion ${entity.name}`)
+      sections.push('')
     }
 
     const content = sections.join('\n')

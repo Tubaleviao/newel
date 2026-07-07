@@ -10,6 +10,53 @@ describe('normalizeSchema', () => {
     expect(() => normalizeSchema({ meta: {} })).toThrow('meta.name')
   })
 
+  it('reports entity and field name when type is missing', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: { Order: { fields: { status: {} } } },
+    })).toThrow('entities.Order.fields.status: missing required property "type"')
+  })
+
+  it('reports entity and field name when enum has no values', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: { Order: { fields: { status: { type: 'enum' } } } },
+    })).toThrow('entities.Order.fields.status: enum field must specify "values" or "enumValues"')
+  })
+
+  it('reports entity and field name in behavior input fields', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: {
+        Order: {
+          fields: { id: { type: 'uuid' } },
+          behaviors: {
+            placeOrder: { description: 'Place', rules: [], input: { qty: {} } },
+          },
+        },
+      },
+    })).toThrow('entities.Order.behaviors.placeOrder.fields.qty: missing required property "type"')
+  })
+
+  it('reports stateMachine errors with entity context', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: {
+        Order: {
+          fields: { status: { type: 'enum', values: ['draft'] } },
+          stateMachine: { field: '', initial: 'draft', states: { draft: 'Draft' }, transitions: [] },
+        },
+      },
+    })).toThrow('entities.Order.stateMachine: missing required "field" property')
+  })
+
+  it('reports endpoint format errors with api context', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      apis: { OrderAPI: { endpoints: { '/orders': { returns: 'Order' } } } },
+    })).toThrow('apis.OrderAPI.endpoints["/orders"]: endpoint key must be "METHOD /path"')
+  })
+
   it('produces a valid schema from minimal input', () => {
     const schema = normalizeSchema({ meta: { name: 'Test' } })
     expect(schema.version).toBe('1.0.0')
