@@ -7,6 +7,7 @@ import { DocsGenerator } from '@quoin/generator-docs'
 export default defineConfig({
   schema: './fabric.ts',
   output: './src/generated',
+  patches: './fabric.patches.ts',
   generators: [
     new TypeScriptGenerator(),
     new OpenApiGenerator(),

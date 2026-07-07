@@ -60,3 +60,7 @@ export { readManifest, writeManifest, hashContent, hashSchema } from './runner/m
 export type { Manifest, ManifestEntry } from './runner/manifest'
 export { readSnapshot, writeSnapshot, buildSnapshot } from './runner/snapshot'
 export type { IRSnapshot } from './runner/snapshot'
+
+export { definePatchSet } from './ir/patch'
+export type { Patch, MergePatch, SuppressPatch, PatchSet } from './ir/patch'
+export { applyPatches, collectSuppressPatterns, isSuppressed } from './ir/apply-patches'

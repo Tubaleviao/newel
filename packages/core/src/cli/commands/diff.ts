@@ -38,12 +38,18 @@ export async function diffCommand(configPath: string): Promise<void> {
 
     const outputDir = path.resolve(path.dirname(configPath), config.output)
 
+    const patches = Array.isArray(config.patches) ? config.patches : undefined
     const result = await runGenerators(schema, config.generators, {
       outputDir,
       dryRun: true,
+      patches,
     })
 
-    let anyChange = false
+    for (const suppressed of result.suppressedFiles) {
+      console.log(`[suppressed] ${suppressed}`)
+    }
+
+    let anyChange = result.suppressedFiles.length > 0
     for (const entry of result.manifest.files) {
       const filePath = path.join(outputDir, entry.path)
       const genFile = result.outputs

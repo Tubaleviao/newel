@@ -1,15 +1,19 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import type { FabricSchema } from '../ir/types'
+import type { Patch } from '../ir/patch'
 import type { Generator, GeneratorOutput } from './types'
 import type { IRSnapshot } from './snapshot'
 import { topoSort } from './dag'
 import { hashSchema, buildManifestEntries, writeManifest, type Manifest } from './manifest'
 import { readSnapshot, writeSnapshot, buildSnapshot } from './snapshot'
+import { applyPatches, collectSuppressPatterns, isSuppressed } from '../ir/apply-patches'
 
 export interface RunnerOptions {
   outputDir: string
   dryRun?: boolean
+  /** Semantic patches applied to the resolved IR before generators run. */
+  patches?: Patch[]
 }
 
 export interface RunResult {
@@ -17,6 +21,8 @@ export interface RunResult {
   outputs: Map<string, GeneratorOutput>
   snapshot: IRSnapshot
   previousSnapshot: IRSnapshot | null
+  /** File paths suppressed by patches (relative to outputDir). */
+  suppressedFiles: string[]
 }
 
 export async function runGenerators(
@@ -26,12 +32,21 @@ export async function runGenerators(
 ): Promise<RunResult> {
   const sorted = topoSort(generators)
   const outputs = new Map<string, GeneratorOutput>()
-  const schemaHash = hashSchema(schema)
   const allEntries: Manifest['files'] = []
   const generatedAt = new Date().toISOString()
 
+  const patches = options.patches ?? []
+  const patchedSchema = applyPatches(schema, patches)
+  const suppressPatterns = collectSuppressPatterns(patches)
+
+  // Snapshot and manifest hash are both based on the patched schema so that
+  // check-drift compares against the patched IR, not the raw IR.
+  const schemaHash = hashSchema(patchedSchema)
+
   const previousSnapshot = readSnapshot(options.outputDir)
-  const snapshot = buildSnapshot(schema, generatedAt)
+  const snapshot = buildSnapshot(patchedSchema, generatedAt)
+
+  const suppressedFiles: string[] = []
 
   for (const gen of sorted) {
     const ctx = {
@@ -40,11 +55,22 @@ export async function runGenerators(
       previousSnapshot: previousSnapshot ?? undefined,
     }
 
-    const output = await gen.generate(schema, ctx)
-    outputs.set(gen.name, output)
+    const output = await gen.generate(patchedSchema, ctx)
+
+    // Filter suppressed files before writing or adding to manifest.
+    const kept: typeof output.files = []
+    for (const file of output.files) {
+      if (isSuppressed(file.path, suppressPatterns)) {
+        suppressedFiles.push(file.path)
+      } else {
+        kept.push(file)
+      }
+    }
+    const filteredOutput: GeneratorOutput = { ...output, files: kept }
+    outputs.set(gen.name, filteredOutput)
 
     if (!options.dryRun) {
-      for (const file of output.files) {
+      for (const file of kept) {
         const filePath = path.join(options.outputDir, file.path)
         const dir = path.dirname(filePath)
         fs.mkdirSync(dir, { recursive: true })
@@ -53,7 +79,7 @@ export async function runGenerators(
       }
     }
 
-    allEntries.push(...buildManifestEntries(gen.name, output, schemaHash))
+    allEntries.push(...buildManifestEntries(gen.name, filteredOutput, schemaHash))
   }
 
   const manifest: Manifest = {
@@ -67,5 +93,5 @@ export async function runGenerators(
     writeSnapshot(options.outputDir, snapshot)
   }
 
-  return { manifest, outputs, snapshot, previousSnapshot }
+  return { manifest, outputs, snapshot, previousSnapshot, suppressedFiles }
 }

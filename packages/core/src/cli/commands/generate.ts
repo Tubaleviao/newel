@@ -9,14 +9,19 @@ async function runOnce(configPath: string): Promise<void> {
   const schema = await loadSchema(fabricPath)
 
   console.log(`Generating from ${schema.meta.name}...`)
+  const patches = Array.isArray(config.patches) ? config.patches : undefined
   const result = await runGenerators(schema, config.generators, {
     outputDir: path.resolve(path.dirname(configPath), config.output),
+    patches,
   })
 
   const fileCount = result.manifest.files.length
   console.log(`✓ Generated ${fileCount} file(s)`)
   for (const entry of result.manifest.files) {
     console.log(`  ${entry.path}  [${entry.generator}]`)
+  }
+  if (result.suppressedFiles.length > 0) {
+    console.log(`  (${result.suppressedFiles.length} file(s) suppressed by patches)`)
   }
 }
 

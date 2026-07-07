@@ -2,6 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import type { FabricSchema } from '../ir/types'
 import type { QuoinConfig } from '../config'
+import type { Patch, PatchSet } from '../ir/patch'
 import { normalizeSchema } from '../ir/normalizer'
 
 function registerTsx() {
@@ -35,6 +36,28 @@ export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
   )
 }
 
+export async function loadPatches(patchesPath: string): Promise<Patch[]> {
+  const resolved = path.resolve(patchesPath)
+  if (!fs.existsSync(resolved)) {
+    throw new Error(`patches file not found: ${resolved}`)
+  }
+  if (resolved.endsWith('.ts')) registerTsx()
+
+  delete require.cache[resolved]
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const mod = require(resolved) as { default?: unknown } | Record<string, unknown>
+  const exported = ('default' in mod && mod.default !== undefined) ? mod.default : mod
+
+  if (Array.isArray(exported)) return exported as Patch[]
+  if (exported && typeof exported === 'object' && 'patches' in exported) {
+    return (exported as PatchSet).patches
+  }
+
+  throw new Error(
+    `${resolved} must export a Patch[] or a PatchSet ({ patches: Patch[] })`
+  )
+}
+
 export async function loadConfig(configPath: string): Promise<QuoinConfig> {
   const resolved = path.resolve(configPath)
   if (!fs.existsSync(resolved)) {
@@ -49,5 +72,12 @@ export async function loadConfig(configPath: string): Promise<QuoinConfig> {
   if (!cfg.schema || !cfg.output || !cfg.generators) {
     throw new Error(`quoin.config.ts must export { schema, output, generators }`)
   }
+
+  // If patches is a string path, resolve and load it relative to the config dir
+  if (typeof cfg.patches === 'string') {
+    const patchesPath = path.resolve(path.dirname(resolved), cfg.patches)
+    cfg.patches = await loadPatches(patchesPath)
+  }
+
   return cfg
 }

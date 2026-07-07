@@ -122,4 +122,96 @@ describe('runGenerators', () => {
     expect(result.snapshot.schema).toEqual(minimalSchema)
     expect(result.snapshot.schemaHash).toMatch(/^sha256:/)
   })
+
+  describe('patches', () => {
+    const schemaWithEntity: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Book: {
+          name: 'Book',
+          description: 'original',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+    }
+
+    it('applies merge patches before generators see the schema', async () => {
+      let seenDescription: string | undefined
+      const gen: Generator = {
+        name: 'observer',
+        dependsOn: [],
+        async generate(schema) {
+          seenDescription = schema.entities.Book?.description
+          return { files: [] }
+        },
+      }
+      await runGenerators(schemaWithEntity, [gen], {
+        outputDir: tmpDir,
+        patches: [{ op: 'merge', target: 'entity.Book', value: { description: 'patched' } }],
+      })
+      expect(seenDescription).toBe('patched')
+    })
+
+    it('snapshot stores the patched schema', async () => {
+      const gen = makeStubGen('stub')
+      const result = await runGenerators(schemaWithEntity, [gen], {
+        outputDir: tmpDir,
+        patches: [{ op: 'merge', target: 'entity.Book', value: { description: 'patched' } }],
+      })
+      expect(result.snapshot.schema.entities.Book.description).toBe('patched')
+    })
+
+    it('suppresses files matching a pattern', async () => {
+      const gen = makeStubGen('stub')
+      const result = await runGenerators(minimalSchema, [gen], {
+        outputDir: tmpDir,
+        patches: [{ op: 'suppress', pattern: 'stub/output.txt' }],
+      })
+      expect(fs.existsSync(path.join(tmpDir, 'stub/output.txt'))).toBe(false)
+      expect(result.suppressedFiles).toEqual(['stub/output.txt'])
+    })
+
+    it('suppresses files matching a wildcard pattern', async () => {
+      const gen: Generator = {
+        name: 'multi',
+        dependsOn: [],
+        async generate() {
+          return {
+            files: [
+              { path: 'multi/a.sql', content: 'a' },
+              { path: 'multi/b.sql', content: 'b' },
+              { path: 'multi/index.ts', content: 'ts' },
+            ],
+          }
+        },
+      }
+      const result = await runGenerators(minimalSchema, [gen], {
+        outputDir: tmpDir,
+        patches: [{ op: 'suppress', pattern: 'multi/*.sql' }],
+      })
+      expect(fs.existsSync(path.join(tmpDir, 'multi/a.sql'))).toBe(false)
+      expect(fs.existsSync(path.join(tmpDir, 'multi/b.sql'))).toBe(false)
+      expect(fs.existsSync(path.join(tmpDir, 'multi/index.ts'))).toBe(true)
+      expect(result.suppressedFiles).toEqual(['multi/a.sql', 'multi/b.sql'])
+    })
+
+    it('suppressed files are not added to the manifest', async () => {
+      const gen = makeStubGen('stub')
+      const result = await runGenerators(minimalSchema, [gen], {
+        outputDir: tmpDir,
+        patches: [{ op: 'suppress', pattern: 'stub/output.txt' }],
+      })
+      expect(result.manifest.files).toHaveLength(0)
+    })
+
+    it('returns empty suppressedFiles when no patches', async () => {
+      const gen = makeStubGen('stub')
+      const result = await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
+      expect(result.suppressedFiles).toEqual([])
+    })
+  })
 })
