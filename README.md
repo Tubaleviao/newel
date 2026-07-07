@@ -172,14 +172,16 @@ export const userSchema = z.object({
 
 ## Available generators
 
-| Package | Output | Phase |
-|---------|--------|-------|
+| Package | Output | Status |
+|---------|--------|--------|
 | `@quoin/generator-typescript` | TS interfaces + Zod schemas | ✅ Available |
 | `@quoin/generator-openapi` | OpenAPI 3.x YAML | Planned |
-| `@quoin/generator-sql` | SQL DDL + migration files | Planned |
+| `@quoin/generator-sql` | Safe incremental SQL migrations via IR diff | Planned |
 | `@quoin/generator-docs` | Markdown docs + GDPR data map | Planned |
+| `@quoin/generator-jsonschema` | JSON Schema draft-07 per entity | Planned |
 | `@quoin/generator-rdf` | RDF/Turtle ontology | Planned |
-| `@quoin/generator-owl` | OWL ontology | Planned |
+| `@quoin/generator-owl` | OWL ontology (extends RDF output) | Planned |
+| `@quoin/generator-ui` | React forms + state-machine-aware action buttons | Planned |
 
 ---
 
@@ -228,9 +230,11 @@ Generators declare `dependsOn` to access upstream outputs via `ctx.outputs`. The
 
 1. **One source of truth.** `fabric.ts` is the only file that describes what your application is. Nothing else is authoritative.
 2. **Generated files are never edited.** Every generated file carries a `@generated` header. The `check-drift` command enforces this.
-3. **No runtime dependency.** `fabric.ts` calls `toIR()` at build time and returns a plain JSON object. Your application never imports `@quoin/core` at runtime.
-4. **Declarative by design.** Guards, effects, and rules are strings — meaning, not code. Generators interpret them however they need to.
-5. **Open generator ecosystem.** Publish `quoin-generator-*` to npm. The runner discovers generators through `quoin.config.ts` — no registration required.
+3. **Customize without touching generated files.** Write a `fabric.patches.ts` to override field metadata, suppress files, or append imports. The runner applies patches to the IR before generation — drift detection stays meaningful.
+4. **No runtime dependency.** `fabric.ts` calls `toIR()` at build time and returns a plain JSON object. Your application never imports `@quoin/core` at runtime.
+5. **Declarative by design.** Guards, effects, and rules are strings — meaning, not code. Generators interpret them however they need to. Transition guards are automatically derived from their linked behavior's rules, eliminating duplication.
+6. **Safe incremental migrations.** The SQL generator diffs IR snapshots across runs — new columns, enum additions, and renames are detected; dropped columns go to a `-- MANUAL REVIEW` block rather than being silently dropped.
+7. **Open generator ecosystem.** Publish `quoin-generator-*` to npm. The runner discovers generators through `quoin.config.ts` — no registration required.
 
 ---
 
