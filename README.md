@@ -175,13 +175,13 @@ export const userSchema = z.object({
 | Package | Output | Status |
 |---------|--------|--------|
 | `@quoin/generator-typescript` | TS interfaces + Zod schemas | ✅ Available |
-| `@quoin/generator-openapi` | OpenAPI 3.x YAML | Planned |
-| `@quoin/generator-sql` | Safe incremental SQL migrations via IR diff | Planned |
-| `@quoin/generator-docs` | Markdown docs + GDPR data map | Planned |
-| `@quoin/generator-jsonschema` | JSON Schema draft-07 per entity | Planned |
-| `@quoin/generator-rdf` | RDF/Turtle ontology | Planned |
-| `@quoin/generator-owl` | OWL ontology (extends RDF output) | Planned |
-| `@quoin/generator-ui` | React forms + state-machine-aware action buttons | Planned |
+| `@quoin/generator-openapi` | OpenAPI 3.x YAML | ✅ Available |
+| `@quoin/generator-sql` | Safe incremental SQL migrations via IR diff | ✅ Available |
+| `@quoin/generator-docs` | Markdown docs + GDPR data map | ✅ Available |
+| `@quoin/generator-jsonschema` | JSON Schema draft-07 per entity | ✅ Available |
+| `@quoin/generator-rdf` | RDF/Turtle ontology | ✅ Available |
+| `@quoin/generator-owl` | OWL ontology (extends RDF output) | ✅ Available |
+| `@quoin/generator-ui` | React forms + state-machine-aware action buttons | ✅ Available |
 
 ---
 

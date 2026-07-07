@@ -23,8 +23,28 @@ export default defineEntity({
       { from: 'available', to: 'borrowed',  trigger: 'borrow',            guard: 'Member must have no overdue loans' },
       { from: 'borrowed',  to: 'available', trigger: 'return' },
       { from: 'available', to: 'reserved',  trigger: 'reserve',           guard: 'Member must be active' },
-      { from: 'reserved',  to: 'borrowed',  trigger: 'borrow',            guard: 'Must be the reserving member' },
+      { from: 'reserved',  to: 'borrowed',  trigger: 'borrow' },
       { from: 'reserved',  to: 'available', trigger: 'cancelReservation' },
     ],
+  },
+  behaviors: {
+    borrow: {
+      description: 'Borrows a book for a member',
+      rules: ['Member must have no overdue loans'],
+      auth: { roles: ['member', 'librarian'] },
+    },
+    return: {
+      description: 'Returns a borrowed book',
+      auth: { roles: ['member', 'librarian'] },
+    },
+    reserve: {
+      description: 'Reserves an available book for a member',
+      rules: ['Member must be active'],
+      auth: { roles: ['member'] },
+    },
+    cancelReservation: {
+      description: 'Cancels a reservation and makes the book available again',
+      auth: { roles: ['member', 'librarian'] },
+    },
   },
 })

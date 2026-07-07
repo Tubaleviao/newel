@@ -1,8 +1,8 @@
 import { defineFabric } from '@quoin/core'
-import Book      from './entities/Book'
-import Member    from './entities/Member'
-import Loan      from './entities/Loan'
-import LibraryAPI from './apis/LibraryAPI'
+import Book      from '../entities/Book'
+import Member    from '../entities/Member'
+import Loan      from '../entities/Loan'
+import LibraryAPI from '../apis/LibraryAPI'
 
 export default defineFabric({
   meta: {

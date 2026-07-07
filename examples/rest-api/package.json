@@ -4,9 +4,11 @@
   "private": true,
   "description": "Worked example: order management REST API using quoin",
   "scripts": {
-    "validate": "quoin validate -s ./src/fabric.ts",
-    "inspect": "quoin inspect -s ./src/fabric.ts",
-    "generate": "quoin generate -c ./quoin.config.ts"
+    "validate":    "quoin validate    -s ./src/fabric.ts",
+    "inspect":     "quoin inspect     -s ./src/fabric.ts",
+    "generate":    "quoin generate    -c ./quoin.config.ts",
+    "diff":        "quoin diff        -c ./quoin.config.ts",
+    "check-drift": "quoin check-drift -c ./quoin.config.ts"
   },
   "dependencies": {
     "@quoin/core": "workspace:*",

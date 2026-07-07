@@ -32,6 +32,9 @@ importers:
       '@quoin/generator-typescript':
         specifier: workspace:*
         version: link:../../packages/generator-typescript
+      '@quoin/generator-ui':
+        specifier: workspace:*
+        version: link:../../packages/generator-ui
 
   examples/rest-api:
     dependencies:

@@ -4,15 +4,18 @@
   "private": true,
   "description": "Worked example: library management system using quoin",
   "scripts": {
-    "validate": "quoin validate -s ./fabric.ts",
-    "inspect":  "quoin inspect  -s ./fabric.ts",
-    "generate": "quoin generate -c ./quoin.config.ts"
+    "validate":    "quoin validate    -s ./src/fabric.ts",
+    "inspect":     "quoin inspect     -s ./src/fabric.ts",
+    "generate":    "quoin generate    -c ./quoin.config.ts",
+    "diff":        "quoin diff        -c ./quoin.config.ts",
+    "check-drift": "quoin check-drift -c ./quoin.config.ts"
   },
   "dependencies": {
     "@quoin/core": "workspace:*",
     "@quoin/generator-typescript": "workspace:*",
     "@quoin/generator-openapi": "workspace:*",
     "@quoin/generator-sql": "workspace:*",
-    "@quoin/generator-docs": "workspace:*"
+    "@quoin/generator-docs": "workspace:*",
+    "@quoin/generator-ui": "workspace:*"
   }
 }

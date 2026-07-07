@@ -22,4 +22,16 @@ export default defineEntity({
       { from: 'suspended', to: 'active',    trigger: 'reinstate', guard: 'Only a librarian may reinstate a member' },
     ],
   },
+  behaviors: {
+    suspend: {
+      description: 'Temporarily blocks a member from borrowing',
+      rules: ['Only a librarian may suspend a member'],
+      auth: { roles: ['librarian'] },
+    },
+    reinstate: {
+      description: 'Restores borrowing privileges for a suspended member',
+      rules: ['Only a librarian may reinstate a member'],
+      auth: { roles: ['librarian'] },
+    },
+  },
 })
