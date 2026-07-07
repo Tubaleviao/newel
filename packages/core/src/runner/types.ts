@@ -1,4 +1,5 @@
 import type { FabricSchema } from '../ir/types'
+import type { IRSnapshot } from './snapshot'
 
 export interface GeneratedFile {
   path: string
@@ -14,6 +15,7 @@ export interface GeneratorOutput {
 export interface GeneratorContext {
   outputDir: string
   outputs: Map<string, GeneratorOutput>
+  previousSnapshot?: IRSnapshot
 }
 
 export interface Generator {

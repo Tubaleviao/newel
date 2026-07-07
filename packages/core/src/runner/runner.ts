@@ -2,8 +2,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 import type { FabricSchema } from '../ir/types'
 import type { Generator, GeneratorOutput } from './types'
+import type { IRSnapshot } from './snapshot'
 import { topoSort } from './dag'
 import { hashSchema, buildManifestEntries, writeManifest, type Manifest } from './manifest'
+import { readSnapshot, writeSnapshot, buildSnapshot } from './snapshot'
 
 export interface RunnerOptions {
   outputDir: string
@@ -13,6 +15,8 @@ export interface RunnerOptions {
 export interface RunResult {
   manifest: Manifest
   outputs: Map<string, GeneratorOutput>
+  snapshot: IRSnapshot
+  previousSnapshot: IRSnapshot | null
 }
 
 export async function runGenerators(
@@ -24,11 +28,16 @@ export async function runGenerators(
   const outputs = new Map<string, GeneratorOutput>()
   const schemaHash = hashSchema(schema)
   const allEntries: Manifest['files'] = []
+  const generatedAt = new Date().toISOString()
+
+  const previousSnapshot = readSnapshot(options.outputDir)
+  const snapshot = buildSnapshot(schema, generatedAt)
 
   for (const gen of sorted) {
     const ctx = {
       outputDir: path.join(options.outputDir, gen.name),
       outputs,
+      previousSnapshot: previousSnapshot ?? undefined,
     }
 
     const output = await gen.generate(schema, ctx)
@@ -48,14 +57,15 @@ export async function runGenerators(
   }
 
   const manifest: Manifest = {
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     schemaHash,
     files: allEntries,
   }
 
   if (!options.dryRun) {
     writeManifest(options.outputDir, manifest)
+    writeSnapshot(options.outputDir, snapshot)
   }
 
-  return { manifest, outputs }
+  return { manifest, outputs, snapshot, previousSnapshot }
 }

@@ -4,6 +4,7 @@ import * as path from 'path'
 import { runGenerators } from './runner'
 import type { Generator, GeneratorContext, GeneratorOutput } from './types'
 import type { FabricSchema } from '../ir/types'
+import { SNAPSHOT_FILE } from './snapshot'
 
 const minimalSchema: FabricSchema = {
   version: '1.0.0',
@@ -72,5 +73,53 @@ describe('runGenerators', () => {
     const gen = makeStubGen('stub')
     await runGenerators(minimalSchema, [gen], { outputDir: tmpDir, dryRun: true })
     expect(fs.existsSync(path.join(tmpDir, 'stub/output.txt'))).toBe(false)
+  })
+
+  it('writes IR snapshot to disk', async () => {
+    const gen = makeStubGen('stub')
+    await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
+    const snapshotPath = path.join(tmpDir, SNAPSHOT_FILE)
+    expect(fs.existsSync(snapshotPath)).toBe(true)
+    const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'))
+    expect(snapshot.schemaHash).toMatch(/^sha256:/)
+    expect(snapshot.schema).toEqual(minimalSchema)
+    expect(snapshot.generatedAt).toBeDefined()
+  })
+
+  it('dryRun does not write IR snapshot', async () => {
+    const gen = makeStubGen('stub')
+    await runGenerators(minimalSchema, [gen], { outputDir: tmpDir, dryRun: true })
+    expect(fs.existsSync(path.join(tmpDir, SNAPSHOT_FILE))).toBe(false)
+  })
+
+  it('exposes previousSnapshot=null on first run', async () => {
+    const gen = makeStubGen('stub')
+    const result = await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
+    expect(result.previousSnapshot).toBeNull()
+  })
+
+  it('exposes previousSnapshot on subsequent runs', async () => {
+    const gen = makeStubGen('stub')
+    await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
+
+    let capturedPreviousSnapshot: unknown = undefined
+    const snapshotCapture: Generator = {
+      name: 'capture',
+      dependsOn: [],
+      async generate(_schema, ctx) {
+        capturedPreviousSnapshot = ctx.previousSnapshot
+        return { files: [] }
+      },
+    }
+    await runGenerators(minimalSchema, [snapshotCapture], { outputDir: tmpDir })
+    expect(capturedPreviousSnapshot).not.toBeNull()
+    expect((capturedPreviousSnapshot as { schema: FabricSchema }).schema).toEqual(minimalSchema)
+  })
+
+  it('returns snapshot in RunResult', async () => {
+    const gen = makeStubGen('stub')
+    const result = await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
+    expect(result.snapshot.schema).toEqual(minimalSchema)
+    expect(result.snapshot.schemaHash).toMatch(/^sha256:/)
   })
 })
