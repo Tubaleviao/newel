@@ -14,6 +14,13 @@ export async function validateCommand(fabricPath: string): Promise<void> {
       process.exit(1)
     }
 
+    if (result.warnings.length > 0) {
+      console.warn(`  ${result.warnings.length} warning(s):`)
+      for (const w of result.warnings) {
+        console.warn(`  ⚠ ${w.path}: ${w.message}`)
+      }
+    }
+
     console.log(`✓ Schema valid: ${schema.meta.name} (IR v${schema.version})`)
     console.log(`  entities: ${Object.keys(schema.entities).join(', ') || '(none)'}`)
     console.log(`  apis: ${Object.keys(schema.apis).join(', ') || '(none)'}`)

@@ -5,17 +5,32 @@ export interface ValidationError {
   message: string
 }
 
+export interface ValidationWarning {
+  path: string
+  message: string
+}
+
 export interface ValidationResult {
   valid: boolean
   errors: ValidationError[]
+  warnings: ValidationWarning[]
 }
 
 function err(path: string, message: string): ValidationError {
   return { path, message }
 }
 
-function validateStateMachine(sm: StateMachineSchema, entity: EntitySchema, entityName: string): ValidationError[] {
+function warn(path: string, message: string): ValidationWarning {
+  return { path, message }
+}
+
+function validateStateMachine(
+  sm: StateMachineSchema,
+  entity: EntitySchema,
+  entityName: string,
+): { errors: ValidationError[], warnings: ValidationWarning[] } {
   const errors: ValidationError[] = []
+  const warnings: ValidationWarning[] = []
   const base = `entities.${entityName}.stateMachine`
   const stateNames = new Set(Object.keys(sm.states))
 
@@ -44,14 +59,32 @@ function validateStateMachine(sm: StateMachineSchema, entity: EntitySchema, enti
 
     if (t.trigger && !(t.trigger in entity.behaviors)) {
       errors.push(err(`${tBase}.trigger`, `trigger "${t.trigger}" does not match any behavior on entity "${entityName}"`))
+    } else if (t.trigger && t.guards.length > 0) {
+      const behavior = entity.behaviors[t.trigger]
+      if (behavior) {
+        const guardSet = new Set(t.guards)
+        const ruleSet = new Set(behavior.rules)
+        const guardsDifferFromRules = t.guards.some(g => !ruleSet.has(g)) || behavior.rules.some(r => !guardSet.has(r))
+        if (guardsDifferFromRules) {
+          warnings.push(warn(
+            `${tBase}.guards`,
+            `transition guards differ from behavior "${t.trigger}" rules — prefer letting the normalizer derive guards from rules to avoid duplication`,
+          ))
+        }
+      }
     }
   }
 
-  return errors
+  return { errors, warnings }
 }
 
-function validateEntity(name: string, entity: EntitySchema, schema: FabricSchema): ValidationError[] {
+function validateEntity(
+  name: string,
+  entity: EntitySchema,
+  schema: FabricSchema,
+): { errors: ValidationError[], warnings: ValidationWarning[] } {
   const errors: ValidationError[] = []
+  const warnings: ValidationWarning[] = []
 
   for (const [bName, behavior] of Object.entries(entity.behaviors)) {
     if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {
@@ -82,10 +115,12 @@ function validateEntity(name: string, entity: EntitySchema, schema: FabricSchema
   }
 
   if (entity.stateMachine) {
-    errors.push(...validateStateMachine(entity.stateMachine, entity, name))
+    const smResult = validateStateMachine(entity.stateMachine, entity, name)
+    errors.push(...smResult.errors)
+    warnings.push(...smResult.warnings)
   }
 
-  return errors
+  return { errors, warnings }
 }
 
 function validateApis(schema: FabricSchema): ValidationError[] {
@@ -113,12 +148,15 @@ function validateApis(schema: FabricSchema): ValidationError[] {
 
 export function validateSchema(schema: FabricSchema): ValidationResult {
   const errors: ValidationError[] = []
+  const warnings: ValidationWarning[] = []
 
   for (const [name, entity] of Object.entries(schema.entities)) {
-    errors.push(...validateEntity(name, entity, schema))
+    const result = validateEntity(name, entity, schema)
+    errors.push(...result.errors)
+    warnings.push(...result.warnings)
   }
 
   errors.push(...validateApis(schema))
 
-  return { valid: errors.length === 0, errors }
+  return { valid: errors.length === 0, errors, warnings }
 }

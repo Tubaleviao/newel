@@ -10,7 +10,7 @@ export { ApiBuilder } from './builders/api'
 export { normalizeSchema } from './ir/normalizer'
 export { CURRENT_IR_VERSION } from './ir/version'
 export { validateSchema } from './ir/validator'
-export type { ValidationResult, ValidationError } from './ir/validator'
+export type { ValidationResult, ValidationError, ValidationWarning } from './ir/validator'
 export { defineEntity, defineApi, defineFabric } from './ir/define'
 export type {
   FabricInput,

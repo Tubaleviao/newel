@@ -174,6 +174,78 @@ describe('normalizeSchema', () => {
     expect(schema.entities['Book'].stateMachine!.states['available'].terminal).toBe(false)
   })
 
+  it('auto-derives guards from behavior rules when no explicit guard is set', () => {
+    const schema = normalizeSchema({
+      meta: { name: 'Test' },
+      entities: {
+        Order: {
+          fields: { status: { type: 'enum', values: ['draft', 'placed'] } },
+          behaviors: {
+            placeOrder: { description: 'Place the order', rules: ['Must have items', 'Customer must be active'] },
+          },
+          stateMachine: {
+            field: 'status',
+            initial: 'draft',
+            states: { draft: 'Draft', placed: 'Placed' },
+            transitions: [
+              { from: 'draft', to: 'placed', trigger: 'placeOrder' },
+            ],
+          },
+        },
+      },
+    })
+    const t = schema.entities['Order'].stateMachine!.transitions[0]
+    expect(t.guards).toEqual(['Must have items', 'Customer must be active'])
+  })
+
+  it('keeps explicit guards when set on a transition (no auto-derivation)', () => {
+    const schema = normalizeSchema({
+      meta: { name: 'Test' },
+      entities: {
+        Order: {
+          fields: { status: { type: 'enum', values: ['draft', 'placed'] } },
+          behaviors: {
+            placeOrder: { description: 'Place the order', rules: ['Must have items'] },
+          },
+          stateMachine: {
+            field: 'status',
+            initial: 'draft',
+            states: { draft: 'Draft', placed: 'Placed' },
+            transitions: [
+              { from: 'draft', to: 'placed', trigger: 'placeOrder', guard: 'Explicit guard' },
+            ],
+          },
+        },
+      },
+    })
+    const t = schema.entities['Order'].stateMachine!.transitions[0]
+    expect(t.guards).toEqual(['Explicit guard'])
+  })
+
+  it('leaves guards empty when behavior has no rules and no explicit guard', () => {
+    const schema = normalizeSchema({
+      meta: { name: 'Test' },
+      entities: {
+        Book: {
+          fields: { status: { type: 'enum', values: ['available', 'borrowed'] } },
+          behaviors: {
+            borrow: { description: 'Borrow a book', rules: [] },
+          },
+          stateMachine: {
+            field: 'status',
+            initial: 'available',
+            states: { available: 'On shelf', borrowed: 'With member' },
+            transitions: [
+              { from: 'available', to: 'borrowed', trigger: 'borrow' },
+            ],
+          },
+        },
+      },
+    })
+    const t = schema.entities['Book'].stateMachine!.transitions[0]
+    expect(t.guards).toEqual([])
+  })
+
   it('normalises API endpoints', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },

@@ -27,6 +27,48 @@ describe('validateSchema', () => {
     const result = validateSchema(schema)
     expect(result.valid).toBe(true)
     expect(result.errors).toHaveLength(0)
+    expect(result.warnings).toHaveLength(0)
+  })
+
+  it('warns when explicit guards differ from behavior rules', () => {
+    const schema = makeSchema({
+      entities: {
+        Order: {
+          fields: { status: { type: 'enum', values: ['draft', 'placed'] } },
+          behaviors: { place: { description: 'Place order', rules: ['Must have items'] } },
+          stateMachine: {
+            field: 'status',
+            initial: 'draft',
+            states: { draft: 'Draft', placed: 'Placed' },
+            transitions: [{ from: 'draft', to: 'placed', trigger: 'place', guard: 'Different guard text' }],
+          },
+        },
+      },
+    })
+    const result = validateSchema(schema)
+    expect(result.valid).toBe(true)
+    expect(result.warnings.length).toBeGreaterThan(0)
+    expect(result.warnings.some(w => w.path.includes('guards'))).toBe(true)
+  })
+
+  it('produces no warning when explicit guards match behavior rules exactly', () => {
+    const schema = makeSchema({
+      entities: {
+        Order: {
+          fields: { status: { type: 'enum', values: ['draft', 'placed'] } },
+          behaviors: { place: { description: 'Place order', rules: ['Must have items'] } },
+          stateMachine: {
+            field: 'status',
+            initial: 'draft',
+            states: { draft: 'Draft', placed: 'Placed' },
+            transitions: [{ from: 'draft', to: 'placed', trigger: 'place', guard: 'Must have items' }],
+          },
+        },
+      },
+    })
+    const result = validateSchema(schema)
+    expect(result.valid).toBe(true)
+    expect(result.warnings).toHaveLength(0)
   })
 
   it('errors on unknown initial state', () => {

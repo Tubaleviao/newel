@@ -43,8 +43,12 @@ function normalizeField(name: string, raw: FieldInput): FieldSchema {
   }
 }
 
-function normalizeTransition(raw: { from: string | string[], to: string, trigger: string, guard?: string, guards?: string[], effect?: string, effects?: string[] }): TransitionSchema {
-  const guards = raw.guards ?? (raw.guard ? [raw.guard] : [])
+function normalizeTransition(
+  raw: { from: string | string[], to: string, trigger: string, guard?: string, guards?: string[], effect?: string, effects?: string[] },
+  behaviorRules?: string[],
+): TransitionSchema {
+  const explicitGuards = raw.guards ?? (raw.guard ? [raw.guard] : null)
+  const guards = explicitGuards ?? behaviorRules ?? []
   const effects = raw.effects ?? (raw.effect ? [raw.effect] : [])
   return { from: raw.from, to: raw.to, trigger: raw.trigger, guards, effects }
 }
@@ -56,7 +60,7 @@ function normalizeState(name: string, raw: { description?: string, terminal?: bo
   return { name, description: raw.description ?? '', terminal: raw.terminal ?? false }
 }
 
-function normalizeStateMachine(raw: StateMachineInput): StateMachineSchema {
+function normalizeStateMachine(raw: StateMachineInput, behaviors: Record<string, BehaviorSchema>): StateMachineSchema {
   const states: Record<string, StateSchema> = {}
   for (const [name, s] of Object.entries(raw.states)) {
     states[name] = normalizeState(name, s)
@@ -65,7 +69,10 @@ function normalizeStateMachine(raw: StateMachineInput): StateMachineSchema {
     field: raw.field,
     initial: raw.initial,
     states,
-    transitions: raw.transitions.map(normalizeTransition),
+    transitions: raw.transitions.map(t => {
+      const behaviorRules = t.trigger && behaviors[t.trigger]?.rules
+      return normalizeTransition(t, behaviorRules || undefined)
+    }),
   }
 }
 
@@ -108,7 +115,7 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     fields,
     relations: raw.relations ?? {},
     behaviors,
-    stateMachine: raw.stateMachine ? normalizeStateMachine(raw.stateMachine) : undefined,
+    stateMachine: raw.stateMachine ? normalizeStateMachine(raw.stateMachine, behaviors) : undefined,
     pii,
     gdpr,
   }
