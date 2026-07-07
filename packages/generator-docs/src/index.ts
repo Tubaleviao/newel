@@ -254,7 +254,7 @@ function buildGdprMap(schema: FabricSchema): string {
 
 export class DocsGenerator implements Generator {
   readonly name = 'docs'
-  readonly dependsOn: string[] = []
+  readonly dependsOn: string[] = ['openapi', 'typescript']
 
   async generate(schema: FabricSchema, _ctx: GeneratorContext): Promise<GeneratorOutput> {
     const files: GeneratorOutput['files'] = []
