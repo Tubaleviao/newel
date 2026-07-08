@@ -17,9 +17,65 @@ Write one file. Generate everything.
 
 ---
 
-## Installation
+## Getting started
 
-Install as dev dependencies in your project. Pinning to a version avoids unexpected breakage if a new major is published.
+### Scaffold a new project (recommended)
+
+Run the interactive scaffold — no global install required:
+
+```bash
+npx create-quoin-app my-app
+# or
+pnpm create quoin-app my-app
+```
+
+The wizard asks a few questions:
+
+```
+  create-quoin-app — scaffold a quoin project
+
+  ✔ Project name          › my-app
+  ✔ Short description     › My quoin application
+  ✔ Generators            › Full-stack — App scaffold (Express + React + Prisma)
+  ✔ Package manager       › pnpm
+  ✔ Install dependencies? › Yes
+```
+
+It then creates:
+
+| File | Purpose |
+|------|---------|
+| `package.json` | Scripts + all required dependencies for the chosen generators |
+| `quoin.config.ts` | Generator configuration wired up and ready |
+| `src/fabric.ts` | Starter schema with a `User` entity and state machine |
+| `tsconfig.json` | TypeScript configuration |
+| `.gitignore` | Ignores `node_modules/`, `dist/`, and `src/generated/` |
+
+**Available presets:**
+
+| Preset | Included generators |
+|--------|---------------------|
+| Minimal | `typescript` |
+| API | `typescript`, `openapi`, `sql` |
+| Full-stack | `typescript`, `openapi`, `sql`, `ui`, `prisma`, `express`, `app` |
+| Semantic / data | `typescript`, `rdf`, `owl`, `jsonschema` |
+| Custom | Pick any combination interactively |
+
+After scaffolding:
+
+```bash
+cd my-app
+quoin generate       # generate all artifacts
+# if you chose a full-stack preset:
+pnpm run setup       # run Prisma migrations
+pnpm run dev         # start Express + Vite dev servers
+```
+
+---
+
+## Manual installation
+
+For adding quoin to an existing project, install as dev dependencies:
 
 ```bash
 npm install -D @quoin/core @quoin/generator-typescript
@@ -172,16 +228,19 @@ export const userSchema = z.object({
 
 ## Available generators
 
-| Package | Output | Status |
-|---------|--------|--------|
-| `@quoin/generator-typescript` | TS interfaces + Zod schemas | ✅ Available |
-| `@quoin/generator-openapi` | OpenAPI 3.x YAML | ✅ Available |
-| `@quoin/generator-sql` | Safe incremental SQL migrations via IR diff | ✅ Available |
-| `@quoin/generator-docs` | Markdown docs + GDPR data map | ✅ Available |
-| `@quoin/generator-jsonschema` | JSON Schema draft-07 per entity | ✅ Available |
-| `@quoin/generator-rdf` | RDF/Turtle ontology | ✅ Available |
-| `@quoin/generator-owl` | OWL ontology (extends RDF output) | ✅ Available |
-| `@quoin/generator-ui` | React forms + state-machine-aware action buttons | ✅ Available |
+| Package | Output | Depends on |
+|---------|--------|------------|
+| `@quoin/generator-typescript` | TS interfaces + Zod schemas | — |
+| `@quoin/generator-openapi` | OpenAPI 3.x YAML | `typescript` |
+| `@quoin/generator-sql` | Safe incremental SQL migrations via IR diff | `typescript` |
+| `@quoin/generator-docs` | Markdown docs + GDPR data map | `openapi`, `typescript` |
+| `@quoin/generator-jsonschema` | JSON Schema draft-07 per entity | — |
+| `@quoin/generator-rdf` | RDF/Turtle ontology | — |
+| `@quoin/generator-owl` | OWL ontology (extends RDF output) | `rdf` |
+| `@quoin/generator-ui` | React forms + state-machine-aware action buttons | `typescript` |
+| `@quoin/generator-prisma` | Prisma schema + typed repositories | `typescript` |
+| `@quoin/generator-express` | Express router + typed handlers | `typescript` (or `prisma`) |
+| `@quoin/generator-app` | Full-stack scaffold (Express + Vite React) | `express`, `prisma`, `ui` |
 
 ---
 
