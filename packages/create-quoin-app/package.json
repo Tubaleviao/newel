@@ -1,0 +1,30 @@
+{
+  "name": "create-quoin-app",
+  "version": "0.0.1",
+  "description": "Scaffold a new quoin project interactively",
+  "keywords": ["quoin", "create", "scaffold", "codegen"],
+  "homepage": "https://github.com/Tubaleviao/quoin#readme",
+  "license": "MIT",
+  "author": "Tubaleviao",
+  "bin": {
+    "create-quoin-app": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
