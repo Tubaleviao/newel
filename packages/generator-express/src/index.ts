@@ -189,8 +189,13 @@ function buildHandlerBodyPrisma(entry: EndpointEntry, schema: FabricSchema, enti
     lines.push(`    const result = await ${repoVar}.update(id, body)`)
     lines.push(`    res.json(result)`)
   } else {
-    // POST create
-    lines.push(`    const result = await ${repoVar}.create(body)`)
+    // POST create — strip empty strings and coerce date-only strings to full ISO datetimes
+    lines.push(`    const data = Object.fromEntries(`)
+    lines.push(`      Object.entries(req.body)`)
+    lines.push(`        .filter(([, v]) => v !== '')`)
+    lines.push(`        .map(([k, v]) => [k, typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}$/.test(v) ? new Date(v + 'T00:00:00.000Z') : v])`)
+    lines.push(`    )`)
+    lines.push(`    const result = await ${repoVar}.create(data)`)
     lines.push(`    res.status(201).json(result)`)
   }
 
@@ -272,7 +277,7 @@ function generateRouterFile(entries: EndpointEntry[], schema: FabricSchema, orm:
   if (orm === 'prisma') {
     const repos = [...collectRepositoryImports(entries, entityNames)].sort()
     if (repos.length > 0) {
-      lines.push(`import { ${repos.join(', ')} } from '../prisma/repository'`)
+      lines.push(`import { ${repos.join(', ')} } from '../../prisma/repository'`)
     }
   } else if (entityTypes.size > 0) {
     const sorted = [...entityTypes].sort()

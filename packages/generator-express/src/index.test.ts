@@ -194,7 +194,7 @@ describe('ExpressGenerator', () => {
       const gen = new ExpressGenerator({ orm: 'prisma' })
       const result = await gen.generate(schema, makeCtx())
       const content = result.files.find(f => f.path === 'express/routes/index.ts')!.content
-      expect(content).toContain("from '../prisma/repository'")
+      expect(content).toContain("from '../../prisma/repository'")
       expect(content).not.toContain("from '../typescript'")
     })
 
