@@ -295,7 +295,10 @@ function generateRouterFile(entries: EndpointEntry[], schema: FabricSchema, orm:
     const bodyLines = orm === 'prisma'
       ? buildHandlerBodyPrisma(entry, schema, entityNames)
       : buildHandlerBodyTodo(entry, schema)
-    const bodyStr = bodyLines.length > 0 ? `\n${bodyLines.join('\n')}\n  ` : ''
+    const indented = bodyLines.map(l => '  ' + l).join('\n')
+    const bodyStr = bodyLines.length > 0
+      ? `\n  try {\n${indented}\n  } catch (err: any) {\n    res.status(500).json({ error: err.message })\n  }\n  `
+      : `\n  try {} catch (err: any) { res.status(500).json({ error: err.message }) }\n  `
 
     lines.push(`router.${method}('${fullPath}', ${authArg}async (req: Request, res: Response) => {${bodyStr}})${desc}`)
     lines.push(``)
