@@ -13,7 +13,7 @@
   },
   "license": "MIT",
   "author": "Tubaleviao",
-  "private": false,
+  "private": true,
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
