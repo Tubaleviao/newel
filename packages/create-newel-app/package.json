@@ -1,13 +1,13 @@
 {
-  "name": "create-quoin-app",
+  "name": "create-newel-app",
   "version": "0.0.1",
-  "description": "Scaffold a new quoin project interactively",
-  "keywords": ["quoin", "create", "scaffold", "codegen"],
-  "homepage": "https://github.com/Tubaleviao/quoin#readme",
+  "description": "Scaffold a new newel project interactively",
+  "keywords": ["newel", "create", "scaffold", "codegen"],
+  "homepage": "https://github.com/Tubaleviao/newel#readme",
   "license": "MIT",
   "author": "Tubaleviao",
   "bin": {
-    "create-quoin-app": "dist/index.js"
+    "create-newel-app": "dist/index.js"
   },
   "main": "dist/index.js",
   "files": ["dist"],

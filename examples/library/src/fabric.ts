@@ -1,4 +1,4 @@
-import { defineFabric } from '@quoin/core'
+import { defineFabric } from '@newel/core'
 import Book      from '../entities/Book'
 import Member    from '../entities/Member'
 import Loan      from '../entities/Loan'

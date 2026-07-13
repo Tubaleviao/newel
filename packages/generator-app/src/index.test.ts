@@ -1,5 +1,5 @@
 import { AppGenerator } from './index'
-import type { FabricSchema, GeneratorContext, GeneratorOutput } from '@quoin/core'
+import type { FabricSchema, GeneratorContext, GeneratorOutput } from '@newel/core'
 
 const PRISMA_SCHEMA_CONTENT = `
 datasource db {

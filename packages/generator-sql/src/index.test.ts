@@ -1,5 +1,5 @@
 import { SqlGenerator } from './index'
-import type { FabricSchema, GeneratorContext, GeneratorOutput, IRSnapshot } from '@quoin/core'
+import type { FabricSchema, GeneratorContext, GeneratorOutput, IRSnapshot } from '@newel/core'
 
 const makeCtx = (prev?: IRSnapshot): GeneratorContext => ({
   outputDir: '/tmp/test-sql',

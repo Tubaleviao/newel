@@ -1,5 +1,5 @@
 import { OwlGenerator } from './index'
-import type { FabricSchema, GeneratorContext, GeneratorOutput } from '@quoin/core'
+import type { FabricSchema, GeneratorContext, GeneratorOutput } from '@newel/core'
 
 const NS = 'https://example.com/library/'
 

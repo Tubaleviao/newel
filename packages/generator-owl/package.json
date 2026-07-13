@@ -1,7 +1,7 @@
 {
-  "name": "@quoin/generator-owl",
+  "name": "@newel/generator-owl",
   "version": "0.0.1",
-  "description": "OWL ontology generator for quoin (extends RDF output)",
+  "description": "OWL ontology generator for newel (extends RDF output)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@quoin/core": "workspace:*"
+    "@newel/core": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

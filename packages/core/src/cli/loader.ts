@@ -70,7 +70,7 @@ export async function loadConfig(configPath: string): Promise<QuoinConfig> {
   const mod = require(resolved) as { default?: QuoinConfig } | QuoinConfig
   const cfg = 'default' in mod && mod.default ? mod.default : mod as QuoinConfig
   if (!cfg.schema || !cfg.output || !cfg.generators) {
-    throw new Error(`quoin.config.ts must export { schema, output, generators }`)
+    throw new Error(`newel.config.ts must export { schema, output, generators }`)
   }
 
   // If patches is a string path, resolve and load it relative to the config dir

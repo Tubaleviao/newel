@@ -1,5 +1,5 @@
 import { TypeScriptGenerator } from './index'
-import type { FabricSchema, GeneratorContext, GeneratorOutput } from '@quoin/core'
+import type { FabricSchema, GeneratorContext, GeneratorOutput } from '@newel/core'
 
 const makeCtx = (): GeneratorContext => ({
   outputDir: '/tmp/test-typescript',

@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-const FABRIC_TEMPLATE = `import { defineFabric, defineEntity, defineApi } from '@quoin/core'
+const FABRIC_TEMPLATE = `import { defineFabric, defineEntity, defineApi } from '@newel/core'
 
 export default defineFabric({
   meta: {
@@ -71,8 +71,8 @@ export default defineFabric({
 })
 `
 
-const CONFIG_TEMPLATE = `import { defineConfig } from '@quoin/core'
-import { TypeScriptGenerator } from '@quoin/generator-typescript'
+const CONFIG_TEMPLATE = `import { defineConfig } from '@newel/core'
+import { TypeScriptGenerator } from '@newel/generator-typescript'
 
 export default defineConfig({
   schema: './src/fabric.ts',
@@ -80,8 +80,8 @@ export default defineConfig({
   generators: [
     new TypeScriptGenerator(),
     // Add more generators here:
-    // new OpenApiGenerator() from '@quoin/generator-openapi'
-    // new SqlGenerator()    from '@quoin/generator-sql'
+    // new OpenApiGenerator() from '@newel/generator-openapi'
+    // new SqlGenerator()    from '@newel/generator-sql'
   ],
 })
 `
@@ -89,7 +89,7 @@ export default defineConfig({
 export async function initCommand(targetDir: string): Promise<void> {
   const srcDir = path.join(targetDir, 'src')
   const fabricPath = path.join(srcDir, 'fabric.ts')
-  const configPath = path.join(targetDir, 'quoin.config.ts')
+  const configPath = path.join(targetDir, 'newel.config.ts')
 
   const conflicts: string[] = []
   if (fs.existsSync(fabricPath)) conflicts.push(fabricPath)
@@ -106,12 +106,12 @@ export async function initCommand(targetDir: string): Promise<void> {
   fs.writeFileSync(fabricPath, FABRIC_TEMPLATE)
   fs.writeFileSync(configPath, CONFIG_TEMPLATE)
 
-  console.log('✓ Initialized quoin project:')
+  console.log('✓ Initialized newel project:')
   console.log(`  ${path.relative(process.cwd(), fabricPath)}  — edit this to describe your application`)
   console.log(`  ${path.relative(process.cwd(), configPath)}  — configure generators here`)
   console.log('')
   console.log('Next steps:')
-  console.log('  quoin validate    — check your fabric for errors')
-  console.log('  quoin inspect     — view the resolved IR as JSON')
-  console.log('  quoin generate    — generate all artifacts')
+  console.log('  newel validate    — check your fabric for errors')
+  console.log('  newel inspect     — view the resolved IR as JSON')
+  console.log('  newel generate    — generate all artifacts')
 }

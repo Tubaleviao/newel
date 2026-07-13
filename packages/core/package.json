@@ -1,7 +1,7 @@
 {
-  "name": "@quoin/core",
+  "name": "@newel/core",
   "version": "0.0.1",
-  "description": "Core IR types, builder DSL, generator runner, and CLI for quoin",
+  "description": "Core IR types, builder DSL, generator runner, and CLI for newel",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {

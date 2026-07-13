@@ -1,7 +1,7 @@
 {
-  "name": "@quoin/generator-prisma",
+  "name": "@newel/generator-prisma",
   "version": "0.0.1",
-  "description": "Prisma schema + repository generator for quoin",
+  "description": "Prisma schema + repository generator for newel",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@quoin/core": "workspace:*"
+    "@newel/core": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

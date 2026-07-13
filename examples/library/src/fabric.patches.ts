@@ -1,4 +1,4 @@
-import { definePatchSet } from '@quoin/core'
+import { definePatchSet } from '@newel/core'
 
 /**
  * Semantic patches for the library example.

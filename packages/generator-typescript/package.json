@@ -1,7 +1,7 @@
 {
-  "name": "@quoin/generator-typescript",
+  "name": "@newel/generator-typescript",
   "version": "0.0.1",
-  "description": "TypeScript + Zod schema generator for quoin",
+  "description": "TypeScript + Zod schema generator for newel",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@quoin/core": "workspace:*",
+    "@newel/core": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {

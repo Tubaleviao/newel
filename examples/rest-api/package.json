@@ -2,22 +2,22 @@
   "name": "rest-api-example",
   "version": "0.0.1",
   "private": true,
-  "description": "Worked example: order management REST API using quoin",
+  "description": "Worked example: order management REST API using newel",
   "scripts": {
-    "validate":    "quoin validate    -s ./src/fabric.ts",
-    "inspect":     "quoin inspect     -s ./src/fabric.ts",
-    "generate":    "quoin generate    -c ./quoin.config.ts",
-    "diff":        "quoin diff        -c ./quoin.config.ts",
-    "check-drift": "quoin check-drift -c ./quoin.config.ts"
+    "validate":    "newel validate    -s ./src/fabric.ts",
+    "inspect":     "newel inspect     -s ./src/fabric.ts",
+    "generate":    "newel generate    -c ./newel.config.ts",
+    "diff":        "newel diff        -c ./newel.config.ts",
+    "check-drift": "newel check-drift -c ./newel.config.ts"
   },
   "dependencies": {
-    "@quoin/core": "workspace:*",
-    "@quoin/generator-typescript": "workspace:*",
-    "@quoin/generator-openapi": "workspace:*",
-    "@quoin/generator-sql": "workspace:*",
-    "@quoin/generator-docs": "workspace:*",
-    "@quoin/generator-jsonschema": "workspace:*",
-    "@quoin/generator-rdf": "workspace:*",
-    "@quoin/generator-owl": "workspace:*"
+    "@newel/core": "workspace:*",
+    "@newel/generator-typescript": "workspace:*",
+    "@newel/generator-openapi": "workspace:*",
+    "@newel/generator-sql": "workspace:*",
+    "@newel/generator-docs": "workspace:*",
+    "@newel/generator-jsonschema": "workspace:*",
+    "@newel/generator-rdf": "workspace:*",
+    "@newel/generator-owl": "workspace:*"
   }
 }

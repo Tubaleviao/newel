@@ -1,4 +1,4 @@
-import { defineEntity } from '@quoin/core'
+import { defineEntity } from '@newel/core'
 
 export default defineEntity({
   description: 'A registered library member',

@@ -1,15 +1,15 @@
 {
-  "name": "quoin",
+  "name": "newel",
   "version": "0.0.1",
   "description": "TypeScript library to define your application's meaning, behavior, entities and state machines — generate all artifacts from a single source of truth",
-  "keywords": ["quoin", "codegen", "schema", "openapi", "rdf", "owl"],
-  "homepage": "https://github.com/Tubaleviao/quoin#readme",
+  "keywords": ["newel", "codegen", "schema", "openapi", "rdf", "owl"],
+  "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
-    "url": "https://github.com/Tubaleviao/quoin/issues"
+    "url": "https://github.com/Tubaleviao/newel/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/Tubaleviao/quoin.git"
+    "url": "git+ssh://git@github.com/Tubaleviao/newel.git"
   },
   "license": "MIT",
   "author": "Tubaleviao",

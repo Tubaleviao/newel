@@ -1,4 +1,4 @@
-import { defineApi } from '@quoin/core'
+import { defineApi } from '@newel/core'
 
 export default defineApi({
   baseUrl: '/orders',

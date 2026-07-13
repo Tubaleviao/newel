@@ -30,7 +30,7 @@ describe('runGenerators', () => {
   let tmpDir: string
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'quoin-test-'))
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'newel-test-'))
   })
 
   afterEach(() => {
@@ -50,7 +50,7 @@ describe('runGenerators', () => {
     const result = await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
     expect(result.manifest.files).toHaveLength(1)
     expect(result.manifest.files[0].generator).toBe('stub')
-    const manifestPath = path.join(tmpDir, 'quoin.manifest.json')
+    const manifestPath = path.join(tmpDir, 'newel.manifest.json')
     expect(fs.existsSync(manifestPath)).toBe(true)
   })
 

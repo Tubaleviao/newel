@@ -3,7 +3,7 @@ import * as path from 'path'
 import type { FabricSchema } from '../ir/types'
 import { hashSchema } from './manifest'
 
-export const SNAPSHOT_FILE = 'quoin.ir-snapshot.json'
+export const SNAPSHOT_FILE = 'newel.ir-snapshot.json'
 
 export interface IRSnapshot {
   generatedAt: string

@@ -1,7 +1,7 @@
 {
-  "name": "@quoin/generator-ui",
+  "name": "@newel/generator-ui",
   "version": "0.0.1",
-  "description": "React UI components generator for quoin — entity forms + state-machine action panels",
+  "description": "React UI components generator for newel — entity forms + state-machine action panels",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@quoin/core": "workspace:*"
+    "@newel/core": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

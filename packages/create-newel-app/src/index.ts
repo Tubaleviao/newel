@@ -28,7 +28,7 @@ interface GeneratorDef {
 const GENERATORS: GeneratorDef[] = [
   {
     id: 'typescript',
-    package: '@quoin/generator-typescript',
+    package: '@newel/generator-typescript',
     className: 'TypeScriptGenerator',
     description: 'TypeScript interfaces + Zod schemas',
     dependsOn: [],
@@ -37,7 +37,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'openapi',
-    package: '@quoin/generator-openapi',
+    package: '@newel/generator-openapi',
     className: 'OpenApiGenerator',
     description: 'OpenAPI 3.x YAML spec',
     dependsOn: ['typescript'],
@@ -46,7 +46,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'sql',
-    package: '@quoin/generator-sql',
+    package: '@newel/generator-sql',
     className: 'SqlGenerator',
     description: 'SQL DDL + safe incremental migrations',
     dependsOn: ['typescript'],
@@ -55,7 +55,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'docs',
-    package: '@quoin/generator-docs',
+    package: '@newel/generator-docs',
     className: 'DocsGenerator',
     description: 'Markdown docs + GDPR data map',
     dependsOn: ['openapi', 'typescript'],
@@ -64,7 +64,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'jsonschema',
-    package: '@quoin/generator-jsonschema',
+    package: '@newel/generator-jsonschema',
     className: 'JsonSchemaGenerator',
     description: 'JSON Schema (draft-07)',
     dependsOn: [],
@@ -73,7 +73,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'rdf',
-    package: '@quoin/generator-rdf',
+    package: '@newel/generator-rdf',
     className: 'RdfGenerator',
     description: 'RDF / Turtle ontology',
     dependsOn: [],
@@ -82,7 +82,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'owl',
-    package: '@quoin/generator-owl',
+    package: '@newel/generator-owl',
     className: 'OwlGenerator',
     description: 'OWL ontology (extends RDF)',
     dependsOn: ['rdf'],
@@ -91,7 +91,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'ui',
-    package: '@quoin/generator-ui',
+    package: '@newel/generator-ui',
     className: 'UiGenerator',
     description: 'React entity forms + state-machine action buttons',
     dependsOn: ['typescript'],
@@ -108,7 +108,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'prisma',
-    package: '@quoin/generator-prisma',
+    package: '@newel/generator-prisma',
     className: 'PrismaGenerator',
     description: 'Prisma schema + typed repositories',
     dependsOn: ['typescript'],
@@ -120,7 +120,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'express',
-    package: '@quoin/generator-express',
+    package: '@newel/generator-express',
     className: 'ExpressGenerator',
     description: 'Express router + typed handlers',
     dependsOn: ['typescript'],
@@ -133,7 +133,7 @@ const GENERATORS: GeneratorDef[] = [
   },
   {
     id: 'app',
-    package: '@quoin/generator-app',
+    package: '@newel/generator-app',
     className: 'AppGenerator',
     description: 'Full-stack scaffold (Express + Vite React)',
     dependsOn: ['express', 'prisma', 'ui'],
@@ -252,7 +252,7 @@ function buildPackageJson(opts: {
   const gens = GENERATORS.filter(g => allIds.includes(g.id))
 
   const deps: Record<string, string> = {
-    '@quoin/core': 'latest',
+    '@newel/core': 'latest',
     zod: '^3.23.8',
   }
   const devDeps: Record<string, string> = {
@@ -261,11 +261,11 @@ function buildPackageJson(opts: {
     tsx: '^4.19.2',
   }
   const scripts: Record<string, string> = {
-    validate: 'quoin validate -s ./src/fabric.ts',
-    inspect: 'quoin inspect -s ./src/fabric.ts',
-    generate: 'quoin generate -c ./quoin.config.ts',
-    diff: 'quoin diff -c ./quoin.config.ts',
-    'check-drift': 'quoin check-drift -c ./quoin.config.ts',
+    validate: 'newel validate -s ./src/fabric.ts',
+    inspect: 'newel inspect -s ./src/fabric.ts',
+    generate: 'newel generate -c ./newel.config.ts',
+    diff: 'newel diff -c ./newel.config.ts',
+    'check-drift': 'newel check-drift -c ./newel.config.ts',
   }
 
   for (const gen of gens) {
@@ -296,7 +296,7 @@ function buildQuoinConfig(generatorIds: string[]): string {
   const gens = GENERATORS.filter(g => allIds.includes(g.id))
 
   const imports = [
-    `import { defineConfig } from '@quoin/core'`,
+    `import { defineConfig } from '@newel/core'`,
     ...gens.map(g => `import { ${g.className} } from '${g.package}'`),
   ].join('\n')
 
@@ -325,7 +325,7 @@ ${genLines.join('\n')}
 }
 
 function buildFabricTs(appName: string, appDescription: string): string {
-  return `import { defineFabric, defineEntity, defineApi } from '@quoin/core'
+  return `import { defineFabric, defineEntity, defineApi } from '@newel/core'
 
 export default defineFabric({
   meta: {
@@ -429,7 +429,7 @@ async function promptUser(cliDir?: string): Promise<ScaffoldOptions | null> {
       type: 'text',
       name: 'dir',
       message: 'Where should we create your project?',
-      initial: './my-quoin-app',
+      initial: './my-newel-app',
       validate: v => (v.trim() ? true : 'Please enter a directory name'),
     })
     if (res.dir === undefined) return null
@@ -450,7 +450,7 @@ async function promptUser(cliDir?: string): Promise<ScaffoldOptions | null> {
       type: 'text',
       name: 'appDescription',
       message: 'Short description',
-      initial: 'My quoin application',
+      initial: 'My newel application',
     },
   ])
 
@@ -546,7 +546,7 @@ function scaffold(opts: ScaffoldOptions): void {
   const conflicts: string[] = []
   const check = (p: string) => { if (fs.existsSync(p)) conflicts.push(path.relative(root, p)) }
   check(path.join(root, 'package.json'))
-  check(path.join(root, 'quoin.config.ts'))
+  check(path.join(root, 'newel.config.ts'))
   check(path.join(srcDir, 'fabric.ts'))
 
   if (conflicts.length > 0) {
@@ -565,7 +565,7 @@ function scaffold(opts: ScaffoldOptions): void {
       generatorIds: opts.generatorIds,
       packageManager: opts.packageManager,
     })],
-    [path.join(root, 'quoin.config.ts'), buildQuoinConfig(opts.generatorIds)],
+    [path.join(root, 'newel.config.ts'), buildQuoinConfig(opts.generatorIds)],
     [path.join(srcDir, 'fabric.ts'), buildFabricTs(opts.appName, opts.appDescription)],
     [path.join(root, '.gitignore'), buildGitignore()],
     [path.join(root, 'tsconfig.json'), buildTsConfig()],
@@ -595,7 +595,7 @@ function buildTsConfig(): string {
         rootDir: 'src',
         declaration: true,
       },
-      include: ['src', 'quoin.config.ts'],
+      include: ['src', 'newel.config.ts'],
       exclude: ['node_modules', 'dist', 'src/generated'],
     },
     null,
@@ -636,9 +636,9 @@ function printNextSteps(opts: ScaffoldOptions): void {
   if (!opts.runInstall) {
     console.log(kleur.white(`    ${opts.packageManager} install`))
   }
-  console.log(kleur.white('    quoin validate       # check your fabric for errors'))
-  console.log(kleur.white('    quoin inspect        # view the resolved IR'))
-  console.log(kleur.white('    quoin generate       # generate all artifacts'))
+  console.log(kleur.white('    newel validate       # check your fabric for errors'))
+  console.log(kleur.white('    newel inspect        # view the resolved IR'))
+  console.log(kleur.white('    newel generate       # generate all artifacts'))
   if (hasPrisma || hasApp) {
     console.log(kleur.white(`    ${opts.packageManager} run setup          # run Prisma migrations`))
   }
@@ -646,7 +646,7 @@ function printNextSteps(opts: ScaffoldOptions): void {
     console.log(kleur.white(`    ${opts.packageManager} run dev             # start the full-stack dev server`))
   }
   console.log()
-  console.log(kleur.dim('  Edit src/fabric.ts to describe your application, then run quoin generate.'))
+  console.log(kleur.dim('  Edit src/fabric.ts to describe your application, then run newel generate.'))
   console.log()
 }
 
@@ -656,7 +656,7 @@ function printNextSteps(opts: ScaffoldOptions): void {
 
 async function main(): Promise<void> {
   console.log()
-  console.log(kleur.bold('  create-quoin-app') + kleur.dim(' — scaffold a quoin project\n'))
+  console.log(kleur.bold('  create-newel-app') + kleur.dim(' — scaffold a newel project\n'))
 
   // Accept target directory as first CLI arg (mirrors create-next-app / create-vite UX)
   const cliDir = process.argv[2] && !process.argv[2].startsWith('-') ? process.argv[2] : undefined
