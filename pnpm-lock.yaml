@@ -17,36 +17,36 @@ importers:
 
   examples/library:
     dependencies:
+      '@newel/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@newel/generator-app':
+        specifier: workspace:*
+        version: link:../../packages/generator-app
+      '@newel/generator-docs':
+        specifier: workspace:*
+        version: link:../../packages/generator-docs
+      '@newel/generator-express':
+        specifier: workspace:*
+        version: link:../../packages/generator-express
+      '@newel/generator-openapi':
+        specifier: workspace:*
+        version: link:../../packages/generator-openapi
+      '@newel/generator-prisma':
+        specifier: workspace:*
+        version: link:../../packages/generator-prisma
+      '@newel/generator-sql':
+        specifier: workspace:*
+        version: link:../../packages/generator-sql
+      '@newel/generator-typescript':
+        specifier: workspace:*
+        version: link:../../packages/generator-typescript
+      '@newel/generator-ui':
+        specifier: workspace:*
+        version: link:../../packages/generator-ui
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
-      '@quoin/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@quoin/generator-app':
-        specifier: workspace:*
-        version: link:../../packages/generator-app
-      '@quoin/generator-docs':
-        specifier: workspace:*
-        version: link:../../packages/generator-docs
-      '@quoin/generator-express':
-        specifier: workspace:*
-        version: link:../../packages/generator-express
-      '@quoin/generator-openapi':
-        specifier: workspace:*
-        version: link:../../packages/generator-openapi
-      '@quoin/generator-prisma':
-        specifier: workspace:*
-        version: link:../../packages/generator-prisma
-      '@quoin/generator-sql':
-        specifier: workspace:*
-        version: link:../../packages/generator-sql
-      '@quoin/generator-typescript':
-        specifier: workspace:*
-        version: link:../../packages/generator-typescript
-      '@quoin/generator-ui':
-        specifier: workspace:*
-        version: link:../../packages/generator-ui
       cors:
         specifier: ^2.8.5
         version: 2.8.6
@@ -96,28 +96,28 @@ importers:
 
   examples/rest-api:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@quoin/generator-docs':
+      '@newel/generator-docs':
         specifier: workspace:*
         version: link:../../packages/generator-docs
-      '@quoin/generator-jsonschema':
+      '@newel/generator-jsonschema':
         specifier: workspace:*
         version: link:../../packages/generator-jsonschema
-      '@quoin/generator-openapi':
+      '@newel/generator-openapi':
         specifier: workspace:*
         version: link:../../packages/generator-openapi
-      '@quoin/generator-owl':
+      '@newel/generator-owl':
         specifier: workspace:*
         version: link:../../packages/generator-owl
-      '@quoin/generator-rdf':
+      '@newel/generator-rdf':
         specifier: workspace:*
         version: link:../../packages/generator-rdf
-      '@quoin/generator-sql':
+      '@newel/generator-sql':
         specifier: workspace:*
         version: link:../../packages/generator-sql
-      '@quoin/generator-typescript':
+      '@newel/generator-typescript':
         specifier: workspace:*
         version: link:../../packages/generator-typescript
 
@@ -146,7 +146,7 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
-  packages/create-quoin-app:
+  packages/create-newel-app:
     dependencies:
       kleur:
         specifier: ^4.1.5
@@ -167,7 +167,7 @@ importers:
 
   packages/generator-app:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
       '@vitejs/plugin-react':
@@ -210,7 +210,7 @@ importers:
 
   packages/generator-docs:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -232,7 +232,7 @@ importers:
 
   packages/generator-express:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -254,7 +254,7 @@ importers:
 
   packages/generator-jsonschema:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -276,7 +276,7 @@ importers:
 
   packages/generator-openapi:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -298,7 +298,7 @@ importers:
 
   packages/generator-owl:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -320,7 +320,7 @@ importers:
 
   packages/generator-prisma:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -342,7 +342,7 @@ importers:
 
   packages/generator-rdf:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -364,7 +364,7 @@ importers:
 
   packages/generator-sql:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -386,7 +386,7 @@ importers:
 
   packages/generator-typescript:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -411,7 +411,7 @@ importers:
 
   packages/generator-ui:
     dependencies:
-      '@quoin/core':
+      '@newel/core':
         specifier: workspace:*
         version: link:../core
       react:

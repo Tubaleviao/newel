@@ -17,7 +17,8 @@
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "publish": "pnpm -r publish --access public --no-git-checks"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

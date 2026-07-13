@@ -2,8 +2,26 @@
   "name": "@newel/generator-ui",
   "version": "0.0.1",
   "description": "React UI components generator for newel — entity forms + state-machine action panels",
+  "keywords": ["newel", "codegen", "generator", "react", "ui", "components"],
+  "homepage": "https://github.com/Tubaleviao/newel#readme",
+  "bugs": {
+    "url": "https://github.com/Tubaleviao/newel/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tubaleviao/newel.git"
+  },
+  "license": "MIT",
+  "author": "Tubaleviao",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist/index.js", "dist/index.js.map", "dist/index.d.ts", "dist/index.d.ts.map"],
   "scripts": {
     "build": "tsc",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",
@@ -27,5 +45,8 @@
     "react": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

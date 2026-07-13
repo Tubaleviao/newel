@@ -4,6 +4,13 @@
   "description": "Scaffold a new newel project interactively",
   "keywords": ["newel", "create", "scaffold", "codegen"],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
+  "bugs": {
+    "url": "https://github.com/Tubaleviao/newel/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tubaleviao/newel.git"
+  },
   "license": "MIT",
   "author": "Tubaleviao",
   "bin": {
