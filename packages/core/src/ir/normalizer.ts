@@ -125,6 +125,7 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
 
   return {
     name,
+    role: raw.role ?? 'entity',
     description: raw.description ?? '',
     goal: raw.goal,
     fields,
