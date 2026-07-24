@@ -26,6 +26,14 @@ export class EntityBuilder {
   }
 
   tags(tags: string[]): this {
+    if (!Array.isArray(tags)) {
+      throw new Error(`EntityBuilder.tags(): expected string[], got ${JSON.stringify(tags)}`)
+    }
+    for (let i = 0; i < tags.length; i++) {
+      if (typeof tags[i] !== 'string') {
+        throw new Error(`EntityBuilder.tags(): element at index ${i} must be a string, got ${JSON.stringify(tags[i])}`)
+      }
+    }
     this._tags.push(...tags)
     return this
   }

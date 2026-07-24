@@ -118,6 +118,18 @@ describe('FabricBuilder', () => {
     expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
   })
 
+  it('throws when tags() receives a non-array (guards plain JS callers)', () => {
+    expect(() =>
+      fabric().entity('Wolf', e => e.tags('creature' as unknown as string[]))
+    ).toThrow('EntityBuilder.tags(): expected string[]')
+  })
+
+  it('throws when tags() receives an array with non-string elements', () => {
+    expect(() =>
+      fabric().entity('Wolf', e => e.tags([42] as unknown as string[]))
+    ).toThrow('must be a string')
+  })
+
   it('builds apis with endpoints', () => {
     const ir = fabric()
       .api('OrderAPI', a => a

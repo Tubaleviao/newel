@@ -127,6 +127,10 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
   if (!Array.isArray(tags)) {
     throw new Error(`entities.${name}: "tags" must be an array of strings, got ${JSON.stringify(tags)}`)
   }
+  const badTagIdx = tags.findIndex(t => typeof t !== 'string')
+  if (badTagIdx !== -1) {
+    throw new Error(`entities.${name}: "tags[${badTagIdx}]" must be a string, got ${JSON.stringify(tags[badTagIdx])}`)
+  }
 
   return {
     name,

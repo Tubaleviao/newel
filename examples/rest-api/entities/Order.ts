@@ -1,6 +1,7 @@
 import { defineEntity } from '@newel/core'
 
 export default defineEntity({
+  tags: ['transaction', 'fulfillment'],
   description: 'A customer purchase request',
   goal: 'Track the full lifecycle of a purchase from placement to fulfillment',
   fields: {

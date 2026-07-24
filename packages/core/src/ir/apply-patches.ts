@@ -82,10 +82,18 @@ function applyEntityMerge(schema: FabricSchema, segments: string[], patch: Merge
 
   let patchedEntity = entity
   if (rest.length === 0) {
-    if ('tags' in patch.value && !Array.isArray(patch.value.tags)) {
-      throw new Error(
-        `patch target "${patch.target}": "tags" must be an array of strings, got ${JSON.stringify(patch.value.tags)}`
-      )
+    if ('tags' in patch.value) {
+      if (!Array.isArray(patch.value.tags)) {
+        throw new Error(
+          `patch target "${patch.target}": "tags" must be an array of strings, got ${JSON.stringify(patch.value.tags)}`
+        )
+      }
+      const badIdx = (patch.value.tags as unknown[]).findIndex(t => typeof t !== 'string')
+      if (badIdx !== -1) {
+        throw new Error(
+          `patch target "${patch.target}": "tags[${badIdx}]" must be a string, got ${JSON.stringify((patch.value.tags as unknown[])[badIdx])}`
+        )
+      }
     }
     patchedEntity = { ...entity, ...patch.value } as typeof entity
   } else if (rest[0] === 'fields') {

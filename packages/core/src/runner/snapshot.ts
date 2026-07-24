@@ -21,8 +21,18 @@ export function writeSnapshot(outputDir: string, snapshot: IRSnapshot): void {
 export function readSnapshot(outputDir: string): IRSnapshot | null {
   const snapshotPath = path.join(outputDir, SNAPSHOT_FILE)
   if (!fs.existsSync(snapshotPath)) return null
-  const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8')) as IRSnapshot
-  if (snapshot.schema?.version !== CURRENT_IR_VERSION) return null
+  let snapshot: IRSnapshot
+  try {
+    snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8')) as IRSnapshot
+  } catch {
+    return null
+  }
+  if (snapshot.schema?.version !== CURRENT_IR_VERSION) {
+    console.warn(
+      `[newel] snapshot discarded: IR version mismatch (snapshot has "${snapshot.schema?.version}", current is "${CURRENT_IR_VERSION}"). Incremental migrations will fall back to full generation.`
+    )
+    return null
+  }
   return snapshot
 }
 

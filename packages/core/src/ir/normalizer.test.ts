@@ -88,6 +88,13 @@ describe('normalizeSchema', () => {
     })).toThrow('entities.Wolf: "tags" must be an array of strings')
   })
 
+  it('rejects tags array containing non-string elements', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: { Wolf: { tags: [42] as unknown as string[], fields: { id: { type: 'uuid', primaryKey: true } } } },
+    })).toThrow('entities.Wolf: "tags[0]" must be a string')
+  })
+
   it('normalises field defaults', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },

@@ -86,6 +86,15 @@ function validateEntity(
   const errors: ValidationError[] = []
   const warnings: ValidationWarning[] = []
 
+  if (!Array.isArray(entity.tags)) {
+    errors.push(err(`entities.${name}.tags`, `"tags" must be an array of strings`))
+  } else {
+    const badIdx = entity.tags.findIndex(t => typeof t !== 'string')
+    if (badIdx !== -1) {
+      errors.push(err(`entities.${name}.tags[${badIdx}]`, `must be a string, got ${JSON.stringify(entity.tags[badIdx])}`))
+    }
+  }
+
   for (const [bName, behavior] of Object.entries(entity.behaviors)) {
     if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {
       errors.push(err(

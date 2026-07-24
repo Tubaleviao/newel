@@ -141,6 +141,21 @@ describe('applyPatches', () => {
     const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: 'creature' as unknown as string[] } }]
     expect(() => applyPatches(baseSchema, patches)).toThrow('"tags" must be an array of strings')
   })
+
+  it('throws when entity merge patch supplies tags array with non-string elements', () => {
+    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: [42] as unknown as string[] } }]
+    expect(() => applyPatches(baseSchema, patches)).toThrow('"tags[0]" must be a string')
+  })
+
+  it('entity merge patch replaces (not merges) the tags array', () => {
+    const baseWithTags: typeof baseSchema = {
+      ...baseSchema,
+      entities: { ...baseSchema.entities, Book: { ...baseSchema.entities['Book'], tags: ['catalogue'] } },
+    }
+    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: ['npc'] } }]
+    const result = applyPatches(baseWithTags, patches)
+    expect(result.entities['Book'].tags).toEqual(['npc'])
+  })
 })
 
 describe('collectSuppressPatterns', () => {
