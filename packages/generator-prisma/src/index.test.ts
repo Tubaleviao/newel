@@ -7,12 +7,12 @@ const makeCtx = (): GeneratorContext => ({
 })
 
 const schema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'LibraryApp', version: '1.0.0' },
   entities: {
     Book: {
       name: 'Book',
-      role: 'entity',
+      tags: [],
       description: 'A book in the catalogue',
       fields: {
         id:     { name: 'id',     type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
@@ -51,7 +51,7 @@ const schema: FabricSchema = {
     },
     Loan: {
       name: 'Loan',
-      role: 'entity',
+      tags: [],
       description: 'A loan record',
       fields: {
         id:     { name: 'id',     type: 'uuid',      nullable: false, primaryKey: true,  pii: false },

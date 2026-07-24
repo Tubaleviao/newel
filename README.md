@@ -261,19 +261,19 @@ export const userSchema = z.object({
 
 ---
 
-## Entity roles (`ConceptRole`)
+## Entity tags
 
-Every entity carries a `role` field that discriminates application entities from domain-specific concepts such as items in a game or simulation. The default is `'entity'`, so existing fabrics are unaffected.
+Every entity carries a `tags` field — an open-ended `string[]` for labelling domain concepts. Tags are optional and default to `[]`, so existing fabrics are unaffected.
 
 ```typescript
 export default defineEntity({
-  role: 'creature',   // 'entity' | 'material' | 'item' | 'creature' | 'biome' | 'system'
+  tags: ['creature', 'npc'],
   description: 'A living creature in the world',
   fields: { ... },
 })
 ```
 
-Generators can use `role` to vary their output — for example, `generator-sql` can omit tables for `'system'` concepts that have no persisted state.
+Tags are purely user-defined and composable — an entity can carry multiple tags simultaneously (`['creature', 'boss', 'undead']`). Generators can inspect `entity.tags` to vary their output for domain-specific concepts.
 
 ---
 

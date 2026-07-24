@@ -1,11 +1,3 @@
-export type ConceptRole =
-  | 'entity'
-  | 'material'
-  | 'item'
-  | 'creature'
-  | 'biome'
-  | 'system'
-
 export type GdprCategory =
   | 'identity'
   | 'contact'
@@ -97,7 +89,7 @@ export interface StateMachineSchema {
 
 export interface EntitySchema {
   name: string
-  role: ConceptRole
+  tags: string[]
   description: string
   goal?: string
   fields: Record<string, FieldSchema>
