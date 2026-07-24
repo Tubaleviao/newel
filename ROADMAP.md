@@ -26,45 +26,40 @@ Phases 1–10 are complete. This document tracks what comes next.
 ## Phase 11 — IR extensions for non-application domains
 
 These are targeted additions to `@newel/core` required before game or simulation
-generators can produce useful output. Phase 11a is a breaking IR change (role
-replaces kind; IR version bumped to 2.0.0). Phases 11b and 11c are additive.
+generators can produce useful output. Phase 11a is a breaking IR change (ConceptRole/role
+replaced by tags: string[]; IR version bumped to 3.0.0). Phases 11b and 11c are additive.
 
-### 11a — Entity `role` discriminator ✅ Done
+### 11a — Entity `tags` ✅ Done
 
-Add a required `role: ConceptRole` field to `EntitySchema`. `ConceptRole` is a
-closed union type — not a free string — so generators can exhaustively switch on
-it and unknown values are type errors:
+Add a `tags: string[]` field to `EntitySchema` replacing the former closed `ConceptRole`
+enum. Tags are open-ended and composable — an entity can carry multiple labels simultaneously
+(`['creature', 'boss', 'undead']`). Generators inspect `entity.tags` to vary output for
+domain-specific concepts.
 
 ```ts
-export type ConceptRole =
-  | 'entity'
-  | 'material'
-  | 'item'
-  | 'creature'
-  | 'biome'
-  | 'system'
-
 // EntitySchema gains:
-role: ConceptRole
+tags: string[]
+
+// EntityInput:
+tags?: string[]   // optional, defaults to []
 ```
 
-`role` is optional in `EntityInput` (the user-facing layer); the normaliser
-defaults to `'entity'` when omitted, so all existing fabrics are unaffected.
+`tags` is optional in `EntityInput`; the normaliser defaults to `[]` when omitted, so all
+existing fabrics are unaffected.
 
-`kind` was considered and rejected: it is already used on `RelationSchema` for
-`'hasMany' | 'hasOne' | ...`, and a plain `string` type gives generators nothing
-reliable to branch on. `role` is a closed enum and required in the IR.
+The former `ConceptRole` closed enum (`'entity' | 'material' | 'item' | 'creature' | 'biome' | 'system'`)
+was replaced because the closed set was too restrictive for diverse domains and tags are
+composable in a way a single enum value is not.
 
-**Breaking change:** IR version bumped `1.0.0 → 2.0.0`.
+**Breaking change:** IR version bumped `2.0.0 → 3.0.0`.
 
 **Acceptance criteria:**
-- `ConceptRole` type is exported from `@newel/core`
-- `EntitySchema` has `role: ConceptRole` (required)
-- `EntityInput` has `role?: ConceptRole` (optional, defaults to `'entity'`)
-- Normaliser sets `role = 'entity'` when omitted
-- Existing tests still pass; two new tests cover default and explicit role
-- `generator-typescript`, `generator-sql`, `generator-docs` ignore `role` (no
-  change to their output)
+- `EntitySchema` has `tags: string[]` (required in IR, always an array)
+- `EntityInput` has `tags?: string[]` (optional, defaults to `[]`)
+- Normaliser validates each element is a string; tags default to `[]` when omitted
+- `ConceptRole` type removed from `@newel/core` exports
+- Existing tests still pass; new tests cover default, explicit tags, and validation errors
+- Generators ignore `tags` where not relevant (no change to their output)
 
 ### 11b — Weighted spawn relations
 

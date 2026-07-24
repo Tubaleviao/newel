@@ -31,7 +31,7 @@ export class EntityBuilder {
     }
     for (let i = 0; i < tags.length; i++) {
       if (typeof tags[i] !== 'string') {
-        throw new Error(`EntityBuilder.tags(): element at index ${i} must be a string, got ${JSON.stringify(tags[i])}`)
+        throw new Error(`EntityBuilder.tags(): tags[${i}] must be a string, got ${JSON.stringify(tags[i])}`)
       }
     }
     this._tags.push(...tags)
