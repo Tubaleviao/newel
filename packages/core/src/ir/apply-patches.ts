@@ -82,6 +82,11 @@ function applyEntityMerge(schema: FabricSchema, segments: string[], patch: Merge
 
   let patchedEntity = entity
   if (rest.length === 0) {
+    if ('tags' in patch.value && !Array.isArray(patch.value.tags)) {
+      throw new Error(
+        `patch target "${patch.target}": "tags" must be an array of strings, got ${JSON.stringify(patch.value.tags)}`
+      )
+    }
     patchedEntity = { ...entity, ...patch.value } as typeof entity
   } else if (rest[0] === 'fields') {
     patchedEntity = applyFieldMerge(entity, rest, patch)

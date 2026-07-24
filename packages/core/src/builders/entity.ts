@@ -25,8 +25,8 @@ export class EntityBuilder {
     return this
   }
 
-  tags(...tags: string[]): this {
-    this._tags = tags
+  tags(tags: string[]): this {
+    this._tags.push(...tags)
     return this
   }
 

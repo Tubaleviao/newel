@@ -81,6 +81,13 @@ describe('normalizeSchema', () => {
     expect(schema.entities['Wolf'].tags).toEqual(['creature', 'npc'])
   })
 
+  it('rejects a non-array tags value', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: { Wolf: { tags: 'creature' as unknown as string[], fields: { id: { type: 'uuid', primaryKey: true } } } },
+    })).toThrow('entities.Wolf: "tags" must be an array of strings')
+  })
+
   it('normalises field defaults', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },

@@ -123,9 +123,14 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     behaviors[bName] = normalizeBehavior(bName, rawB, name)
   }
 
+  const tags = raw.tags ?? []
+  if (!Array.isArray(tags)) {
+    throw new Error(`entities.${name}: "tags" must be an array of strings, got ${JSON.stringify(tags)}`)
+  }
+
   return {
     name,
-    tags: raw.tags ?? [],
+    tags,
     description: raw.description ?? '',
     goal: raw.goal,
     fields,

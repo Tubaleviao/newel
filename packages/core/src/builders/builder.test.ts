@@ -104,6 +104,20 @@ describe('FabricBuilder', () => {
     expect(sm.transitions[1].from).toEqual(['draft', 'placed'])
   })
 
+  it('builds entity tags from a string array', () => {
+    const ir = fabric()
+      .entity('Wolf', e => e.tags(['creature', 'npc']))
+      .toIR()
+    expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
+  })
+
+  it('accumulates tags across multiple .tags() calls', () => {
+    const ir = fabric()
+      .entity('Wolf', e => e.tags(['creature']).tags(['npc']))
+      .toIR()
+    expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
+  })
+
   it('builds apis with endpoints', () => {
     const ir = fabric()
       .api('OrderAPI', a => a

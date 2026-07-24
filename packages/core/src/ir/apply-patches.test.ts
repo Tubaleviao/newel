@@ -136,6 +136,11 @@ describe('applyPatches', () => {
     const patches: Patch[] = [{ op: 'merge', target: 'events.MyEvent', value: {} }]
     expect(() => applyPatches(baseSchema, patches)).toThrow('is not supported')
   })
+
+  it('throws when entity merge patch supplies tags as a non-array', () => {
+    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: 'creature' as unknown as string[] } }]
+    expect(() => applyPatches(baseSchema, patches)).toThrow('"tags" must be an array of strings')
+  })
 })
 
 describe('collectSuppressPatterns', () => {
