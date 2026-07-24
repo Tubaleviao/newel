@@ -4,7 +4,7 @@ import type { FabricSchema } from '../ir/types'
 describe('FabricBuilder', () => {
   it('produces valid IR with empty schema', () => {
     const ir = fabric().toIR()
-    expect(ir.version).toBe('2.0.0')
+    expect(ir.version).toBe('3.0.0')
     expect(ir.entities).toEqual({})
     expect(ir.apis).toEqual({})
   })
@@ -102,6 +102,32 @@ describe('FabricBuilder', () => {
     expect(sm.transitions[0].guards).toContain('Must have items')
     expect(sm.transitions[0].effects).toContain('Sets placedAt')
     expect(sm.transitions[1].from).toEqual(['draft', 'placed'])
+  })
+
+  it('builds entity tags from a string array', () => {
+    const ir = fabric()
+      .entity('Wolf', e => e.tags(['creature', 'npc']))
+      .toIR()
+    expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
+  })
+
+  it('accumulates tags across multiple .tags() calls', () => {
+    const ir = fabric()
+      .entity('Wolf', e => e.tags(['creature']).tags(['npc']))
+      .toIR()
+    expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
+  })
+
+  it('throws when tags() receives a non-array (guards plain JS callers)', () => {
+    expect(() =>
+      fabric().entity('Wolf', e => e.tags('creature' as unknown as string[]))
+    ).toThrow('EntityBuilder.tags(): expected string[]')
+  })
+
+  it('throws when tags() receives an array with non-string elements', () => {
+    expect(() =>
+      fabric().entity('Wolf', e => e.tags([42] as unknown as string[]))
+    ).toThrow('must be a string')
   })
 
   it('builds apis with endpoints', () => {

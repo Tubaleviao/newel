@@ -59,26 +59,40 @@ describe('normalizeSchema', () => {
 
   it('produces a valid schema from minimal input', () => {
     const schema = normalizeSchema({ meta: { name: 'Test' } })
-    expect(schema.version).toBe('2.0.0')
+    expect(schema.version).toBe('3.0.0')
     expect(schema.meta.name).toBe('Test')
     expect(schema.entities).toEqual({})
     expect(schema.apis).toEqual({})
   })
 
-  it('defaults entity role to "entity" when omitted', () => {
+  it('defaults entity tags to [] when omitted', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },
       entities: { Book: { fields: { id: { type: 'uuid', primaryKey: true } } } },
     })
-    expect(schema.entities['Book'].role).toBe('entity')
+    expect(schema.entities['Book'].tags).toEqual([])
   })
 
-  it('preserves an explicit role on an entity', () => {
+  it('preserves explicit tags on an entity', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },
-      entities: { Wolf: { role: 'creature', fields: { id: { type: 'uuid', primaryKey: true } } } },
+      entities: { Wolf: { tags: ['creature', 'npc'], fields: { id: { type: 'uuid', primaryKey: true } } } },
     })
-    expect(schema.entities['Wolf'].role).toBe('creature')
+    expect(schema.entities['Wolf'].tags).toEqual(['creature', 'npc'])
+  })
+
+  it('rejects a non-array tags value', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: { Wolf: { tags: 'creature' as unknown as string[], fields: { id: { type: 'uuid', primaryKey: true } } } },
+    })).toThrow('entities.Wolf: "tags" must be an array of strings')
+  })
+
+  it('rejects tags array containing non-string elements', () => {
+    expect(() => normalizeSchema({
+      meta: { name: 'Test' },
+      entities: { Wolf: { tags: [42] as unknown as string[], fields: { id: { type: 'uuid', primaryKey: true } } } },
+    })).toThrow('entities.Wolf: "tags[0]" must be a string')
   })
 
   it('normalises field defaults', () => {

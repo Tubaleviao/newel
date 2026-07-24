@@ -7,19 +7,19 @@ const makeCtx = (): GeneratorContext => ({
 })
 
 const minimalSchema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'TestApp', version: '1.0.0' },
   entities: {},
   apis: {},
 }
 
 const richSchema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'LibraryApp', version: '1.0.0', namespace: 'https://example.com/library/' },
   entities: {
     Book: {
       name: 'Book',
-      role: 'entity',
+      tags: [],
       description: 'A book in the catalogue',
       fields: {
         id:        { name: 'id',        type: 'uuid',    nullable: false, primaryKey: true,  pii: false },
@@ -41,7 +41,7 @@ const richSchema: FabricSchema = {
     },
     Member: {
       name: 'Member',
-      role: 'entity',
+      tags: [],
       description: 'A library member',
       fields: {
         id:    { name: 'id',    type: 'uuid',   nullable: false, primaryKey: true,  pii: false },

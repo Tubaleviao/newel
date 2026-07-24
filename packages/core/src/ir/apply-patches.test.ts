@@ -3,12 +3,12 @@ import type { FabricSchema } from './types'
 import type { Patch } from './patch'
 
 const baseSchema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'TestApp', version: '1.0.0' },
   entities: {
     Book: {
       name: 'Book',
-      role: 'entity',
+      tags: [],
       description: 'A book',
       fields: {
         id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
@@ -135,6 +135,26 @@ describe('applyPatches', () => {
   it('throws on unsupported root', () => {
     const patches: Patch[] = [{ op: 'merge', target: 'events.MyEvent', value: {} }]
     expect(() => applyPatches(baseSchema, patches)).toThrow('is not supported')
+  })
+
+  it('throws when entity merge patch supplies tags as a non-array', () => {
+    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: 'creature' as unknown as string[] } }]
+    expect(() => applyPatches(baseSchema, patches)).toThrow('"tags" must be an array of strings')
+  })
+
+  it('throws when entity merge patch supplies tags array with non-string elements', () => {
+    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: [42] as unknown as string[] } }]
+    expect(() => applyPatches(baseSchema, patches)).toThrow('"tags[0]" must be a string')
+  })
+
+  it('entity merge patch replaces (not merges) the tags array', () => {
+    const baseWithTags: typeof baseSchema = {
+      ...baseSchema,
+      entities: { ...baseSchema.entities, Book: { ...baseSchema.entities['Book'], tags: ['catalogue'] } },
+    }
+    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: ['npc'] } }]
+    const result = applyPatches(baseWithTags, patches)
+    expect(result.entities['Book'].tags).toEqual(['npc'])
   })
 })
 

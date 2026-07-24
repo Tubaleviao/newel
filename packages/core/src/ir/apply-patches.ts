@@ -1,7 +1,5 @@
-import type { FabricSchema, ConceptRole } from './types'
+import type { FabricSchema } from './types'
 import type { Patch, MergePatch, SuppressPatch } from './patch'
-
-const VALID_CONCEPT_ROLES: readonly ConceptRole[] = ['entity', 'material', 'item', 'creature', 'biome', 'system']
 
 /**
  * Returns a deep-cloned FabricSchema with all merge patches applied.
@@ -84,10 +82,18 @@ function applyEntityMerge(schema: FabricSchema, segments: string[], patch: Merge
 
   let patchedEntity = entity
   if (rest.length === 0) {
-    if ('role' in patch.value && !VALID_CONCEPT_ROLES.includes(patch.value.role as ConceptRole)) {
-      throw new Error(
-        `patch target "${patch.target}": invalid role "${patch.value.role}". Must be one of: ${VALID_CONCEPT_ROLES.join(', ')}`
-      )
+    if ('tags' in patch.value) {
+      if (!Array.isArray(patch.value.tags)) {
+        throw new Error(
+          `patch target "${patch.target}": "tags" must be an array of strings, got ${JSON.stringify(patch.value.tags)}`
+        )
+      }
+      const badIdx = (patch.value.tags as unknown[]).findIndex(t => typeof t !== 'string')
+      if (badIdx !== -1) {
+        throw new Error(
+          `patch target "${patch.target}": "tags[${badIdx}]" must be a string, got ${JSON.stringify((patch.value.tags as unknown[])[badIdx])}`
+        )
+      }
     }
     patchedEntity = { ...entity, ...patch.value } as typeof entity
   } else if (rest[0] === 'fields') {

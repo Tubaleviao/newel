@@ -1,4 +1,4 @@
-import type { FieldType, GdprCategory, GdprLegalBasis, RelationSchema, SchemaMeta, ConceptRole } from './types'
+import type { FieldType, GdprCategory, GdprLegalBasis, RelationSchema, SchemaMeta } from './types'
 
 export type GdprInput = {
   category?: GdprCategory
@@ -75,7 +75,7 @@ export type ApiInput = {
 }
 
 export type EntityInput = {
-  role?: ConceptRole
+  tags?: string[]
   description?: string
   goal?: string
   fields?: Record<string, FieldInput>

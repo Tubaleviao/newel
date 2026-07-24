@@ -8,19 +8,19 @@ const makeCtx = (prev?: IRSnapshot): GeneratorContext => ({
 })
 
 const minimalSchema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'TestApp', version: '1.0.0' },
   entities: {},
   apis: {},
 }
 
 const bookSchema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'LibraryApp', version: '1.0.0' },
   entities: {
     Book: {
       name: 'Book',
-      role: 'entity',
+      tags: [],
       description: 'A book',
       fields: {
         id:     { name: 'id',     type: 'uuid',    nullable: false, primaryKey: true,  pii: false },
@@ -140,7 +140,7 @@ describe('SqlGenerator', () => {
         entities: {
           Tag: {
             name: 'Tag',
-            role: 'entity',
+            tags: [],
             description: 'A tag',
             fields: {
               id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
@@ -318,7 +318,7 @@ describe('SqlGenerator', () => {
         entities: {
           Book: {
             name: 'Book',
-            role: 'entity',
+            tags: [],
             description: 'Book',
             fields: { id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false } },
             relations: {
@@ -343,7 +343,7 @@ describe('SqlGenerator', () => {
         entities: {
           LoanRecord: {
             name: 'LoanRecord',
-            role: 'entity',
+            tags: [],
             description: 'A loan record',
             fields: { id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false } },
             relations: {},

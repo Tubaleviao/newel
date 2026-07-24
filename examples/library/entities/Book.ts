@@ -1,6 +1,7 @@
 import { defineEntity } from '@newel/core'
 
 export default defineEntity({
+  tags: ['catalogue', 'borrowable'],
   description: 'A book in the library catalogue',
   goal: 'Track books and their availability',
   fields: {

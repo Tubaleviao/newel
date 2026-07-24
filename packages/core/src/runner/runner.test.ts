@@ -4,10 +4,10 @@ import * as path from 'path'
 import { runGenerators } from './runner'
 import type { Generator, GeneratorContext, GeneratorOutput } from './types'
 import type { FabricSchema } from '../ir/types'
-import { SNAPSHOT_FILE } from './snapshot'
+import { SNAPSHOT_FILE, readSnapshot } from './snapshot'
 
 const minimalSchema: FabricSchema = {
-  version: '2.0.0',
+  version: '3.0.0',
   meta: { name: 'test' },
   entities: {},
   apis: {},
@@ -86,6 +86,22 @@ describe('runGenerators', () => {
     expect(snapshot.generatedAt).toBeDefined()
   })
 
+  it('readSnapshot returns null on corrupted snapshot file', () => {
+    const snapshotPath = path.join(tmpDir, SNAPSHOT_FILE)
+    fs.writeFileSync(snapshotPath, '{ truncated json')
+    expect(readSnapshot(tmpDir)).toBeNull()
+  })
+
+  it('readSnapshot returns null when snapshot IR version does not match current', async () => {
+    const gen = makeStubGen('stub')
+    await runGenerators(minimalSchema, [gen], { outputDir: tmpDir })
+    const snapshotPath = path.join(tmpDir, SNAPSHOT_FILE)
+    const raw = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'))
+    raw.schema.version = '2.0.0'
+    fs.writeFileSync(snapshotPath, JSON.stringify(raw))
+    expect(readSnapshot(tmpDir)).toBeNull()
+  })
+
   it('dryRun does not write IR snapshot', async () => {
     const gen = makeStubGen('stub')
     await runGenerators(minimalSchema, [gen], { outputDir: tmpDir, dryRun: true })
@@ -129,7 +145,7 @@ describe('runGenerators', () => {
       entities: {
         Book: {
           name: 'Book',
-          role: 'entity',
+          tags: [],
           description: 'original',
           fields: {},
           relations: {},

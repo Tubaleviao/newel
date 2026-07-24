@@ -1,4 +1,4 @@
-import type { EntitySchema, FieldSchema, RelationSchema, BehaviorSchema, GdprCategory, ConceptRole } from '../ir/types'
+import type { EntitySchema, FieldSchema, RelationSchema, BehaviorSchema, GdprCategory } from '../ir/types'
 import { TypedFieldBuilder } from './field'
 import { RelationBuilder } from './relation'
 import { BehaviorBuilder } from './behavior'
@@ -6,7 +6,7 @@ import { StateMachineBuilder } from './statemachine'
 
 export class EntityBuilder {
   private _name: string
-  private _role: ConceptRole = 'entity'
+  private _tags: string[] = []
   private _description: string = ''
   private _goal: string | undefined
   private _fields: Record<string, FieldSchema> = {}
@@ -25,8 +25,16 @@ export class EntityBuilder {
     return this
   }
 
-  role(role: ConceptRole): this {
-    this._role = role
+  tags(tags: string[]): this {
+    if (!Array.isArray(tags)) {
+      throw new Error(`EntityBuilder.tags(): expected string[], got ${JSON.stringify(tags)}`)
+    }
+    for (let i = 0; i < tags.length; i++) {
+      if (typeof tags[i] !== 'string') {
+        throw new Error(`EntityBuilder.tags(): tags[${i}] must be a string, got ${JSON.stringify(tags[i])}`)
+      }
+    }
+    this._tags.push(...tags)
     return this
   }
 
@@ -69,7 +77,7 @@ export class EntityBuilder {
   toIR(): EntitySchema {
     return {
       name: this._name,
-      role: this._role,
+      tags: [...this._tags],
       description: this._description,
       goal: this._goal,
       fields: { ...this._fields },

@@ -1,1 +1,1 @@
-export const CURRENT_IR_VERSION = '2.0.0'
+export const CURRENT_IR_VERSION = '3.0.0'
