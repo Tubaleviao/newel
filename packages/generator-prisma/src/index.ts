@@ -62,7 +62,7 @@ function renderPrismaField(entityName: string, field: FieldSchema): string {
   return `  ${field.name}  ${prismaType}${optional}${attrStr}`
 }
 
-function renderRelationField(rel: RelationSchema, entity: EntitySchema): string[] {
+function renderRelationField(rel: RelationSchema, _entity: EntitySchema): string[] {
   const lines: string[] = []
   switch (rel.kind) {
     case 'hasMany':

@@ -123,7 +123,6 @@ describe('OpenApiGenerator', () => {
     })
 
     it('defaults version to 1.0.0 when omitted', async () => {
-      const { files } = await generator.generate(minimalSchema, makeCtx())
       // minimalSchema has version '2.0.0' in meta — test a schema without version
       const noVersionSchema: FabricSchema = { ...minimalSchema, meta: { name: 'Test' } }
       const r2 = await generator.generate(noVersionSchema, makeCtx())
@@ -273,9 +272,7 @@ describe('OpenApiGenerator', () => {
     it('does not duplicate endpoints already declared in APIs', async () => {
       const { files } = await generator.generate(richSchema, makeCtx())
       const content = files[0].content
-      // 'borrow' is already declared at POST /books/:id/borrow — should not appear twice
-      const borrowCount = (content.match(/borrow/g) ?? []).length
-      // It appears in the explicit endpoint summary + operationId + auto-gen check, but not as a duplicate path
+      // 'borrow' path should appear at most once — not duplicated by auto-generation
       const postBorrowPaths = (content.match(/\/books\/\{id\}\/borrow/g) ?? []).length
       expect(postBorrowPaths).toBeLessThanOrEqual(1)
     })

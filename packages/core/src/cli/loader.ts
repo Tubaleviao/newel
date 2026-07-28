@@ -6,7 +6,6 @@ import type { Patch, PatchSet } from '../ir/patch'
 import { normalizeSchema } from '../ir/normalizer'
 
 function registerTsx() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('tsx/cjs')
 }
 
@@ -19,7 +18,6 @@ export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
   if (resolved.endsWith('.ts')) registerTsx()
 
   delete require.cache[resolved]
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mod = require(resolved) as { default?: unknown } | Record<string, unknown>
   const exported = ('default' in mod && mod.default !== undefined) ? mod.default : mod
 
@@ -44,7 +42,6 @@ export async function loadPatches(patchesPath: string): Promise<Patch[]> {
   if (resolved.endsWith('.ts')) registerTsx()
 
   delete require.cache[resolved]
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mod = require(resolved) as { default?: unknown } | Record<string, unknown>
   const exported = ('default' in mod && mod.default !== undefined) ? mod.default : mod
 
@@ -66,7 +63,6 @@ export async function loadConfig(configPath: string): Promise<QuoinConfig> {
   if (resolved.endsWith('.ts')) registerTsx()
 
   delete require.cache[resolved]
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mod = require(resolved) as { default?: QuoinConfig } | QuoinConfig
   const cfg = 'default' in mod && mod.default ? mod.default : mod as QuoinConfig
   if (!cfg.schema || !cfg.output || !cfg.generators) {

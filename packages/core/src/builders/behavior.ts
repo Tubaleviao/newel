@@ -1,4 +1,4 @@
-import type { BehaviorSchema, AuthSchema, FieldSchema } from '../ir/types'
+import type { BehaviorSchema, AuthSchema } from '../ir/types'
 import { TypedFieldBuilder } from './field'
 
 class AuthBuilder {

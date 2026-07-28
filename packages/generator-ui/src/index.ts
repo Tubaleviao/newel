@@ -5,7 +5,6 @@ import type {
   FabricSchema,
   EntitySchema,
   FieldSchema,
-  StateMachineSchema,
   BehaviorSchema,
 } from '@newel/core'
 

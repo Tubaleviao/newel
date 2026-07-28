@@ -231,13 +231,6 @@ function run(cmd: string, cwd: string): void {
   child_process.execSync(cmd, { cwd, stdio: 'inherit' })
 }
 
-function writeFileSafe(filePath: string, content: string, overwrite: boolean): boolean {
-  if (fs.existsSync(filePath) && !overwrite) return false
-  fs.mkdirSync(path.dirname(filePath), { recursive: true })
-  fs.writeFileSync(filePath, content)
-  return true
-}
-
 // ---------------------------------------------------------------------------
 // Template builders
 // ---------------------------------------------------------------------------
@@ -303,7 +296,6 @@ function buildQuoinConfig(generatorIds: string[]): string {
   // Express with prisma ORM option
   const hasApp = allIds.includes('app')
   const hasPrisma = allIds.includes('prisma')
-  const hasExpress = allIds.includes('express')
 
   const genLines = gens.map(g => {
     if (g.id === 'express' && hasPrisma && !hasApp) {

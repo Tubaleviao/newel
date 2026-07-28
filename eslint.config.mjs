@@ -8,19 +8,16 @@ export default [
       '**/dist/**',
       '**/node_modules/**',
       '**/src/generated/**',
-      'examples/**/src/generated/**',
+      'examples/**',
       '**/*.js',
       '**/*.mjs',
       '**/*.cjs',
     ],
   },
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ['packages/**/*.ts', 'packages/**/*.tsx'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        project: true,
-      },
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
@@ -28,7 +25,8 @@ export default [
     rules: {
       ...tsPlugin.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   prettierConfig,

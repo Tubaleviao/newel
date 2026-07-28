@@ -1,5 +1,4 @@
 import { fabric } from './fabric'
-import type { FabricSchema } from '../ir/types'
 
 describe('FabricBuilder', () => {
   it('produces valid IR with empty schema', () => {

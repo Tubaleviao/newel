@@ -3,7 +3,6 @@ import type {
   GeneratorContext,
   GeneratorOutput,
   FabricSchema,
-  EntitySchema,
   RelationSchema,
   StateMachineSchema,
 } from '@newel/core'
@@ -79,7 +78,7 @@ function renderLifecycleAxioms(ns: string, entityName: string, sm: StateMachineS
   return blocks
 }
 
-function generateOwlAxioms(schema: FabricSchema, upstreamTurtle: string): string {
+function generateOwlAxioms(schema: FabricSchema, _upstreamTurtle: string): string {
   const ns = schema.meta.namespace ?? `https://schema.org/${schema.meta.name}/`
   const blocks: string[] = []
 
