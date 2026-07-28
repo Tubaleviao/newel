@@ -10,12 +10,15 @@ describe('FabricBuilder', () => {
 
   it('builds entity with fields', () => {
     const ir = fabric()
-      .entity('User', e => e
-        .description('A user')
-        .goal('Track users')
-        .field('id', f => f.uuid().primaryKey())
-        .field('email', f => f.email().pii().gdpr('contact').gdprRetention('7y').gdprLegalBasis('consent'))
-        .field('name', f => f.string().nullable())
+      .entity('User', (e) =>
+        e
+          .description('A user')
+          .goal('Track users')
+          .field('id', (f) => f.uuid().primaryKey())
+          .field('email', (f) =>
+            f.email().pii().gdpr('contact').gdprRetention('7y').gdprLegalBasis('consent'),
+          )
+          .field('name', (f) => f.string().nullable()),
       )
       .toIR()
 
@@ -37,10 +40,11 @@ describe('FabricBuilder', () => {
 
   it('builds relations', () => {
     const ir = fabric()
-      .entity('Order', e => e
-        .description('Order')
-        .relation('lineItems', r => r.hasMany('LineItem').foreignKey('orderId'))
-        .relation('customer', r => r.belongsTo('Customer').foreignKey('customerId'))
+      .entity('Order', (e) =>
+        e
+          .description('Order')
+          .relation('lineItems', (r) => r.hasMany('LineItem').foreignKey('orderId'))
+          .relation('customer', (r) => r.belongsTo('Customer').foreignKey('customerId')),
       )
       .toIR()
 
@@ -52,14 +56,14 @@ describe('FabricBuilder', () => {
 
   it('builds behaviors with rules and auth', () => {
     const ir = fabric()
-      .entity('Order', e => e
-        .description('Order')
-        .behavior('cancel', b => b
-          .description('Cancel an order')
-          .rule('Only owner or admin')
-          .input('reason', f => f.string().description('Cancellation reason'))
-          .auth(a => a.roles('customer', 'admin'))
-        )
+      .entity('Order', (e) =>
+        e.description('Order').behavior('cancel', (b) =>
+          b
+            .description('Cancel an order')
+            .rule('Only owner or admin')
+            .input('reason', (f) => f.string().description('Cancellation reason'))
+            .auth((a) => a.roles('customer', 'admin')),
+        ),
       )
       .toIR()
 
@@ -72,24 +76,28 @@ describe('FabricBuilder', () => {
 
   it('builds state machine', () => {
     const ir = fabric()
-      .entity('Order', e => e
-        .description('Order')
-        .field('status', f => f.enum(['draft', 'placed', 'cancelled']))
-        .stateMachine('status', sm => sm
-          .initial('draft')
-          .state('draft', s => s.description('Draft'))
-          .state('placed', s => s.description('Placed'))
-          .state('cancelled', s => s.description('Cancelled').terminal())
-          .transition(t => t
-            .from('draft').to('placed').trigger('placeOrder')
-            .guard('Must have items')
-            .effect('Sets placedAt')
-          )
-          .transition(t => t
-            .from(['draft', 'placed']).to('cancelled').trigger('cancel')
-            .guard('Only owner')
-          )
-        )
+      .entity('Order', (e) =>
+        e
+          .description('Order')
+          .field('status', (f) => f.enum(['draft', 'placed', 'cancelled']))
+          .stateMachine('status', (sm) =>
+            sm
+              .initial('draft')
+              .state('draft', (s) => s.description('Draft'))
+              .state('placed', (s) => s.description('Placed'))
+              .state('cancelled', (s) => s.description('Cancelled').terminal())
+              .transition((t) =>
+                t
+                  .from('draft')
+                  .to('placed')
+                  .trigger('placeOrder')
+                  .guard('Must have items')
+                  .effect('Sets placedAt'),
+              )
+              .transition((t) =>
+                t.from(['draft', 'placed']).to('cancelled').trigger('cancel').guard('Only owner'),
+              ),
+          ),
       )
       .toIR()
 
@@ -105,39 +113,40 @@ describe('FabricBuilder', () => {
 
   it('builds entity tags from a string array', () => {
     const ir = fabric()
-      .entity('Wolf', e => e.tags(['creature', 'npc']))
+      .entity('Wolf', (e) => e.tags(['creature', 'npc']))
       .toIR()
     expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
   })
 
   it('accumulates tags across multiple .tags() calls', () => {
     const ir = fabric()
-      .entity('Wolf', e => e.tags(['creature']).tags(['npc']))
+      .entity('Wolf', (e) => e.tags(['creature']).tags(['npc']))
       .toIR()
     expect(ir.entities['Wolf'].tags).toEqual(['creature', 'npc'])
   })
 
   it('throws when tags() receives a non-array (guards plain JS callers)', () => {
-    expect(() =>
-      fabric().entity('Wolf', e => e.tags('creature' as unknown as string[]))
-    ).toThrow('EntityBuilder.tags(): expected string[]')
+    expect(() => fabric().entity('Wolf', (e) => e.tags('creature' as unknown as string[]))).toThrow(
+      'EntityBuilder.tags(): expected string[]',
+    )
   })
 
   it('throws when tags() receives an array with non-string elements', () => {
-    expect(() =>
-      fabric().entity('Wolf', e => e.tags([42] as unknown as string[]))
-    ).toThrow('must be a string')
+    expect(() => fabric().entity('Wolf', (e) => e.tags([42] as unknown as string[]))).toThrow(
+      'must be a string',
+    )
   })
 
   it('builds apis with endpoints', () => {
     const ir = fabric()
-      .api('OrderAPI', a => a
-        .endpoint('POST /orders', ep => ep
-          .behavior('Order.placeOrder')
-          .description('Place an order'))
-        .endpoint('GET /orders/:id', ep => ep
-          .returns('Order')
-          .auth(a => a.roles('customer', 'admin')))
+      .api('OrderAPI', (a) =>
+        a
+          .endpoint('POST /orders', (ep) =>
+            ep.behavior('Order.placeOrder').description('Place an order'),
+          )
+          .endpoint('GET /orders/:id', (ep) =>
+            ep.returns('Order').auth((a) => a.roles('customer', 'admin')),
+          ),
       )
       .toIR()
 

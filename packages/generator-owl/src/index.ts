@@ -20,11 +20,12 @@ function renderCardinalityRestriction(
   value: number,
   onDataRange?: string,
 ): string {
-  const owlCard = cardinality === 'exactly'
-    ? 'owl:qualifiedCardinality'
-    : cardinality === 'min'
-      ? 'owl:minQualifiedCardinality'
-      : 'owl:maxQualifiedCardinality'
+  const owlCard =
+    cardinality === 'exactly'
+      ? 'owl:qualifiedCardinality'
+      : cardinality === 'min'
+        ? 'owl:minQualifiedCardinality'
+        : 'owl:maxQualifiedCardinality'
   const rangeKey = onDataRange ? 'owl:onDataRange' : 'owl:onClass'
   const rangeVal = onDataRange ?? ttlIri(ns, propLocalName.split('_')[1] ?? 'Thing')
 
@@ -51,7 +52,11 @@ function renderInverseProperty(ns: string, entityName: string, rel: RelationSche
 }
 
 // owl:FunctionalProperty for belongsTo (many-to-one)
-function renderFunctionalProperty(ns: string, entityName: string, rel: RelationSchema): string | null {
+function renderFunctionalProperty(
+  ns: string,
+  entityName: string,
+  rel: RelationSchema,
+): string | null {
   if (rel.kind !== 'belongsTo') return null
   return `${ttlIri(ns, `${entityName}_${rel.name}`)} a owl:FunctionalProperty .`
 }
@@ -65,13 +70,15 @@ function renderLifecycleAxioms(ns: string, entityName: string, sm: StateMachineS
     const froms = Array.isArray(t.from) ? t.from : [t.from]
     for (const from of froms) {
       const transIri = ttlIri(ns, `${entityName}_transition_${from}_${t.to}`)
-      blocks.push([
-        `${transIri}`,
-        `  a owl:NamedIndividual ;`,
-        `  rdfs:label "${t.trigger}" ;`,
-        `  ${ttlIri(ns, 'fromState')} ${ttlIri(ns, `${entityName}_${from}`)} ;`,
-        `  ${ttlIri(ns, 'toState')} ${ttlIri(ns, `${entityName}_${t.to}`)} .`,
-      ].join('\n'))
+      blocks.push(
+        [
+          `${transIri}`,
+          `  a owl:NamedIndividual ;`,
+          `  rdfs:label "${t.trigger}" ;`,
+          `  ${ttlIri(ns, 'fromState')} ${ttlIri(ns, `${entityName}_${from}`)} ;`,
+          `  ${ttlIri(ns, 'toState')} ${ttlIri(ns, `${entityName}_${t.to}`)} .`,
+        ].join('\n'),
+      )
     }
   }
 
@@ -83,37 +90,47 @@ function generateOwlAxioms(schema: FabricSchema, _upstreamTurtle: string): strin
   const blocks: string[] = []
 
   // Header — re-declare prefixes so this file is standalone
-  blocks.push([
-    `@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .`,
-    `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .`,
-    `@prefix owl:  <http://www.w3.org/2002/07/owl#> .`,
-    `@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .`,
-    `@prefix :     <${ns}> .`,
-  ].join('\n'))
+  blocks.push(
+    [
+      `@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .`,
+      `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .`,
+      `@prefix owl:  <http://www.w3.org/2002/07/owl#> .`,
+      `@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .`,
+      `@prefix :     <${ns}> .`,
+    ].join('\n'),
+  )
 
   // Import the RDF ontology
-  blocks.push([
-    `<${ns}owl>`,
-    `  a owl:Ontology ;`,
-    `  owl:imports <${ns}> ;`,
-    `  rdfs:label "${schema.meta.name} — OWL axioms" .`,
-  ].join('\n'))
+  blocks.push(
+    [
+      `<${ns}owl>`,
+      `  a owl:Ontology ;`,
+      `  owl:imports <${ns}> ;`,
+      `  rdfs:label "${schema.meta.name} — OWL axioms" .`,
+    ].join('\n'),
+  )
 
   // Extra annotation properties used for transitions
-  blocks.push([
-    `${ttlIri(ns, 'fromState')} a owl:ObjectProperty ; rdfs:label "fromState" .`,
-    `${ttlIri(ns, 'toState')} a owl:ObjectProperty ; rdfs:label "toState" .`,
-  ].join('\n'))
+  blocks.push(
+    [
+      `${ttlIri(ns, 'fromState')} a owl:ObjectProperty ; rdfs:label "fromState" .`,
+      `${ttlIri(ns, 'toState')} a owl:ObjectProperty ; rdfs:label "toState" .`,
+    ].join('\n'),
+  )
 
   for (const [entityName, entity] of Object.entries(schema.entities)) {
     // Cardinality: primary key field exists exactly once
     for (const field of Object.values(entity.fields)) {
       if (field.primaryKey) {
-        blocks.push(renderCardinalityRestriction(ns, entityName, field.name, 'exactly', 1, 'xsd:string'))
+        blocks.push(
+          renderCardinalityRestriction(ns, entityName, field.name, 'exactly', 1, 'xsd:string'),
+        )
       }
       // Nullable fields have max cardinality 1; required fields exactly 1
       else if (!field.nullable) {
-        blocks.push(renderCardinalityRestriction(ns, entityName, field.name, 'min', 1, 'xsd:string'))
+        blocks.push(
+          renderCardinalityRestriction(ns, entityName, field.name, 'min', 1, 'xsd:string'),
+        )
       }
     }
 

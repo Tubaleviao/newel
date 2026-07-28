@@ -12,28 +12,38 @@ import type {
 
 function inputType(field: FieldSchema): string {
   switch (field.type) {
-    case 'boolean':   return 'checkbox'
+    case 'boolean':
+      return 'checkbox'
     case 'number':
     case 'integer':
-    case 'decimal':   return 'number'
-    case 'email':     return 'email'
-    case 'url':       return 'url'
+    case 'decimal':
+      return 'number'
+    case 'email':
+      return 'email'
+    case 'url':
+      return 'url'
     case 'timestamp':
-    case 'date':      return 'date'
-    default:          return 'text'
+    case 'date':
+      return 'date'
+    default:
+      return 'text'
   }
 }
 
 function tsInputType(field: FieldSchema): string {
   switch (field.type) {
-    case 'boolean':             return 'boolean'
+    case 'boolean':
+      return 'boolean'
     case 'number':
     case 'integer':
-    case 'decimal':             return 'number'
-    case 'enum':                return field.enumValues
-                                  ? field.enumValues.map(v => JSON.stringify(v)).join(' | ')
-                                  : 'string'
-    default:                    return 'string'
+    case 'decimal':
+      return 'number'
+    case 'enum':
+      return field.enumValues
+        ? field.enumValues.map((v) => JSON.stringify(v)).join(' | ')
+        : 'string'
+    default:
+      return 'string'
   }
 }
 
@@ -43,7 +53,7 @@ function renderFieldInput(field: FieldSchema, indent: string): string {
 
   if (field.type === 'enum' && field.enumValues) {
     const options = field.enumValues
-      .map(v => `${indent}        <option value="${v}">${v}</option>`)
+      .map((v) => `${indent}        <option value="${v}">${v}</option>`)
       .join('\n')
     return [
       `${indent}      <label>`,
@@ -97,18 +107,16 @@ function generateEntityForm(entity: EntitySchema): string {
 
   // Only include editable fields: not primary keys, not foreign-key-only uuid fields
   // (FK fields that are also named *Id are included as hidden inputs)
-  const editableFields = Object.values(entity.fields).filter(f => !f.primaryKey)
+  const editableFields = Object.values(entity.fields).filter((f) => !f.primaryKey)
 
   // Build the values type
-  const valueTypeLines = editableFields.map(f => {
+  const valueTypeLines = editableFields.map((f) => {
     const t = tsInputType(f)
     const optional = f.nullable ? '?' : ''
     return `  ${f.name}${optional}: ${t}`
   })
 
-  const fieldInputs = editableFields
-    .map(f => renderFieldInput(f, '    '))
-    .join('\n\n')
+  const fieldInputs = editableFields.map((f) => renderFieldInput(f, '    ')).join('\n\n')
 
   return `// #region ${formName}
 export interface ${name}FormValues {
@@ -161,7 +169,7 @@ function generateActionPanel(entity: EntitySchema): string {
   }
 
   // Collect unique triggers (a trigger may appear for multiple froms)
-  const uniqueTriggers = [...new Set(sm.transitions.map(t => t.trigger))]
+  const uniqueTriggers = [...new Set(sm.transitions.map((t) => t.trigger))]
 
   // For each trigger, determine which states it's valid from
   const triggerFromStates: Record<string, string[]> = {}
@@ -187,34 +195,36 @@ function generateActionPanel(entity: EntitySchema): string {
 
   // State union type
   const stateUnion = Object.keys(sm.states)
-    .map(s => JSON.stringify(s))
+    .map((s) => JSON.stringify(s))
     .join(' | ')
 
   // Button elements
-  const buttons = uniqueTriggers.map(trigger => {
-    const froms = triggerFromStates[trigger].map(s => JSON.stringify(s)).join(', ')
-    const guards = triggerGuards[trigger]
-    const roles = triggerRoles[trigger]
-    const guardTitle = guards.length ? guards.join('; ') : undefined
-    const rolesStr = roles.length
-      ? `[${roles.map(r => JSON.stringify(r)).join(', ')}].some(r => userRoles.includes(r))`
-      : 'true'
+  const buttons = uniqueTriggers
+    .map((trigger) => {
+      const froms = triggerFromStates[trigger].map((s) => JSON.stringify(s)).join(', ')
+      const guards = triggerGuards[trigger]
+      const roles = triggerRoles[trigger]
+      const guardTitle = guards.length ? guards.join('; ') : undefined
+      const rolesStr = roles.length
+        ? `[${roles.map((r) => JSON.stringify(r)).join(', ')}].some(r => userRoles.includes(r))`
+        : 'true'
 
-    const lines = [
-      `      {[${froms}].includes(currentState) && (${rolesStr}) && (`,
-      `        <button`,
-      `          type="button"`,
-      `          onClick={() => onAction('${trigger}')}`,
-      `          disabled={disabled}`,
-      guardTitle ? `          title="${guardTitle}"` : null,
-      `        >`,
-      `          ${trigger}`,
-      `        </button>`,
-      `      )}`,
-    ].filter(l => l !== null) as string[]
+      const lines = [
+        `      {[${froms}].includes(currentState) && (${rolesStr}) && (`,
+        `        <button`,
+        `          type="button"`,
+        `          onClick={() => onAction('${trigger}')}`,
+        `          disabled={disabled}`,
+        guardTitle ? `          title="${guardTitle}"` : null,
+        `        >`,
+        `          ${trigger}`,
+        `        </button>`,
+        `      )}`,
+      ].filter((l) => l !== null) as string[]
 
-    return lines.join('\n')
-  }).join('\n')
+      return lines.join('\n')
+    })
+    .join('\n')
 
   return `// #region ${panelName}
 export type ${stateType} = ${stateUnion}
@@ -239,7 +249,7 @@ ${buttons}
 // --- Index file ---
 
 function generateIndex(entityNames: string[]): string {
-  const exports = entityNames.flatMap(n => [
+  const exports = entityNames.flatMap((n) => [
     `export type { ${n}FormValues, ${n}FormProps } from './${n}'`,
     `export { ${n}Form } from './${n}'`,
     `export type { ${n}ActionPanelProps } from './${n}'`,
@@ -257,7 +267,8 @@ export class UiGenerator implements Generator {
   async generate(schema: FabricSchema, _ctx: GeneratorContext): Promise<GeneratorOutput> {
     const files: GeneratorOutput['files'] = []
     const entityNames: string[] = []
-    const header = "// @generated by @newel/generator-ui — do not edit\nimport React from 'react'\n\n"
+    const header =
+      "// @generated by @newel/generator-ui — do not edit\nimport React from 'react'\n\n"
 
     for (const entity of Object.values(schema.entities)) {
       const formSection = generateEntityForm(entity)
@@ -267,7 +278,7 @@ export class UiGenerator implements Generator {
       files.push({
         path: `ui/${entity.name}.tsx`,
         content,
-        header: '',  // header already embedded above
+        header: '', // header already embedded above
       })
       entityNames.push(entity.name)
     }

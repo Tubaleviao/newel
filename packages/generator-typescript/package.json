@@ -2,7 +2,14 @@
   "name": "@newel/generator-typescript",
   "version": "0.0.1",
   "description": "TypeScript + Zod schema generator for newel",
-  "keywords": ["newel", "codegen", "generator", "typescript", "zod", "schema"],
+  "keywords": [
+    "newel",
+    "codegen",
+    "generator",
+    "typescript",
+    "zod",
+    "schema"
+  ],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
     "url": "https://github.com/Tubaleviao/newel/issues"
@@ -21,7 +28,12 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist/index.js", "dist/index.js.map", "dist/index.d.ts", "dist/index.d.ts.map"],
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",

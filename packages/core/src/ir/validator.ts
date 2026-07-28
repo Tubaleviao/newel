@@ -28,7 +28,7 @@ function validateStateMachine(
   sm: StateMachineSchema,
   entity: EntitySchema,
   entityName: string,
-): { errors: ValidationError[], warnings: ValidationWarning[] } {
+): { errors: ValidationError[]; warnings: ValidationWarning[] } {
   const errors: ValidationError[] = []
   const warnings: ValidationWarning[] = []
   const base = `entities.${entityName}.stateMachine`
@@ -58,18 +58,26 @@ function validateStateMachine(
     }
 
     if (t.trigger && !(t.trigger in entity.behaviors)) {
-      errors.push(err(`${tBase}.trigger`, `trigger "${t.trigger}" does not match any behavior on entity "${entityName}"`))
+      errors.push(
+        err(
+          `${tBase}.trigger`,
+          `trigger "${t.trigger}" does not match any behavior on entity "${entityName}"`,
+        ),
+      )
     } else if (t.trigger && t.guards.length > 0) {
       const behavior = entity.behaviors[t.trigger]
       if (behavior) {
         const guardSet = new Set(t.guards)
         const ruleSet = new Set(behavior.rules)
-        const guardsDifferFromRules = t.guards.some(g => !ruleSet.has(g)) || behavior.rules.some(r => !guardSet.has(r))
+        const guardsDifferFromRules =
+          t.guards.some((g) => !ruleSet.has(g)) || behavior.rules.some((r) => !guardSet.has(r))
         if (guardsDifferFromRules) {
-          warnings.push(warn(
-            `${tBase}.guards`,
-            `transition guards differ from behavior "${t.trigger}" rules — prefer letting the normalizer derive guards from rules to avoid duplication`,
-          ))
+          warnings.push(
+            warn(
+              `${tBase}.guards`,
+              `transition guards differ from behavior "${t.trigger}" rules — prefer letting the normalizer derive guards from rules to avoid duplication`,
+            ),
+          )
         }
       }
     }
@@ -82,25 +90,32 @@ function validateEntity(
   name: string,
   entity: EntitySchema,
   schema: FabricSchema,
-): { errors: ValidationError[], warnings: ValidationWarning[] } {
+): { errors: ValidationError[]; warnings: ValidationWarning[] } {
   const errors: ValidationError[] = []
   const warnings: ValidationWarning[] = []
 
   if (!Array.isArray(entity.tags)) {
     errors.push(err(`entities.${name}.tags`, `"tags" must be an array of strings`))
   } else {
-    const badIdx = entity.tags.findIndex(t => typeof t !== 'string')
+    const badIdx = entity.tags.findIndex((t) => typeof t !== 'string')
     if (badIdx !== -1) {
-      errors.push(err(`entities.${name}.tags[${badIdx}]`, `must be a string, got ${JSON.stringify(entity.tags[badIdx])}`))
+      errors.push(
+        err(
+          `entities.${name}.tags[${badIdx}]`,
+          `must be a string, got ${JSON.stringify(entity.tags[badIdx])}`,
+        ),
+      )
     }
   }
 
   for (const [bName, behavior] of Object.entries(entity.behaviors)) {
     if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {
-      errors.push(err(
-        `entities.${name}.behaviors.${bName}.auth.ownerField`,
-        `ownerField "${behavior.auth.ownerField}" does not exist on entity "${name}"`,
-      ))
+      errors.push(
+        err(
+          `entities.${name}.behaviors.${bName}.auth.ownerField`,
+          `ownerField "${behavior.auth.ownerField}" does not exist on entity "${name}"`,
+        ),
+      )
     }
   }
 
@@ -119,7 +134,12 @@ function validateEntity(
 
   for (const [relName, rel] of Object.entries(entity.relations)) {
     if (!(rel.target in schema.entities)) {
-      errors.push(err(`entities.${name}.relations.${relName}.target`, `references unknown entity "${rel.target}"`))
+      errors.push(
+        err(
+          `entities.${name}.relations.${relName}.target`,
+          `references unknown entity "${rel.target}"`,
+        ),
+      )
     }
   }
 
@@ -146,7 +166,12 @@ function validateApis(schema: FabricSchema): ValidationError[] {
         const [entityName] = (endpoint.behavior ?? '').split('.')
         const entity = entityName ? schema.entities[entityName] : undefined
         if (entity && !(endpoint.auth.ownerField in entity.fields)) {
-          errors.push(err(`${base}.auth.ownerField`, `ownerField "${endpoint.auth.ownerField}" does not exist on entity "${entityName}"`))
+          errors.push(
+            err(
+              `${base}.auth.ownerField`,
+              `ownerField "${endpoint.auth.ownerField}" does not exist on entity "${entityName}"`,
+            ),
+          )
         }
       }
     }

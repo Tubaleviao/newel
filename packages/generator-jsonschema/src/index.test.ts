@@ -22,17 +22,43 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A book in the catalogue',
       fields: {
-        id:        { name: 'id',        type: 'uuid',    nullable: false, primaryKey: true,  pii: false },
-        title:     { name: 'title',     type: 'string',  nullable: false, primaryKey: false, pii: false, description: 'Book title' },
-        status:    { name: 'status',    type: 'enum',    nullable: false, primaryKey: false, pii: false, enumValues: ['available', 'borrowed'] },
-        pages:     { name: 'pages',     type: 'integer', nullable: false, primaryKey: false, pii: false },
-        price:     { name: 'price',     type: 'decimal', nullable: true,  primaryKey: false, pii: false },
-        notes:     { name: 'notes',     type: 'string',  nullable: true,  primaryKey: false, pii: false },
-        active:    { name: 'active',    type: 'boolean', nullable: false, primaryKey: false, pii: false },
-        publishedAt: { name: 'publishedAt', type: 'timestamp', nullable: true, primaryKey: false, pii: false },
-        releaseDate: { name: 'releaseDate', type: 'date',      nullable: true, primaryKey: false, pii: false },
-        coverUrl:  { name: 'coverUrl',  type: 'url',     nullable: true,  primaryKey: false, pii: false },
-        data:      { name: 'data',      type: 'json',    nullable: true,  primaryKey: false, pii: false },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        title: {
+          name: 'title',
+          type: 'string',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          description: 'Book title',
+        },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['available', 'borrowed'],
+        },
+        pages: { name: 'pages', type: 'integer', nullable: false, primaryKey: false, pii: false },
+        price: { name: 'price', type: 'decimal', nullable: true, primaryKey: false, pii: false },
+        notes: { name: 'notes', type: 'string', nullable: true, primaryKey: false, pii: false },
+        active: { name: 'active', type: 'boolean', nullable: false, primaryKey: false, pii: false },
+        publishedAt: {
+          name: 'publishedAt',
+          type: 'timestamp',
+          nullable: true,
+          primaryKey: false,
+          pii: false,
+        },
+        releaseDate: {
+          name: 'releaseDate',
+          type: 'date',
+          nullable: true,
+          primaryKey: false,
+          pii: false,
+        },
+        coverUrl: { name: 'coverUrl', type: 'url', nullable: true, primaryKey: false, pii: false },
+        data: { name: 'data', type: 'json', nullable: true, primaryKey: false, pii: false },
       },
       relations: {},
       behaviors: {},
@@ -44,9 +70,17 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A library member',
       fields: {
-        id:    { name: 'id',    type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
-        email: { name: 'email', type: 'email',  nullable: false, primaryKey: false, pii: true,
-                 gdprCategory: 'contact', gdprRetention: '5y', gdprLegalBasis: 'contract' },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        email: {
+          name: 'email',
+          type: 'email',
+          nullable: false,
+          primaryKey: false,
+          pii: true,
+          gdprCategory: 'contact',
+          gdprRetention: '5y',
+          gdprLegalBasis: 'contract',
+        },
       },
       relations: {},
       behaviors: {},
@@ -73,8 +107,8 @@ describe('JsonSchemaGenerator', () => {
   it('produces one file per entity', async () => {
     const { files } = await generator.generate(richSchema, makeCtx())
     expect(files).toHaveLength(2)
-    expect(files.map(f => f.path)).toContain('jsonschema/Book.schema.json')
-    expect(files.map(f => f.path)).toContain('jsonschema/Member.schema.json')
+    expect(files.map((f) => f.path)).toContain('jsonschema/Book.schema.json')
+    expect(files.map((f) => f.path)).toContain('jsonschema/Member.schema.json')
   })
 
   it('emits a @generated header', async () => {
@@ -89,7 +123,7 @@ describe('JsonSchemaGenerator', () => {
 
     beforeEach(async () => {
       const { files } = await generator.generate(richSchema, makeCtx())
-      const file = files.find(f => f.path === 'jsonschema/Book.schema.json')!
+      const file = files.find((f) => f.path === 'jsonschema/Book.schema.json')!
       bookSchema = JSON.parse(file.content)
     })
 
@@ -132,7 +166,7 @@ describe('JsonSchemaGenerator', () => {
 
     beforeEach(async () => {
       const { files } = await generator.generate(richSchema, makeCtx())
-      const file = files.find(f => f.path === 'jsonschema/Book.schema.json')!
+      const file = files.find((f) => f.path === 'jsonschema/Book.schema.json')!
       const parsed = JSON.parse(file.content)
       props = parsed['properties']
     })
@@ -201,7 +235,7 @@ describe('JsonSchemaGenerator', () => {
     it('falls back to schema.org-style namespace', async () => {
       const schema = { ...richSchema, meta: { name: 'MyApp', version: '1.0.0' } }
       const { files } = await generator.generate(schema, makeCtx())
-      const file = files.find(f => f.path === 'jsonschema/Book.schema.json')!
+      const file = files.find((f) => f.path === 'jsonschema/Book.schema.json')!
       const parsed = JSON.parse(file.content)
       expect(parsed['$id']).toContain('MyApp')
       expect(parsed['$id']).toContain('Book')

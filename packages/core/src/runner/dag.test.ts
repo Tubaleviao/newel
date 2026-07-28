@@ -19,7 +19,7 @@ describe('topoSort', () => {
     const docs = makeGen('docs', ['openapi', 'typescript'])
 
     const result = topoSort([docs, sql, openapi, ts])
-    const names = result.map(g => g.name)
+    const names = result.map((g) => g.name)
 
     expect(names.indexOf('typescript')).toBeLessThan(names.indexOf('sql'))
     expect(names.indexOf('typescript')).toBeLessThan(names.indexOf('openapi'))

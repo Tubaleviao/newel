@@ -4,16 +4,16 @@
   "private": true,
   "description": "Worked example: library management system using newel",
   "scripts": {
-    "validate":    "newel validate    -s ./src/fabric.ts",
-    "inspect":     "newel inspect     -s ./src/fabric.ts",
-    "generate":    "newel generate    -c ./newel.config.ts",
-    "diff":        "newel diff        -c ./newel.config.ts",
+    "validate": "newel validate    -s ./src/fabric.ts",
+    "inspect": "newel inspect     -s ./src/fabric.ts",
+    "generate": "newel generate    -c ./newel.config.ts",
+    "diff": "newel diff        -c ./newel.config.ts",
     "check-drift": "newel check-drift -c ./newel.config.ts",
-    "setup":       "prisma generate --schema src/generated/app/schema.prisma && prisma db push --schema src/generated/app/schema.prisma",
-    "dev:server":  "tsx watch src/generated/app/server.ts",
-    "dev:client":  "cd src/generated/app/client && vite",
-    "dev":         "concurrently -n server,client -c cyan,yellow \"pnpm dev:server\" \"pnpm dev:client\"",
-    "start":       "tsx src/generated/app/server.ts"
+    "setup": "prisma generate --schema src/generated/app/schema.prisma && prisma db push --schema src/generated/app/schema.prisma",
+    "dev:server": "tsx watch src/generated/app/server.ts",
+    "dev:client": "cd src/generated/app/client && vite",
+    "dev": "concurrently -n server,client -c cyan,yellow \"pnpm dev:server\" \"pnpm dev:client\"",
+    "start": "tsx src/generated/app/server.ts"
   },
   "dependencies": {
     "@newel/core": "workspace:*",

@@ -22,10 +22,24 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A book in the catalogue',
       fields: {
-        id:     { name: 'id',     type: 'uuid',    nullable: false, primaryKey: true,  pii: false },
-        title:  { name: 'title',  type: 'string',  nullable: false, primaryKey: false, pii: false, description: 'Book title' },
-        status: { name: 'status', type: 'enum',    nullable: false, primaryKey: false, pii: false, enumValues: ['available', 'borrowed'] },
-        notes:  { name: 'notes',  type: 'string',  nullable: true,  primaryKey: false, pii: false },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        title: {
+          name: 'title',
+          type: 'string',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          description: 'Book title',
+        },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['available', 'borrowed'],
+        },
+        notes: { name: 'notes', type: 'string', nullable: true, primaryKey: false, pii: false },
       },
       relations: {},
       behaviors: {
@@ -35,7 +49,14 @@ const richSchema: FabricSchema = {
           rules: ['Member must be active'],
           auth: { roles: ['member'] },
           input: {
-            memberId: { name: 'memberId', type: 'uuid', nullable: false, primaryKey: false, pii: false, description: 'ID of the borrowing member' },
+            memberId: {
+              name: 'memberId',
+              type: 'uuid',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              description: 'ID of the borrowing member',
+            },
           },
         },
         returnBook: {
@@ -50,11 +71,17 @@ const richSchema: FabricSchema = {
         initial: 'available',
         states: {
           available: { name: 'available', description: 'On the shelf', terminal: false },
-          borrowed:  { name: 'borrowed',  description: 'With a member', terminal: false },
+          borrowed: { name: 'borrowed', description: 'With a member', terminal: false },
         },
         transitions: [
-          { from: 'available', to: 'borrowed',  trigger: 'borrow',     guards: ['Member must be active'], effects: [] },
-          { from: 'borrowed',  to: 'available', trigger: 'returnBook', guards: [],                        effects: [] },
+          {
+            from: 'available',
+            to: 'borrowed',
+            trigger: 'borrow',
+            guards: ['Member must be active'],
+            effects: [],
+          },
+          { from: 'borrowed', to: 'available', trigger: 'returnBook', guards: [], effects: [] },
         ],
       },
       pii: [],
@@ -285,7 +312,9 @@ describe('OpenApiGenerator', () => {
             name: 'Tag',
             tags: [],
             description: 'A tag',
-            fields: { id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false } },
+            fields: {
+              id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+            },
             relations: {},
             behaviors: {},
             pii: [],

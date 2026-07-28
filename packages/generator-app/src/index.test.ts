@@ -44,9 +44,16 @@ const schema: FabricSchema = {
       tags: [],
       description: 'A book in the catalogue',
       fields: {
-        id:     { name: 'id',     type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
-        title:  { name: 'title',  type: 'string', nullable: false, primaryKey: false, pii: false },
-        status: { name: 'status', type: 'enum',   nullable: false, primaryKey: false, pii: false, enumValues: ['available', 'borrowed'] },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        title: { name: 'title', type: 'string', nullable: false, primaryKey: false, pii: false },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['available', 'borrowed'],
+        },
       },
       relations: {},
       behaviors: {
@@ -69,12 +76,18 @@ const schema: FabricSchema = {
         field: 'status',
         initial: 'available',
         states: {
-          available: { name: 'available', description: 'On shelf',      terminal: false },
-          borrowed:  { name: 'borrowed',  description: 'With a member', terminal: false },
+          available: { name: 'available', description: 'On shelf', terminal: false },
+          borrowed: { name: 'borrowed', description: 'With a member', terminal: false },
         },
         transitions: [
-          { from: 'available', to: 'borrowed',  trigger: 'borrow', guards: ['Member must be active'], effects: [] },
-          { from: 'borrowed',  to: 'available', trigger: 'return', guards: [],                        effects: [] },
+          {
+            from: 'available',
+            to: 'borrowed',
+            trigger: 'borrow',
+            guards: ['Member must be active'],
+            effects: [],
+          },
+          { from: 'borrowed', to: 'available', trigger: 'return', guards: [], effects: [] },
         ],
       },
     },
@@ -83,9 +96,9 @@ const schema: FabricSchema = {
       tags: [],
       description: 'A library member',
       fields: {
-        id:    { name: 'id',    type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
-        name:  { name: 'name',  type: 'string', nullable: false, primaryKey: false, pii: true  },
-        email: { name: 'email', type: 'string', nullable: false, primaryKey: false, pii: true  },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        name: { name: 'name', type: 'string', nullable: false, primaryKey: false, pii: true },
+        email: { name: 'email', type: 'string', nullable: false, primaryKey: false, pii: true },
       },
       relations: {},
       behaviors: {},
@@ -98,10 +111,30 @@ const schema: FabricSchema = {
       name: 'LibraryAPI',
       baseUrl: '',
       endpoints: {
-        'GET /books':    { method: 'GET',  path: '/books',    description: 'List books', auth: { roles: ['member'] } },
-        'GET /books/:id': { method: 'GET', path: '/books/:id', description: 'Get book',  auth: { roles: ['member'] } },
-        'POST /books':   { method: 'POST', path: '/books',    description: 'Add book',   auth: { roles: ['librarian'] } },
-        'GET /members':  { method: 'GET',  path: '/members',  description: 'List members', auth: { roles: ['librarian'] } },
+        'GET /books': {
+          method: 'GET',
+          path: '/books',
+          description: 'List books',
+          auth: { roles: ['member'] },
+        },
+        'GET /books/:id': {
+          method: 'GET',
+          path: '/books/:id',
+          description: 'Get book',
+          auth: { roles: ['member'] },
+        },
+        'POST /books': {
+          method: 'POST',
+          path: '/books',
+          description: 'Add book',
+          auth: { roles: ['librarian'] },
+        },
+        'GET /members': {
+          method: 'GET',
+          path: '/members',
+          description: 'List members',
+          auth: { roles: ['librarian'] },
+        },
       },
     },
   },
@@ -127,11 +160,11 @@ describe('AppGenerator', () => {
   it('generates app/server.ts with CORS, dotenv, and dev auth bypass', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const server = result.files.find(f => f.path === 'app/server.ts')
+    const server = result.files.find((f) => f.path === 'app/server.ts')
     expect(server).toBeDefined()
     expect(server!.content).toContain("import cors from 'cors'")
     expect(server!.content).toContain("import dotenv from 'dotenv'")
-    expect(server!.content).toContain("x-dev-roles")
+    expect(server!.content).toContain('x-dev-roles')
     expect(server!.content).toContain('req.user')
     expect(server!.content).toContain('app.listen(PORT')
   })
@@ -139,7 +172,7 @@ describe('AppGenerator', () => {
   it('generates app/.env with SQLite DATABASE_URL', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const env = result.files.find(f => f.path === 'app/.env')
+    const env = result.files.find((f) => f.path === 'app/.env')
     expect(env).toBeDefined()
     expect(env!.content).toContain('DATABASE_URL="file:./dev.db"')
     expect(env!.content).toContain('NODE_ENV=development')
@@ -148,7 +181,7 @@ describe('AppGenerator', () => {
   it('generates app/schema.prisma with sqlite provider', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const prisma = result.files.find(f => f.path === 'app/schema.prisma')
+    const prisma = result.files.find((f) => f.path === 'app/schema.prisma')
     expect(prisma).toBeDefined()
     expect(prisma!.content).toContain('provider = "sqlite"')
     expect(prisma!.content).not.toContain('provider = "postgresql"')
@@ -157,7 +190,7 @@ describe('AppGenerator', () => {
   it('generates app/client/vite.config.ts with /api proxy', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const vite = result.files.find(f => f.path === 'app/client/vite.config.ts')
+    const vite = result.files.find((f) => f.path === 'app/client/vite.config.ts')
     expect(vite).toBeDefined()
     expect(vite!.content).toContain("'^/api/'")
     expect(vite!.content).toContain('proxy')
@@ -167,7 +200,7 @@ describe('AppGenerator', () => {
   it('generates app/client/api-client.ts with setDevRoles and apiFetch', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const client = result.files.find(f => f.path === 'app/client/api-client.ts')
+    const client = result.files.find((f) => f.path === 'app/client/api-client.ts')
     expect(client).toBeDefined()
     expect(client!.content).toContain('setDevRoles')
     expect(client!.content).toContain('X-Dev-Roles')
@@ -177,8 +210,8 @@ describe('AppGenerator', () => {
   it('generates one page file per entity', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const bookPage = result.files.find(f => f.path === 'app/client/pages/BookPage.tsx')
-    const memberPage = result.files.find(f => f.path === 'app/client/pages/MemberPage.tsx')
+    const bookPage = result.files.find((f) => f.path === 'app/client/pages/BookPage.tsx')
+    const memberPage = result.files.find((f) => f.path === 'app/client/pages/MemberPage.tsx')
     expect(bookPage).toBeDefined()
     expect(memberPage).toBeDefined()
   })
@@ -186,14 +219,14 @@ describe('AppGenerator', () => {
   it('entity page imports the UI component from @generated', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const bookPage = result.files.find(f => f.path === 'app/client/pages/BookPage.tsx')!
+    const bookPage = result.files.find((f) => f.path === 'app/client/pages/BookPage.tsx')!
     expect(bookPage.content).toContain("from '@generated/ui/Book'")
   })
 
   it('entity page includes ActionPanel for entities with a state machine', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const bookPage = result.files.find(f => f.path === 'app/client/pages/BookPage.tsx')!
+    const bookPage = result.files.find((f) => f.path === 'app/client/pages/BookPage.tsx')!
     expect(bookPage.content).toContain('BookActionPanel')
   })
 
@@ -212,14 +245,14 @@ describe('AppGenerator', () => {
       },
     }
     const result = await gen.generate(schemaNoMemberList, makeCtx())
-    const memberPage = result.files.find(f => f.path === 'app/client/pages/MemberPage.tsx')!
+    const memberPage = result.files.find((f) => f.path === 'app/client/pages/MemberPage.tsx')!
     expect(memberPage.content).toContain('No list endpoint')
   })
 
   it('generates App.tsx with tab navigation for each entity', async () => {
     const gen = new AppGenerator()
     const result = await gen.generate(schema, makeCtx())
-    const app = result.files.find(f => f.path === 'app/client/App.tsx')!
+    const app = result.files.find((f) => f.path === 'app/client/App.tsx')!
     expect(app.content).toContain('Book')
     expect(app.content).toContain('Member')
     expect(app.content).toContain('setDevRoles')
@@ -233,7 +266,7 @@ describe('AppGenerator', () => {
       outputs: new Map(),
     }
     const result = await gen.generate(schema, emptyCtx)
-    const prisma = result.files.find(f => f.path === 'app/schema.prisma')
+    const prisma = result.files.find((f) => f.path === 'app/schema.prisma')
     expect(prisma).toBeUndefined()
   })
 })

@@ -1,7 +1,7 @@
 import { defineFabric } from '@newel/core'
-import Book      from '../entities/Book'
-import Member    from '../entities/Member'
-import Loan      from '../entities/Loan'
+import Book from '../entities/Book'
+import Member from '../entities/Member'
+import Loan from '../entities/Loan'
 import LibraryAPI from '../apis/LibraryAPI'
 
 export default defineFabric({

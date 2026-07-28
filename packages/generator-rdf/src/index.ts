@@ -12,18 +12,18 @@ import type {
 
 // XSD type mapping for RDF datatype properties
 const XSD_MAP: Record<string, string> = {
-  string:    'xsd:string',
-  number:    'xsd:double',
-  integer:   'xsd:integer',
-  decimal:   'xsd:decimal',
-  boolean:   'xsd:boolean',
-  uuid:      'xsd:string',
+  string: 'xsd:string',
+  number: 'xsd:double',
+  integer: 'xsd:integer',
+  decimal: 'xsd:decimal',
+  boolean: 'xsd:boolean',
+  uuid: 'xsd:string',
   timestamp: 'xsd:dateTime',
-  date:      'xsd:date',
-  email:     'xsd:string',
-  url:       'xsd:anyURI',
-  json:      'xsd:string',
-  enum:      'xsd:string',
+  date: 'xsd:date',
+  email: 'xsd:string',
+  url: 'xsd:anyURI',
+  json: 'xsd:string',
+  enum: 'xsd:string',
 }
 
 function ttlIri(ns: string, local: string): string {
@@ -36,12 +36,9 @@ function ttlComment(text: string): string {
 
 function renderEntityClass(ns: string, entity: EntitySchema): string {
   const iri = ttlIri(ns, entity.name)
-  const lines: string[] = [
-    `${iri}`,
-    `  a owl:Class ;`,
-    `  rdfs:label "${entity.name}" ;`,
-  ]
-  if (entity.description) lines.push(`  rdfs:comment "${entity.description.replace(/"/g, '\\"')}" ;`)
+  const lines: string[] = [`${iri}`, `  a owl:Class ;`, `  rdfs:label "${entity.name}" ;`]
+  if (entity.description)
+    lines.push(`  rdfs:comment "${entity.description.replace(/"/g, '\\"')}" ;`)
   if (entity.goal) lines.push(`  skos:definition "${entity.goal.replace(/"/g, '\\"')}" ;`)
   lines[lines.length - 1] = lines[lines.length - 1].replace(/ ;$/, ' .')
   return lines.join('\n')
@@ -59,9 +56,11 @@ function renderDatatypeProperty(ns: string, entityName: string, field: FieldSche
   ]
   if (field.description) lines.push(`  rdfs:comment "${field.description.replace(/"/g, '\\"')}" ;`)
   if (field.pii) lines.push(`  dpvo:hasPersonalDataCategory dpvo:PersonalData ;`)
-  if (field.gdprCategory) lines.push(`  dpvo:hasPersonalDataCategory dpvo:${capitalise(field.gdprCategory)}Data ;`)
+  if (field.gdprCategory)
+    lines.push(`  dpvo:hasPersonalDataCategory dpvo:${capitalise(field.gdprCategory)}Data ;`)
   if (field.gdprRetention) lines.push(`  dpvo:hasStorageDuration "${field.gdprRetention}" ;`)
-  if (field.gdprLegalBasis) lines.push(`  dpvo:hasLegalBasis dpvo:${legalBasisToOwl(field.gdprLegalBasis)} ;`)
+  if (field.gdprLegalBasis)
+    lines.push(`  dpvo:hasLegalBasis dpvo:${legalBasisToOwl(field.gdprLegalBasis)} ;`)
   lines[lines.length - 1] = lines[lines.length - 1].replace(/ ;$/, ' .')
   return lines.join('\n')
 }
@@ -79,14 +78,19 @@ function renderObjectProperty(ns: string, entityName: string, rel: RelationSchem
   return lines.join('\n')
 }
 
-function renderBehaviorIndividual(ns: string, entityName: string, behavior: BehaviorSchema): string {
+function renderBehaviorIndividual(
+  ns: string,
+  entityName: string,
+  behavior: BehaviorSchema,
+): string {
   const iri = ttlIri(ns, `${entityName}_${behavior.name}`)
   const lines: string[] = [
     `${iri}`,
     `  a owl:NamedIndividual, ${ttlIri(ns, 'Behavior')} ;`,
     `  rdfs:label "${behavior.name}" ;`,
   ]
-  if (behavior.description) lines.push(`  rdfs:comment "${behavior.description.replace(/"/g, '\\"')}" ;`)
+  if (behavior.description)
+    lines.push(`  rdfs:comment "${behavior.description.replace(/"/g, '\\"')}" ;`)
   for (const rule of behavior.rules) {
     lines.push(`  ${ttlIri(ns, 'hasRule')} "${rule.replace(/"/g, '\\"')}" ;`)
   }
@@ -97,7 +101,11 @@ function renderBehaviorIndividual(ns: string, entityName: string, behavior: Beha
   return lines.join('\n')
 }
 
-function renderStateMachineIndividuals(ns: string, entityName: string, sm: StateMachineSchema): string[] {
+function renderStateMachineIndividuals(
+  ns: string,
+  entityName: string,
+  sm: StateMachineSchema,
+): string[] {
   const blocks: string[] = []
 
   for (const state of Object.values(sm.states)) {
@@ -119,8 +127,8 @@ function renderStateMachineIndividuals(ns: string, entityName: string, sm: State
 
 function legalBasisToOwl(lb: string): string {
   const map: Record<string, string> = {
-    'consent': 'Consent',
-    'contract': 'Contract',
+    consent: 'Consent',
+    contract: 'Contract',
     'legal-obligation': 'LegalObligation',
     'legitimate-interest': 'LegitimateInterest',
   }
@@ -136,34 +144,44 @@ function generateTurtle(schema: FabricSchema): string {
   const blocks: string[] = []
 
   // Prefixes
-  blocks.push([
-    `@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .`,
-    `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .`,
-    `@prefix owl:  <http://www.w3.org/2002/07/owl#> .`,
-    `@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .`,
-    `@prefix skos: <http://www.w3.org/2004/02/skos/core#> .`,
-    `@prefix dpvo: <https://w3id.org/dpv#> .`,
-    `@prefix :     <${ns}> .`,
-  ].join('\n'))
+  blocks.push(
+    [
+      `@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .`,
+      `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .`,
+      `@prefix owl:  <http://www.w3.org/2002/07/owl#> .`,
+      `@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .`,
+      `@prefix skos: <http://www.w3.org/2004/02/skos/core#> .`,
+      `@prefix dpvo: <https://w3id.org/dpv#> .`,
+      `@prefix :     <${ns}> .`,
+    ].join('\n'),
+  )
 
   // Ontology declaration
-  blocks.push([
-    `<${ns}>`,
-    `  a owl:Ontology ;`,
-    `  rdfs:label "${schema.meta.name}" ;`,
-    schema.meta.description ? `  rdfs:comment "${schema.meta.description.replace(/"/g, '\\"')}" ;` : null,
-    `  owl:versionInfo "${schema.meta.version ?? '1.0.0'}" .`,
-  ].filter(Boolean).join('\n'))
+  blocks.push(
+    [
+      `<${ns}>`,
+      `  a owl:Ontology ;`,
+      `  rdfs:label "${schema.meta.name}" ;`,
+      schema.meta.description
+        ? `  rdfs:comment "${schema.meta.description.replace(/"/g, '\\"')}" ;`
+        : null,
+      `  owl:versionInfo "${schema.meta.version ?? '1.0.0'}" .`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  )
 
   // Meta classes used by the ontology
-  blocks.push([
-    `${ttlIri(ns, 'Behavior')} a owl:Class ; rdfs:label "Behavior" .`,
-    `${ttlIri(ns, 'LifecycleState')} a owl:Class ; rdfs:label "LifecycleState" .`,
-    `${ttlIri(ns, 'hasRule')} a owl:AnnotationProperty ; rdfs:label "hasRule" .`,
-    `${ttlIri(ns, 'requiresRole')} a owl:AnnotationProperty ; rdfs:label "requiresRole" .`,
-    `${ttlIri(ns, 'isTerminal')} a owl:AnnotationProperty ; rdfs:label "isTerminal" .`,
-    `${ttlIri(ns, 'isInitial')} a owl:AnnotationProperty ; rdfs:label "isInitial" .`,
-  ].join('\n'))
+  blocks.push(
+    [
+      `${ttlIri(ns, 'Behavior')} a owl:Class ; rdfs:label "Behavior" .`,
+      `${ttlIri(ns, 'LifecycleState')} a owl:Class ; rdfs:label "LifecycleState" .`,
+      `${ttlIri(ns, 'hasRule')} a owl:AnnotationProperty ; rdfs:label "hasRule" .`,
+      `${ttlIri(ns, 'requiresRole')} a owl:AnnotationProperty ; rdfs:label "requiresRole" .`,
+      `${ttlIri(ns, 'isTerminal')} a owl:AnnotationProperty ; rdfs:label "isTerminal" .`,
+      `${ttlIri(ns, 'isInitial')} a owl:AnnotationProperty ; rdfs:label "isInitial" .`,
+    ].join('\n'),
+  )
 
   for (const [entityName, entity] of Object.entries(schema.entities)) {
     blocks.push(ttlComment(`--- Entity: ${entityName} ---`))

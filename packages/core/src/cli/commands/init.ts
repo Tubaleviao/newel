@@ -107,7 +107,9 @@ export async function initCommand(targetDir: string): Promise<void> {
   fs.writeFileSync(configPath, CONFIG_TEMPLATE)
 
   console.log('✓ Initialized newel project:')
-  console.log(`  ${path.relative(process.cwd(), fabricPath)}  — edit this to describe your application`)
+  console.log(
+    `  ${path.relative(process.cwd(), fabricPath)}  — edit this to describe your application`,
+  )
   console.log(`  ${path.relative(process.cwd(), configPath)}  — configure generators here`)
   console.log('')
   console.log('Next steps:')

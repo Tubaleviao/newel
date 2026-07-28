@@ -13,7 +13,14 @@ const baseSchema: FabricSchema = {
       fields: {
         id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         title: { name: 'title', type: 'string', nullable: false, primaryKey: false, pii: false },
-        status: { name: 'status', type: 'enum', enumValues: ['available', 'borrowed'], nullable: false, primaryKey: false, pii: false },
+        status: {
+          name: 'status',
+          type: 'enum',
+          enumValues: ['available', 'borrowed'],
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
       },
       relations: {},
       behaviors: {
@@ -58,7 +65,9 @@ describe('applyPatches', () => {
   })
 
   it('merges into meta', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'meta', value: { description: 'A test app', namespace: 'test' } }]
+    const patches: Patch[] = [
+      { op: 'merge', target: 'meta', value: { description: 'A test app', namespace: 'test' } },
+    ]
     const result = applyPatches(baseSchema, patches)
     expect(result.meta.description).toBe('A test app')
     expect(result.meta.namespace).toBe('test')
@@ -66,41 +75,73 @@ describe('applyPatches', () => {
   })
 
   it('merges into an entity top-level', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { goal: 'Track books' } }]
+    const patches: Patch[] = [
+      { op: 'merge', target: 'entity.Book', value: { goal: 'Track books' } },
+    ]
     const result = applyPatches(baseSchema, patches)
     expect(result.entities.Book.goal).toBe('Track books')
     expect(result.entities.Book.description).toBe('A book')
   })
 
   it('merges into an entity field', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book.fields.title', value: { description: 'The full title of the book' } }]
+    const patches: Patch[] = [
+      {
+        op: 'merge',
+        target: 'entity.Book.fields.title',
+        value: { description: 'The full title of the book' },
+      },
+    ]
     const result = applyPatches(baseSchema, patches)
     expect(result.entities.Book.fields.title.description).toBe('The full title of the book')
     expect(result.entities.Book.fields.id.description).toBeUndefined()
   })
 
   it('merges into a behavior', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book.behaviors.borrow', value: { description: 'Lend a book to a member' } }]
+    const patches: Patch[] = [
+      {
+        op: 'merge',
+        target: 'entity.Book.behaviors.borrow',
+        value: { description: 'Lend a book to a member' },
+      },
+    ]
     const result = applyPatches(baseSchema, patches)
     expect(result.entities.Book.behaviors.borrow.description).toBe('Lend a book to a member')
   })
 
   it('merges into a state machine state', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book.stateMachine.states.available', value: { description: 'Available for borrowing' } }]
+    const patches: Patch[] = [
+      {
+        op: 'merge',
+        target: 'entity.Book.stateMachine.states.available',
+        value: { description: 'Available for borrowing' },
+      },
+    ]
     const result = applyPatches(baseSchema, patches)
-    expect(result.entities.Book.stateMachine!.states.available.description).toBe('Available for borrowing')
+    expect(result.entities.Book.stateMachine!.states.available.description).toBe(
+      'Available for borrowing',
+    )
   })
 
   it('merges into an api', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'api.LibraryAPI', value: { baseUrl: 'https://api.example.com' } }]
+    const patches: Patch[] = [
+      { op: 'merge', target: 'api.LibraryAPI', value: { baseUrl: 'https://api.example.com' } },
+    ]
     const result = applyPatches(baseSchema, patches)
     expect(result.apis.LibraryAPI.baseUrl).toBe('https://api.example.com')
   })
 
   it('merges into an endpoint', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'api.LibraryAPI.endpoints.GET /books', value: { description: 'Returns all books in the library' } }]
+    const patches: Patch[] = [
+      {
+        op: 'merge',
+        target: 'api.LibraryAPI.endpoints.GET /books',
+        value: { description: 'Returns all books in the library' },
+      },
+    ]
     const result = applyPatches(baseSchema, patches)
-    expect(result.apis.LibraryAPI.endpoints['GET /books'].description).toBe('Returns all books in the library')
+    expect(result.apis.LibraryAPI.endpoints['GET /books'].description).toBe(
+      'Returns all books in the library',
+    )
   })
 
   it('applies multiple patches in order', () => {
@@ -128,7 +169,9 @@ describe('applyPatches', () => {
   })
 
   it('throws on unknown state', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book.stateMachine.states.missing', value: {} }]
+    const patches: Patch[] = [
+      { op: 'merge', target: 'entity.Book.stateMachine.states.missing', value: {} },
+    ]
     expect(() => applyPatches(baseSchema, patches)).toThrow('state "missing" not found')
   })
 
@@ -138,19 +181,26 @@ describe('applyPatches', () => {
   })
 
   it('throws when entity merge patch supplies tags as a non-array', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: 'creature' as unknown as string[] } }]
+    const patches: Patch[] = [
+      { op: 'merge', target: 'entity.Book', value: { tags: 'creature' as unknown as string[] } },
+    ]
     expect(() => applyPatches(baseSchema, patches)).toThrow('"tags" must be an array of strings')
   })
 
   it('throws when entity merge patch supplies tags array with non-string elements', () => {
-    const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: [42] as unknown as string[] } }]
+    const patches: Patch[] = [
+      { op: 'merge', target: 'entity.Book', value: { tags: [42] as unknown as string[] } },
+    ]
     expect(() => applyPatches(baseSchema, patches)).toThrow('"tags[0]" must be a string')
   })
 
   it('entity merge patch replaces (not merges) the tags array', () => {
     const baseWithTags: typeof baseSchema = {
       ...baseSchema,
-      entities: { ...baseSchema.entities, Book: { ...baseSchema.entities['Book'], tags: ['catalogue'] } },
+      entities: {
+        ...baseSchema.entities,
+        Book: { ...baseSchema.entities['Book'], tags: ['catalogue'] },
+      },
     }
     const patches: Patch[] = [{ op: 'merge', target: 'entity.Book', value: { tags: ['npc'] } }]
     const result = applyPatches(baseWithTags, patches)

@@ -18,17 +18,17 @@ function lcFirst(s: string): string {
 // --- Field type mapping: newel IR → Prisma scalar ---
 
 const PRISMA_TYPE_MAP: Record<string, string> = {
-  string:    'String',
-  number:    'Float',
-  integer:   'Int',
-  decimal:   'Decimal',
-  boolean:   'Boolean',
-  uuid:      'String',
+  string: 'String',
+  number: 'Float',
+  integer: 'Int',
+  decimal: 'Decimal',
+  boolean: 'Boolean',
+  uuid: 'String',
   timestamp: 'DateTime',
-  date:      'DateTime',
-  email:     'String',
-  url:       'String',
-  json:      'Json',
+  date: 'DateTime',
+  email: 'String',
+  url: 'String',
+  json: 'Json',
 }
 
 function fieldToPrismaType(entityName: string, field: FieldSchema): string {
@@ -42,7 +42,9 @@ function fieldToPrismaType(entityName: string, field: FieldSchema): string {
 
 function renderPrismaEnum(entityName: string, field: FieldSchema): string {
   const enumName = `${entityName}${field.name.charAt(0).toUpperCase() + field.name.slice(1)}Enum`
-  const members = (field.enumValues ?? []).map(v => `  ${v.toUpperCase().replace(/-/g, '_')}`).join('\n')
+  const members = (field.enumValues ?? [])
+    .map((v) => `  ${v.toUpperCase().replace(/-/g, '_')}`)
+    .join('\n')
   return `enum ${enumName} {\n${members}\n}`
 }
 
@@ -156,19 +158,27 @@ function generateClientFile(): string {
 
 function tsFieldType(field: FieldSchema): string {
   if (field.type === 'enum' && field.enumValues) {
-    return field.enumValues.map(v => JSON.stringify(v)).join(' | ')
+    return field.enumValues.map((v) => JSON.stringify(v)).join(' | ')
   }
   const map: Record<string, string> = {
-    string: 'string', number: 'number', integer: 'number', decimal: 'number',
-    boolean: 'boolean', uuid: 'string', timestamp: 'Date', date: 'Date',
-    email: 'string', url: 'string', json: 'unknown',
+    string: 'string',
+    number: 'number',
+    integer: 'number',
+    decimal: 'number',
+    boolean: 'boolean',
+    uuid: 'string',
+    timestamp: 'Date',
+    date: 'Date',
+    email: 'string',
+    url: 'string',
+    json: 'unknown',
   }
   return map[field.type] ?? 'unknown'
 }
 
 function generateCreateData(entity: EntitySchema): string {
-  const fields = Object.values(entity.fields).filter(f => !f.primaryKey)
-  const lines = fields.map(f => {
+  const fields = Object.values(entity.fields).filter((f) => !f.primaryKey)
+  const lines = fields.map((f) => {
     const optional = f.nullable ? '?' : ''
     return `    ${f.name}${optional}: ${tsFieldType(f)}`
   })
@@ -176,14 +186,14 @@ function generateCreateData(entity: EntitySchema): string {
 }
 
 function generateUpdateData(entity: EntitySchema): string {
-  const fields = Object.values(entity.fields).filter(f => !f.primaryKey)
-  const lines = fields.map(f => `    ${f.name}?: ${tsFieldType(f)}`)
+  const fields = Object.values(entity.fields).filter((f) => !f.primaryKey)
+  const lines = fields.map((f) => `    ${f.name}?: ${tsFieldType(f)}`)
   return `{\n${lines.join('\n')}\n  }`
 }
 
 function generateRepositoryClass(entityName: string, entity: EntitySchema): string {
   const client = lcFirst(entityName)
-  const idField = Object.values(entity.fields).find(f => f.primaryKey)
+  const idField = Object.values(entity.fields).find((f) => f.primaryKey)
   const idType = idField ? tsFieldType(idField) : 'string'
   const createData = generateCreateData(entity)
   const updateData = generateUpdateData(entity)
@@ -214,19 +224,26 @@ function generateRepositoryClass(entityName: string, entity: EntitySchema): stri
   // Behavior methods — one per behavior, focused on state transitions
   if (entity.stateMachine) {
     for (const [triggerName, behavior] of Object.entries(entity.behaviors)) {
-      const transition = entity.stateMachine.transitions.find(t => t.trigger === triggerName)
+      const transition = entity.stateMachine.transitions.find((t) => t.trigger === triggerName)
       if (!transition) continue
 
       const toState = transition.to
       const stateField = entity.stateMachine.field
-      const methodLines: string[] = [``, `  async ${triggerName}(id: ${idType}): Promise<ReturnType<typeof prisma.${client}.update>> {`]
+      const methodLines: string[] = [
+        ``,
+        `  async ${triggerName}(id: ${idType}): Promise<ReturnType<typeof prisma.${client}.update>> {`,
+      ]
 
       // Fetch-then-guard comment pattern
       methodLines.push(`    const entity = await this.findById(id)`)
       const fromStates = Array.isArray(transition.from) ? transition.from : [transition.from]
-      const fromList = fromStates.map(s => JSON.stringify(s)).join(' | ')
-      methodLines.push(`    if (!(${fromStates.map(s => `entity.${stateField} === ${JSON.stringify(s)}`).join(' || ')})) {`)
-      methodLines.push(`      throw new Error(\`${triggerName}: entity must be in state ${fromList} but is \${entity.${stateField}}\`)`)
+      const fromList = fromStates.map((s) => JSON.stringify(s)).join(' | ')
+      methodLines.push(
+        `    if (!(${fromStates.map((s) => `entity.${stateField} === ${JSON.stringify(s)}`).join(' || ')})) {`,
+      )
+      methodLines.push(
+        `      throw new Error(\`${triggerName}: entity must be in state ${fromList} but is \${entity.${stateField}}\`)`,
+      )
       methodLines.push(`    }`)
 
       if (behavior.rules && behavior.rules.length > 0) {
@@ -235,7 +252,9 @@ function generateRepositoryClass(entityName: string, entity: EntitySchema): stri
         }
       }
 
-      methodLines.push(`    return prisma.${client}.update({ where: { id }, data: { ${stateField}: ${JSON.stringify(toState)} } })`)
+      methodLines.push(
+        `    return prisma.${client}.update({ where: { id }, data: { ${stateField}: ${JSON.stringify(toState)} } })`,
+      )
       methodLines.push(`  }`)
       lines.push(...methodLines)
     }
@@ -248,10 +267,7 @@ function generateRepositoryClass(entityName: string, entity: EntitySchema): stri
 }
 
 function generateRepositoryFile(schema: FabricSchema): string {
-  const lines: string[] = [
-    `import { prisma } from './client'`,
-    ``,
-  ]
+  const lines: string[] = [`import { prisma } from './client'`, ``]
 
   for (const [name, entity] of Object.entries(schema.entities)) {
     lines.push(generateRepositoryClass(name, entity))

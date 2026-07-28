@@ -115,7 +115,8 @@ const GENERATORS: GeneratorDef[] = [
     runtimeDeps: { '@prisma/client': '^5.22.0' },
     devDeps: { prisma: '^5.22.0' },
     scripts: {
-      setup: 'prisma generate --schema src/generated/prisma/schema.prisma && prisma db push --schema src/generated/prisma/schema.prisma',
+      setup:
+        'prisma generate --schema src/generated/prisma/schema.prisma && prisma db push --schema src/generated/prisma/schema.prisma',
     },
   },
   {
@@ -157,7 +158,8 @@ const GENERATORS: GeneratorDef[] = [
       vite: '^5.4.8',
     },
     scripts: {
-      setup: 'prisma generate --schema src/generated/app/schema.prisma && prisma db push --schema src/generated/app/schema.prisma',
+      setup:
+        'prisma generate --schema src/generated/app/schema.prisma && prisma db push --schema src/generated/app/schema.prisma',
       'dev:server': 'tsx watch src/generated/app/server.ts',
       'dev:client': 'cd src/generated/app/client && vite',
       dev: 'concurrently -n server,client -c cyan,yellow "pnpm dev:server" "pnpm dev:client"',
@@ -213,7 +215,7 @@ function resolveTransitiveDeps(ids: string[]): string[] {
   const visit = (id: string) => {
     if (set.has(id)) return
     set.add(id)
-    const gen = GENERATORS.find(g => g.id === id)
+    const gen = GENERATORS.find((g) => g.id === id)
     if (gen) gen.dependsOn.forEach(visit)
   }
   ids.forEach(visit)
@@ -242,7 +244,7 @@ function buildPackageJson(opts: {
   packageManager: string
 }): string {
   const allIds = resolveTransitiveDeps(opts.generatorIds)
-  const gens = GENERATORS.filter(g => allIds.includes(g.id))
+  const gens = GENERATORS.filter((g) => allIds.includes(g.id))
 
   const deps: Record<string, string> = {
     '@newel/core': 'latest',
@@ -268,36 +270,38 @@ function buildPackageJson(opts: {
     Object.assign(scripts, gen.scripts ?? {})
   }
 
-  return JSON.stringify(
-    {
-      name: opts.name,
-      version: '0.1.0',
-      private: true,
-      description: opts.description,
-      scripts,
-      dependencies: sortObject(deps),
-      devDependencies: sortObject(devDeps),
-      engines: { node: '>=20' },
-    },
-    null,
-    2,
-  ) + '\n'
+  return (
+    JSON.stringify(
+      {
+        name: opts.name,
+        version: '0.1.0',
+        private: true,
+        description: opts.description,
+        scripts,
+        dependencies: sortObject(deps),
+        devDependencies: sortObject(devDeps),
+        engines: { node: '>=20' },
+      },
+      null,
+      2,
+    ) + '\n'
+  )
 }
 
 function buildQuoinConfig(generatorIds: string[]): string {
   const allIds = resolveTransitiveDeps(generatorIds)
-  const gens = GENERATORS.filter(g => allIds.includes(g.id))
+  const gens = GENERATORS.filter((g) => allIds.includes(g.id))
 
   const imports = [
     `import { defineConfig } from '@newel/core'`,
-    ...gens.map(g => `import { ${g.className} } from '${g.package}'`),
+    ...gens.map((g) => `import { ${g.className} } from '${g.package}'`),
   ].join('\n')
 
   // Express with prisma ORM option
   const hasApp = allIds.includes('app')
   const hasPrisma = allIds.includes('prisma')
 
-  const genLines = gens.map(g => {
+  const genLines = gens.map((g) => {
     if (g.id === 'express' && hasPrisma && !hasApp) {
       return `    new ${g.className}({ orm: 'prisma' }),`
     }
@@ -422,13 +426,16 @@ async function promptUser(cliDir?: string): Promise<ScaffoldOptions | null> {
       name: 'dir',
       message: 'Where should we create your project?',
       initial: './my-newel-app',
-      validate: v => (v.trim() ? true : 'Please enter a directory name'),
+      validate: (v) => (v.trim() ? true : 'Please enter a directory name'),
     })
     if (res.dir === undefined) return null
     targetDir = res.dir as string
   }
 
-  const defaultName = path.basename(path.resolve(targetDir)).replace(/[^a-z0-9-]/gi, '-').toLowerCase()
+  const defaultName = path
+    .basename(path.resolve(targetDir))
+    .replace(/[^a-z0-9-]/gi, '-')
+    .toLowerCase()
 
   const basics = await prompts([
     {
@@ -436,7 +443,8 @@ async function promptUser(cliDir?: string): Promise<ScaffoldOptions | null> {
       name: 'appName',
       message: 'Project name',
       initial: defaultName,
-      validate: (v: string) => (/^[a-z0-9][a-z0-9-]*$/.test(v) ? true : 'Use lowercase letters, numbers, and hyphens only'),
+      validate: (v: string) =>
+        /^[a-z0-9][a-z0-9-]*$/.test(v) ? true : 'Use lowercase letters, numbers, and hyphens only',
     },
     {
       type: 'text',
@@ -473,7 +481,7 @@ async function promptUser(cliDir?: string): Promise<ScaffoldOptions | null> {
       type: 'multiselect',
       name: 'ids',
       message: 'Select generators to include',
-      choices: GENERATORS.map(g => ({
+      choices: GENERATORS.map((g) => ({
         title: g.id,
         description: `${g.description} (${g.package})`,
         value: g.id,
@@ -490,7 +498,7 @@ async function promptUser(cliDir?: string): Promise<ScaffoldOptions | null> {
 
   // Resolve transitive deps and show what was added
   const resolved = resolveTransitiveDeps(selectedIds)
-  const added = resolved.filter(id => !selectedIds.includes(id))
+  const added = resolved.filter((id) => !selectedIds.includes(id))
   if (added.length > 0) {
     console.log(kleur.dim(`  → Also including required generators: ${added.join(', ')}`))
   }
@@ -536,7 +544,9 @@ function scaffold(opts: ScaffoldOptions): void {
   const srcDir = path.join(root, 'src')
 
   const conflicts: string[] = []
-  const check = (p: string) => { if (fs.existsSync(p)) conflicts.push(path.relative(root, p)) }
+  const check = (p: string) => {
+    if (fs.existsSync(p)) conflicts.push(path.relative(root, p))
+  }
   check(path.join(root, 'package.json'))
   check(path.join(root, 'newel.config.ts'))
   check(path.join(srcDir, 'fabric.ts'))
@@ -551,12 +561,15 @@ function scaffold(opts: ScaffoldOptions): void {
   fs.mkdirSync(srcDir, { recursive: true })
 
   const files: Array<[string, string]> = [
-    [path.join(root, 'package.json'), buildPackageJson({
-      name: opts.appName,
-      description: opts.appDescription,
-      generatorIds: opts.generatorIds,
-      packageManager: opts.packageManager,
-    })],
+    [
+      path.join(root, 'package.json'),
+      buildPackageJson({
+        name: opts.appName,
+        description: opts.appDescription,
+        generatorIds: opts.generatorIds,
+        packageManager: opts.packageManager,
+      }),
+    ],
     [path.join(root, 'newel.config.ts'), buildQuoinConfig(opts.generatorIds)],
     [path.join(srcDir, 'fabric.ts'), buildFabricTs(opts.appName, opts.appDescription)],
     [path.join(root, '.gitignore'), buildGitignore()],
@@ -574,25 +587,27 @@ function scaffold(opts: ScaffoldOptions): void {
 }
 
 function buildTsConfig(): string {
-  return JSON.stringify(
-    {
-      compilerOptions: {
-        target: 'ES2022',
-        module: 'commonjs',
-        lib: ['ES2022'],
-        strict: true,
-        esModuleInterop: true,
-        skipLibCheck: true,
-        outDir: 'dist',
-        rootDir: 'src',
-        declaration: true,
+  return (
+    JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2022',
+          module: 'commonjs',
+          lib: ['ES2022'],
+          strict: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          outDir: 'dist',
+          rootDir: 'src',
+          declaration: true,
+        },
+        include: ['src', 'newel.config.ts'],
+        exclude: ['node_modules', 'dist', 'src/generated'],
       },
-      include: ['src', 'newel.config.ts'],
-      exclude: ['node_modules', 'dist', 'src/generated'],
-    },
-    null,
-    2,
-  ) + '\n'
+      null,
+      2,
+    ) + '\n'
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -632,13 +647,21 @@ function printNextSteps(opts: ScaffoldOptions): void {
   console.log(kleur.white('    newel inspect        # view the resolved IR'))
   console.log(kleur.white('    newel generate       # generate all artifacts'))
   if (hasPrisma || hasApp) {
-    console.log(kleur.white(`    ${opts.packageManager} run setup          # run Prisma migrations`))
+    console.log(
+      kleur.white(`    ${opts.packageManager} run setup          # run Prisma migrations`),
+    )
   }
   if (hasApp) {
-    console.log(kleur.white(`    ${opts.packageManager} run dev             # start the full-stack dev server`))
+    console.log(
+      kleur.white(
+        `    ${opts.packageManager} run dev             # start the full-stack dev server`,
+      ),
+    )
   }
   console.log()
-  console.log(kleur.dim('  Edit src/fabric.ts to describe your application, then run newel generate.'))
+  console.log(
+    kleur.dim('  Edit src/fabric.ts to describe your application, then run newel generate.'),
+  )
   console.log()
 }
 
@@ -669,7 +692,7 @@ async function main(): Promise<void> {
   printNextSteps(opts)
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(kleur.red('\n  Error:'), err instanceof Error ? err.message : String(err))
   process.exit(1)
 })

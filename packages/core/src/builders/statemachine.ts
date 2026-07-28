@@ -99,7 +99,11 @@ export class StateMachineBuilder {
       field: this._field,
       initial: this._initial,
       states: { ...this._states },
-      transitions: this._transitions.map(t => ({ ...t, guards: [...t.guards], effects: [...t.effects] })),
+      transitions: this._transitions.map((t) => ({
+        ...t,
+        guards: [...t.guards],
+        effects: [...t.effects],
+      })),
     }
   }
 }

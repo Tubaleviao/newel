@@ -2,7 +2,12 @@
   "name": "create-newel-app",
   "version": "0.0.1",
   "description": "Scaffold a new newel project interactively",
-  "keywords": ["newel", "create", "scaffold", "codegen"],
+  "keywords": [
+    "newel",
+    "create",
+    "scaffold",
+    "codegen"
+  ],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
     "url": "https://github.com/Tubaleviao/newel/issues"
@@ -17,7 +22,9 @@
     "create-newel-app": "dist/index.js"
   },
   "main": "dist/index.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit"

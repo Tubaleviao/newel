@@ -45,17 +45,17 @@ function fieldToOAProperty(field: FieldSchema): OAProperty {
   }
 
   const mapping: Record<string, { type: string; format?: string }> = {
-    string:    { type: 'string' },
-    number:    { type: 'number' },
-    integer:   { type: 'integer' },
-    decimal:   { type: 'number', format: 'double' },
-    boolean:   { type: 'boolean' },
-    uuid:      { type: 'string', format: 'uuid' },
+    string: { type: 'string' },
+    number: { type: 'number' },
+    integer: { type: 'integer' },
+    decimal: { type: 'number', format: 'double' },
+    boolean: { type: 'boolean' },
+    uuid: { type: 'string', format: 'uuid' },
     timestamp: { type: 'string', format: 'date-time' },
-    date:      { type: 'string', format: 'date' },
-    email:     { type: 'string', format: 'email' },
-    url:       { type: 'string', format: 'uri' },
-    json:      { type: 'object' },
+    date: { type: 'string', format: 'date' },
+    email: { type: 'string', format: 'email' },
+    url: { type: 'string', format: 'uri' },
+    json: { type: 'object' },
   }
 
   const m = mapping[field.type]
@@ -89,8 +89,8 @@ function renderEntitySchema(entity: EntitySchema, depth: number): string {
   if (entity.description) lines.push(`${indent(depth)}description: ${yamlStr(entity.description)}`)
 
   const required = Object.values(entity.fields)
-    .filter(f => !f.nullable)
-    .map(f => f.name)
+    .filter((f) => !f.nullable)
+    .map((f) => f.name)
 
   if (required.length > 0) {
     lines.push(`${indent(depth)}required:`)
@@ -109,7 +109,9 @@ function renderInputSchema(input: Record<string, FieldSchema>, depth: number): s
   const lines: string[] = []
   lines.push(`${indent(depth)}type: object`)
 
-  const required = Object.values(input).filter(f => !f.nullable).map(f => f.name)
+  const required = Object.values(input)
+    .filter((f) => !f.nullable)
+    .map((f) => f.name)
   if (required.length > 0) {
     lines.push(`${indent(depth)}required:`)
     for (const r of required) lines.push(`${indent(depth + 1)}- ${r}`)
@@ -125,19 +127,17 @@ function renderInputSchema(input: Record<string, FieldSchema>, depth: number): s
 // --- Security scheme helpers ---
 
 function buildSecurityRequirements(roles: string[]): string[] {
-  return roles.map(r => `bearerAuth: [${yamlStr(r)}]`)
+  return roles.map((r) => `bearerAuth: [${yamlStr(r)}]`)
 }
 
 // --- Endpoint rendering ---
 
-function resolveRequestBody(
-  endpoint: EndpointSchema,
-  schema: FabricSchema,
-): string | null {
+function resolveRequestBody(endpoint: EndpointSchema, schema: FabricSchema): string | null {
   if (endpoint.behavior) {
     const [entityName, behaviorName] = endpoint.behavior.split('.')
     const entity = entityName ? schema.entities[entityName] : undefined
-    const behavior: BehaviorSchema | undefined = entity && behaviorName ? entity.behaviors[behaviorName] : undefined
+    const behavior: BehaviorSchema | undefined =
+      entity && behaviorName ? entity.behaviors[behaviorName] : undefined
     if (behavior?.input && Object.keys(behavior.input).length > 0) {
       return `${entityName}_${behaviorName}_Input`
     }
@@ -172,11 +172,14 @@ function renderEndpoint(
   }
 
   // Build operationId from the full OA path (already has {param} format)
-  const opId = buildOperationId(method, fullOaPath ?? endpoint.path.replace(/:([a-zA-Z_]+)/g, '{$1}'))
+  const opId = buildOperationId(
+    method,
+    fullOaPath ?? endpoint.path.replace(/:([a-zA-Z_]+)/g, '{$1}'),
+  )
   lines.push(`${indent(depth + 1)}operationId: ${opId}`)
 
   // path parameters
-  const pathParams = (endpoint.path.match(/:[a-zA-Z_]+/g) ?? []).map(p => p.slice(1))
+  const pathParams = (endpoint.path.match(/:[a-zA-Z_]+/g) ?? []).map((p) => p.slice(1))
   if (pathParams.length > 0) {
     lines.push(`${indent(depth + 1)}parameters:`)
     for (const param of pathParams) {
@@ -243,13 +246,16 @@ function buildOperationId(method: string, path: string): string {
   const parts = path
     .split('/')
     .filter(Boolean)
-    .map(p => {
+    .map((p) => {
       if (p.startsWith('{') && p.endsWith('}')) {
         const name = p.slice(1, -1)
         return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
       }
       // camelCase kebab-cased segments (e.g. "return-book" → "ReturnBook")
-      return p.split('-').map(seg => seg.charAt(0).toUpperCase() + seg.slice(1)).join('')
+      return p
+        .split('-')
+        .map((seg) => seg.charAt(0).toUpperCase() + seg.slice(1))
+        .join('')
     })
   return method + parts.join('')
 }
@@ -291,7 +297,13 @@ function toPlural(name: string): string {
   if (name.endsWith('y') && !/[aeiou]y$/.test(name)) {
     return name.slice(0, -1) + 'ies'
   }
-  if (name.endsWith('s') || name.endsWith('sh') || name.endsWith('ch') || name.endsWith('x') || name.endsWith('z')) {
+  if (
+    name.endsWith('s') ||
+    name.endsWith('sh') ||
+    name.endsWith('ch') ||
+    name.endsWith('x') ||
+    name.endsWith('z')
+  ) {
     return name + 'es'
   }
   return name + 's'

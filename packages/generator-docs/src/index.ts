@@ -14,11 +14,11 @@ import type {
 // --- Markdown helpers ---
 
 function mdTable(headers: string[], rows: string[][]): string {
-  const sep = headers.map(h => '-'.repeat(Math.max(h.length, 3)))
+  const sep = headers.map((h) => '-'.repeat(Math.max(h.length, 3)))
   const lines = [
     `| ${headers.join(' | ')} |`,
     `| ${sep.join(' | ')} |`,
-    ...rows.map(r => `| ${r.join(' | ')} |`),
+    ...rows.map((r) => `| ${r.join(' | ')} |`),
   ]
   return lines.join('\n')
 }
@@ -31,9 +31,11 @@ function escMd(s: string): string {
 
 function renderFieldsTable(fields: Record<string, FieldSchema>): string {
   const headers = ['Name', 'Type', 'Required', 'PII', 'Description']
-  const rows = Object.values(fields).map(f => [
+  const rows = Object.values(fields).map((f) => [
     `\`${f.name}\``,
-    f.type === 'enum' && f.enumValues ? `enum (${f.enumValues.map(v => `\`${v}\``).join(', ')})` : f.type,
+    f.type === 'enum' && f.enumValues
+      ? `enum (${f.enumValues.map((v) => `\`${v}\``).join(', ')})`
+      : f.type,
     f.nullable ? 'no' : 'yes',
     f.pii ? '✓' : '',
     escMd(f.description ?? ''),
@@ -68,7 +70,7 @@ function renderStateMachine(sm: StateMachineSchema): string {
   // States table
   lines.push('**States:**')
   lines.push('')
-  const stateRows = Object.values(sm.states).map(s => [
+  const stateRows = Object.values(sm.states).map((s) => [
     `\`${s.name}\``,
     escMd(s.description),
     s.terminal ? 'yes' : '',
@@ -79,8 +81,8 @@ function renderStateMachine(sm: StateMachineSchema): string {
   // Transitions table
   lines.push('**Transitions:**')
   lines.push('')
-  const transRows = sm.transitions.map(t => [
-    Array.isArray(t.from) ? t.from.map(f => `\`${f}\``).join(', ') : `\`${t.from}\``,
+  const transRows = sm.transitions.map((t) => [
+    Array.isArray(t.from) ? t.from.map((f) => `\`${f}\``).join(', ') : `\`${t.from}\``,
     `\`${t.to}\``,
     `\`${t.trigger}\``,
     escMd(t.guards.join('; ')),
@@ -151,7 +153,7 @@ function renderEntityPage(entity: EntitySchema): string {
   if (Object.keys(entity.relations).length) {
     lines.push('## Relations')
     lines.push('')
-    const relRows = Object.values(entity.relations).map(r => [
+    const relRows = Object.values(entity.relations).map((r) => [
       `\`${r.name}\``,
       r.kind,
       `\`${r.target}\``,
@@ -241,10 +243,12 @@ function buildGdprMap(schema: FabricSchema): string {
   if (piiRows.length === 0) {
     lines.push('_No PII fields declared._')
   } else {
-    lines.push(mdTable(
-      ['Entity', 'Field', 'GDPR Category', 'Retention', 'Legal Basis', 'Exposed By'],
-      piiRows,
-    ))
+    lines.push(
+      mdTable(
+        ['Entity', 'Field', 'GDPR Category', 'Retention', 'Legal Basis', 'Exposed By'],
+        piiRows,
+      ),
+    )
   }
 
   return lines.join('\n') + '\n'

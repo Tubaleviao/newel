@@ -15,10 +15,24 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A book in the catalogue',
       fields: {
-        id:     { name: 'id',     type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
-        title:  { name: 'title',  type: 'string', nullable: false, primaryKey: false, pii: false },
-        status: { name: 'status', type: 'enum',   nullable: false, primaryKey: false, pii: false, enumValues: ['available', 'borrowed'] },
-        email:  { name: 'email',  type: 'email',  nullable: true,  primaryKey: false, pii: true,  gdprCategory: 'contact' },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        title: { name: 'title', type: 'string', nullable: false, primaryKey: false, pii: false },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['available', 'borrowed'],
+        },
+        email: {
+          name: 'email',
+          type: 'email',
+          nullable: true,
+          primaryKey: false,
+          pii: true,
+          gdprCategory: 'contact',
+        },
       },
       relations: {},
       behaviors: {},
@@ -29,7 +43,7 @@ const richSchema: FabricSchema = {
         initial: 'available',
         states: {
           available: { name: 'available', description: 'On shelf', terminal: false },
-          borrowed:  { name: 'borrowed',  description: 'With member', terminal: false },
+          borrowed: { name: 'borrowed', description: 'With member', terminal: false },
         },
         transitions: [
           { from: 'available', to: 'borrowed', trigger: 'borrow', guards: [], effects: [] },
@@ -41,7 +55,7 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A library member',
       fields: {
-        id:   { name: 'id',   type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         name: { name: 'name', type: 'string', nullable: false, primaryKey: false, pii: false },
       },
       relations: {},

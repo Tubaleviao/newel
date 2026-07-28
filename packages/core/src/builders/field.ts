@@ -66,22 +66,59 @@ export class FieldBuilder {
 
 type FieldBuilderFn = (f: FieldBuilder) => FieldBuilder | void
 
-export function buildField(name: string, fn?: FieldBuilderFn, type: FieldType = 'string'): FieldSchema {
+export function buildField(
+  name: string,
+  fn?: FieldBuilderFn,
+  type: FieldType = 'string',
+): FieldSchema {
   const b = new FieldBuilder(name, type)
   if (fn) fn(b)
   return b.toIR()
 }
 
 export class TypedFieldBuilder extends FieldBuilder {
-  uuid(): this { this._schema.type = 'uuid'; return this }
-  string(): this { this._schema.type = 'string'; return this }
-  number(): this { this._schema.type = 'number'; return this }
-  integer(): this { this._schema.type = 'integer'; return this }
-  decimal(): this { this._schema.type = 'decimal'; return this }
-  boolean(): this { this._schema.type = 'boolean'; return this }
-  timestamp(): this { this._schema.type = 'timestamp'; return this }
-  date(): this { this._schema.type = 'date'; return this }
-  email(): this { this._schema.type = 'email'; return this }
-  url(): this { this._schema.type = 'url'; return this }
-  json(): this { this._schema.type = 'json'; return this }
+  uuid(): this {
+    this._schema.type = 'uuid'
+    return this
+  }
+  string(): this {
+    this._schema.type = 'string'
+    return this
+  }
+  number(): this {
+    this._schema.type = 'number'
+    return this
+  }
+  integer(): this {
+    this._schema.type = 'integer'
+    return this
+  }
+  decimal(): this {
+    this._schema.type = 'decimal'
+    return this
+  }
+  boolean(): this {
+    this._schema.type = 'boolean'
+    return this
+  }
+  timestamp(): this {
+    this._schema.type = 'timestamp'
+    return this
+  }
+  date(): this {
+    this._schema.type = 'date'
+    return this
+  }
+  email(): this {
+    this._schema.type = 'email'
+    return this
+  }
+  url(): this {
+    this._schema.type = 'url'
+    return this
+  }
+  json(): this {
+    this._schema.type = 'json'
+    return this
+  }
 }

@@ -1,7 +1,7 @@
 import type { Generator } from './types'
 
 export function topoSort(generators: Generator[]): Generator[] {
-  const byName = new Map(generators.map(g => [g.name, g]))
+  const byName = new Map(generators.map((g) => [g.name, g]))
   const visited = new Set<string>()
   const inStack = new Set<string>()
   const result: Generator[] = []

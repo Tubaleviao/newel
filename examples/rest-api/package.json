@@ -4,10 +4,10 @@
   "private": true,
   "description": "Worked example: order management REST API using newel",
   "scripts": {
-    "validate":    "newel validate    -s ./src/fabric.ts",
-    "inspect":     "newel inspect     -s ./src/fabric.ts",
-    "generate":    "newel generate    -c ./newel.config.ts",
-    "diff":        "newel diff        -c ./newel.config.ts",
+    "validate": "newel validate    -s ./src/fabric.ts",
+    "inspect": "newel inspect     -s ./src/fabric.ts",
+    "generate": "newel generate    -c ./newel.config.ts",
+    "diff": "newel diff        -c ./newel.config.ts",
     "check-drift": "newel check-drift -c ./newel.config.ts"
   },
   "dependencies": {

@@ -2,7 +2,15 @@
   "name": "@newel/core",
   "version": "0.2.0",
   "description": "Core IR types, builder DSL, generator runner, and CLI for newel",
-  "keywords": ["newel", "codegen", "schema", "typescript", "dsl", "cli", "generator"],
+  "keywords": [
+    "newel",
+    "codegen",
+    "schema",
+    "typescript",
+    "dsl",
+    "cli",
+    "generator"
+  ],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
     "url": "https://github.com/Tubaleviao/newel/issues"
@@ -24,7 +32,9 @@
   "bin": {
     "newel": "dist/cli/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",

@@ -67,5 +67,7 @@ export async function generateCommand(configPath: string, opts: { watch: boolean
   }
 
   // Keep the process alive
-  await new Promise<never>(() => { /* intentional: process lives until Ctrl+C */ })
+  await new Promise<never>(() => {
+    /* intentional: process lives until Ctrl+C */
+  })
 }

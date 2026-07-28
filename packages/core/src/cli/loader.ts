@@ -19,7 +19,7 @@ export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
 
   delete require.cache[resolved]
   const mod = require(resolved) as { default?: unknown } | Record<string, unknown>
-  const exported = ('default' in mod && mod.default !== undefined) ? mod.default : mod
+  const exported = 'default' in mod && mod.default !== undefined ? mod.default : mod
 
   if (exported && typeof (exported as { toIR?: unknown }).toIR === 'function') {
     return (exported as { toIR: () => FabricSchema }).toIR()
@@ -30,7 +30,7 @@ export async function loadSchema(fabricPath: string): Promise<FabricSchema> {
   }
 
   throw new Error(
-    `${resolved} must export either a FabricBuilder (with toIR()) or a plain object with { meta, entities, apis }`
+    `${resolved} must export either a FabricBuilder (with toIR()) or a plain object with { meta, entities, apis }`,
   )
 }
 
@@ -43,16 +43,14 @@ export async function loadPatches(patchesPath: string): Promise<Patch[]> {
 
   delete require.cache[resolved]
   const mod = require(resolved) as { default?: unknown } | Record<string, unknown>
-  const exported = ('default' in mod && mod.default !== undefined) ? mod.default : mod
+  const exported = 'default' in mod && mod.default !== undefined ? mod.default : mod
 
   if (Array.isArray(exported)) return exported as Patch[]
   if (exported && typeof exported === 'object' && 'patches' in exported) {
     return (exported as PatchSet).patches
   }
 
-  throw new Error(
-    `${resolved} must export a Patch[] or a PatchSet ({ patches: Patch[] })`
-  )
+  throw new Error(`${resolved} must export a Patch[] or a PatchSet ({ patches: Patch[] })`)
 }
 
 export async function loadConfig(configPath: string): Promise<QuoinConfig> {
@@ -64,7 +62,7 @@ export async function loadConfig(configPath: string): Promise<QuoinConfig> {
 
   delete require.cache[resolved]
   const mod = require(resolved) as { default?: QuoinConfig } | QuoinConfig
-  const cfg = 'default' in mod && mod.default ? mod.default : mod as QuoinConfig
+  const cfg = 'default' in mod && mod.default ? mod.default : (mod as QuoinConfig)
   if (!cfg.schema || !cfg.output || !cfg.generators) {
     throw new Error(`newel.config.ts must export { schema, output, generators }`)
   }

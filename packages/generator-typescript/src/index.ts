@@ -1,4 +1,12 @@
-import type { Generator, GeneratorContext, GeneratorOutput, FabricSchema, EntitySchema, FieldSchema, RelationSchema } from '@newel/core'
+import type {
+  Generator,
+  GeneratorContext,
+  GeneratorOutput,
+  FabricSchema,
+  EntitySchema,
+  FieldSchema,
+  RelationSchema,
+} from '@newel/core'
 
 const FIELD_TYPE_MAP: Record<string, string> = {
   string: 'string',
@@ -17,7 +25,7 @@ const FIELD_TYPE_MAP: Record<string, string> = {
 
 function fieldToTsType(field: FieldSchema): string {
   if (field.type === 'enum' && field.enumValues) {
-    return field.enumValues.map(v => JSON.stringify(v)).join(' | ')
+    return field.enumValues.map((v) => JSON.stringify(v)).join(' | ')
   }
   return FIELD_TYPE_MAP[field.type] ?? 'unknown'
 }
@@ -35,7 +43,7 @@ function relationToTsType(rel: RelationSchema): string {
 
 function generateZodType(field: FieldSchema): string {
   if (field.type === 'enum' && field.enumValues) {
-    const vals = field.enumValues.map(v => JSON.stringify(v)).join(', ')
+    const vals = field.enumValues.map((v) => JSON.stringify(v)).join(', ')
     return `z.enum([${vals}])`
   }
   const base: Record<string, string> = {
@@ -58,11 +66,13 @@ function generateEntityInterface(entity: EntitySchema): string {
   const lines: string[] = []
 
   // Collect ownerFields declared across behaviors for JSDoc
-  const ownerFields = [...new Set(
-    Object.values(entity.behaviors)
-      .filter(b => b.auth?.ownerField)
-      .map(b => b.auth!.ownerField!)
-  )]
+  const ownerFields = [
+    ...new Set(
+      Object.values(entity.behaviors)
+        .filter((b) => b.auth?.ownerField)
+        .map((b) => b.auth!.ownerField!),
+    ),
+  ]
 
   if (ownerFields.length > 0) {
     lines.push(`/** @ownerField ${ownerFields.join(', ')} — ownership-based access control */`)
@@ -99,7 +109,7 @@ function generateStateEnum(entity: EntitySchema): string | null {
   if (!sm) return null
   const enumName = `${entity.name}State`
   const members = Object.keys(sm.states)
-    .map(s => `  ${s.toUpperCase()} = '${s}',`)
+    .map((s) => `  ${s.toUpperCase()} = '${s}',`)
     .join('\n')
   return `export enum ${enumName} {\n${members}\n}`
 }
@@ -113,10 +123,7 @@ export class TypeScriptGenerator implements Generator {
   readonly dependsOn: string[] = []
 
   async generate(schema: FabricSchema, _ctx: GeneratorContext): Promise<GeneratorOutput> {
-    const sections: string[] = [
-      `import { z } from 'zod'`,
-      '',
-    ]
+    const sections: string[] = [`import { z } from 'zod'`, '']
 
     for (const entity of Object.values(schema.entities)) {
       const iface = generateEntityInterface(entity)

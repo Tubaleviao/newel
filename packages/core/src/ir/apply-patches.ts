@@ -27,9 +27,7 @@ export function applyPatches(schema: FabricSchema, patches: Patch[]): FabricSche
  * The runner uses these to filter generated files by path.
  */
 export function collectSuppressPatterns(patches: Patch[]): string[] {
-  return patches
-    .filter((p): p is SuppressPatch => p.op === 'suppress')
-    .map(p => p.pattern)
+  return patches.filter((p): p is SuppressPatch => p.op === 'suppress').map((p) => p.pattern)
 }
 
 /**
@@ -37,7 +35,7 @@ export function collectSuppressPatterns(patches: Patch[]): string[] {
  * Patterns support `*` as a wildcard within a single path segment.
  */
 export function isSuppressed(filePath: string, patterns: string[]): boolean {
-  return patterns.some(pattern => matchGlob(pattern, filePath))
+  return patterns.some((pattern) => matchGlob(pattern, filePath))
 }
 
 function matchGlob(pattern: string, filePath: string): boolean {
@@ -63,12 +61,16 @@ function applyMerge(schema: FabricSchema, patch: MergePatch): FabricSchema {
 
   throw new Error(
     `patch target "${patch.target}" is not supported. ` +
-    `Valid roots: meta, entity.<Name>[.fields.<field>|.behaviors.<b>|.stateMachine.states.<s>], ` +
-    `api.<Name>[.endpoints.<key>]`
+      `Valid roots: meta, entity.<Name>[.fields.<field>|.behaviors.<b>|.stateMachine.states.<s>], ` +
+      `api.<Name>[.endpoints.<key>]`,
   )
 }
 
-function applyEntityMerge(schema: FabricSchema, segments: string[], patch: MergePatch): FabricSchema {
+function applyEntityMerge(
+  schema: FabricSchema,
+  segments: string[],
+  patch: MergePatch,
+): FabricSchema {
   const [, entityName, ...rest] = segments
 
   if (!entityName) {
@@ -85,13 +87,13 @@ function applyEntityMerge(schema: FabricSchema, segments: string[], patch: Merge
     if ('tags' in patch.value) {
       if (!Array.isArray(patch.value.tags)) {
         throw new Error(
-          `patch target "${patch.target}": "tags" must be an array of strings, got ${JSON.stringify(patch.value.tags)}`
+          `patch target "${patch.target}": "tags" must be an array of strings, got ${JSON.stringify(patch.value.tags)}`,
         )
       }
-      const badIdx = (patch.value.tags as unknown[]).findIndex(t => typeof t !== 'string')
+      const badIdx = (patch.value.tags as unknown[]).findIndex((t) => typeof t !== 'string')
       if (badIdx !== -1) {
         throw new Error(
-          `patch target "${patch.target}": "tags[${badIdx}]" must be a string, got ${JSON.stringify((patch.value.tags as unknown[])[badIdx])}`
+          `patch target "${patch.target}": "tags[${badIdx}]" must be a string, got ${JSON.stringify((patch.value.tags as unknown[])[badIdx])}`,
         )
       }
     }
@@ -105,7 +107,7 @@ function applyEntityMerge(schema: FabricSchema, segments: string[], patch: Merge
   } else {
     throw new Error(
       `patch target "${patch.target}": unsupported entity sub-path "${rest[0]}". ` +
-      `Supported: fields, behaviors, stateMachine`
+        `Supported: fields, behaviors, stateMachine`,
     )
   }
 
@@ -125,7 +127,9 @@ function applyFieldMerge(
     throw new Error(`patch target "${patch.target}": missing field name after "fields"`)
   }
   if (!(fieldName in entity.fields)) {
-    throw new Error(`patch target "${patch.target}": field "${fieldName}" not found on entity "${entity.name}"`)
+    throw new Error(
+      `patch target "${patch.target}": field "${fieldName}" not found on entity "${entity.name}"`,
+    )
   }
   return {
     ...entity,
@@ -146,7 +150,9 @@ function applyBehaviorMerge(
     throw new Error(`patch target "${patch.target}": missing behavior name after "behaviors"`)
   }
   if (!(behaviorName in entity.behaviors)) {
-    throw new Error(`patch target "${patch.target}": behavior "${behaviorName}" not found on entity "${entity.name}"`)
+    throw new Error(
+      `patch target "${patch.target}": behavior "${behaviorName}" not found on entity "${entity.name}"`,
+    )
   }
   return {
     ...entity,
@@ -167,7 +173,10 @@ function applyStateMachineMerge(
   }
   if (rest.length === 1) {
     // merge into stateMachine root
-    return { ...entity, stateMachine: { ...entity.stateMachine, ...patch.value } as typeof entity.stateMachine }
+    return {
+      ...entity,
+      stateMachine: { ...entity.stateMachine, ...patch.value } as typeof entity.stateMachine,
+    }
   }
   if (rest[1] === 'states') {
     const stateName = rest[2]
@@ -175,7 +184,9 @@ function applyStateMachineMerge(
       throw new Error(`patch target "${patch.target}": missing state name after "states"`)
     }
     if (!(stateName in entity.stateMachine.states)) {
-      throw new Error(`patch target "${patch.target}": state "${stateName}" not found in entity "${entity.name}" state machine`)
+      throw new Error(
+        `patch target "${patch.target}": state "${stateName}" not found in entity "${entity.name}" state machine`,
+      )
     }
     return {
       ...entity,
@@ -189,7 +200,7 @@ function applyStateMachineMerge(
     }
   }
   throw new Error(
-    `patch target "${patch.target}": unsupported stateMachine sub-path "${rest[1]}". Supported: states`
+    `patch target "${patch.target}": unsupported stateMachine sub-path "${rest[1]}". Supported: states`,
   )
 }
 
@@ -214,7 +225,9 @@ function applyApiMerge(schema: FabricSchema, segments: string[], patch: MergePat
       throw new Error(`patch target "${patch.target}": missing endpoint key after "endpoints"`)
     }
     if (!(endpointKey in api.endpoints)) {
-      throw new Error(`patch target "${patch.target}": endpoint "${endpointKey}" not found in api "${apiName}"`)
+      throw new Error(
+        `patch target "${patch.target}": endpoint "${endpointKey}" not found in api "${apiName}"`,
+      )
     }
     patchedApi = {
       ...api,
@@ -225,7 +238,7 @@ function applyApiMerge(schema: FabricSchema, segments: string[], patch: MergePat
     }
   } else {
     throw new Error(
-      `patch target "${patch.target}": unsupported api sub-path "${rest[0]}". Supported: endpoints`
+      `patch target "${patch.target}": unsupported api sub-path "${rest[0]}". Supported: endpoints`,
     )
   }
 

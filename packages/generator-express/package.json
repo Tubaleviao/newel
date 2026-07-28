@@ -2,7 +2,15 @@
   "name": "@newel/generator-express",
   "version": "0.0.1",
   "description": "Express router generator for newel",
-  "keywords": ["newel", "codegen", "generator", "express", "rest", "api", "router"],
+  "keywords": [
+    "newel",
+    "codegen",
+    "generator",
+    "express",
+    "rest",
+    "api",
+    "router"
+  ],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
     "url": "https://github.com/Tubaleviao/newel/issues"
@@ -21,7 +29,12 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist/index.js", "dist/index.js.map", "dist/index.d.ts", "dist/index.d.ts.map"],
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",

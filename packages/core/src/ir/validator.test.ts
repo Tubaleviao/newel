@@ -13,7 +13,10 @@ describe('validateSchema', () => {
     const schema = makeSchema({
       entities: {
         Order: {
-          fields: { id: { type: 'uuid', primaryKey: true }, status: { type: 'enum', values: ['draft', 'placed'] } },
+          fields: {
+            id: { type: 'uuid', primaryKey: true },
+            status: { type: 'enum', values: ['draft', 'placed'] },
+          },
           behaviors: { place: { description: 'Place order', rules: [] } },
           stateMachine: {
             field: 'status',
@@ -40,7 +43,9 @@ describe('validateSchema', () => {
             field: 'status',
             initial: 'draft',
             states: { draft: 'Draft', placed: 'Placed' },
-            transitions: [{ from: 'draft', to: 'placed', trigger: 'place', guard: 'Different guard text' }],
+            transitions: [
+              { from: 'draft', to: 'placed', trigger: 'place', guard: 'Different guard text' },
+            ],
           },
         },
       },
@@ -48,7 +53,7 @@ describe('validateSchema', () => {
     const result = validateSchema(schema)
     expect(result.valid).toBe(true)
     expect(result.warnings.length).toBeGreaterThan(0)
-    expect(result.warnings.some(w => w.path.includes('guards'))).toBe(true)
+    expect(result.warnings.some((w) => w.path.includes('guards'))).toBe(true)
   })
 
   it('produces no warning when explicit guards match behavior rules exactly', () => {
@@ -61,7 +66,9 @@ describe('validateSchema', () => {
             field: 'status',
             initial: 'draft',
             states: { draft: 'Draft', placed: 'Placed' },
-            transitions: [{ from: 'draft', to: 'placed', trigger: 'place', guard: 'Must have items' }],
+            transitions: [
+              { from: 'draft', to: 'placed', trigger: 'place', guard: 'Must have items' },
+            ],
           },
         },
       },
@@ -76,13 +83,18 @@ describe('validateSchema', () => {
       entities: {
         Order: {
           fields: { status: { type: 'enum', values: ['draft'] } },
-          stateMachine: { field: 'status', initial: 'nonexistent', states: { draft: 'Draft' }, transitions: [] },
+          stateMachine: {
+            field: 'status',
+            initial: 'nonexistent',
+            states: { draft: 'Draft' },
+            transitions: [],
+          },
         },
       },
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.path.includes('initial'))).toBe(true)
+    expect(result.errors.some((e) => e.path.includes('initial'))).toBe(true)
   })
 
   it('errors on transition referencing undeclared state', () => {
@@ -101,7 +113,7 @@ describe('validateSchema', () => {
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.message.includes('"ghost"'))).toBe(true)
+    expect(result.errors.some((e) => e.message.includes('"ghost"'))).toBe(true)
   })
 
   it('errors on trigger not matching a behavior', () => {
@@ -120,7 +132,7 @@ describe('validateSchema', () => {
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.message.includes('nonexistentBehavior'))).toBe(true)
+    expect(result.errors.some((e) => e.message.includes('nonexistentBehavior'))).toBe(true)
   })
 
   it('errors on foreignKey referencing unknown entity', () => {
@@ -136,7 +148,7 @@ describe('validateSchema', () => {
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.message.includes('"User"'))).toBe(true)
+    expect(result.errors.some((e) => e.message.includes('"User"'))).toBe(true)
   })
 
   it('errors on endpoint returns referencing unknown entity', () => {
@@ -151,7 +163,7 @@ describe('validateSchema', () => {
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.message.includes('"NonExistentEntity"'))).toBe(true)
+    expect(result.errors.some((e) => e.message.includes('"NonExistentEntity"'))).toBe(true)
   })
 
   it('errors on behavior ownerField referencing unknown field', () => {
@@ -171,7 +183,7 @@ describe('validateSchema', () => {
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.message.includes('nonExistentField'))).toBe(true)
+    expect(result.errors.some((e) => e.message.includes('nonExistentField'))).toBe(true)
   })
 
   it('accepts valid ownerField on behavior', () => {
@@ -179,7 +191,7 @@ describe('validateSchema', () => {
       entities: {
         Order: {
           fields: {
-            id:         { type: 'uuid', primaryKey: true },
+            id: { type: 'uuid', primaryKey: true },
             customerId: { type: 'uuid' },
           },
           behaviors: {
@@ -207,6 +219,6 @@ describe('validateSchema', () => {
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.message.includes('"GhostEntity"'))).toBe(true)
+    expect(result.errors.some((e) => e.message.includes('"GhostEntity"'))).toBe(true)
   })
 })

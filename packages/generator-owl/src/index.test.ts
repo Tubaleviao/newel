@@ -6,10 +6,13 @@ const NS = 'https://example.com/library/'
 const makeCtx = (turtle = ''): GeneratorContext => ({
   outputDir: '/tmp/test-owl',
   outputs: new Map<string, GeneratorOutput>([
-    ['rdf', {
-      files: [{ path: 'rdf/ontology.ttl', content: turtle }],
-      artifacts: { turtle, namespace: NS },
-    }],
+    [
+      'rdf',
+      {
+        files: [{ path: 'rdf/ontology.ttl', content: turtle }],
+        artifacts: { turtle, namespace: NS },
+      },
+    ],
   ]),
 })
 
@@ -22,28 +25,34 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A book in the catalogue',
       fields: {
-        id:    { name: 'id',    type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         title: { name: 'title', type: 'string', nullable: false, primaryKey: false, pii: false },
-        notes: { name: 'notes', type: 'string', nullable: true,  primaryKey: false, pii: false },
+        notes: { name: 'notes', type: 'string', nullable: true, primaryKey: false, pii: false },
       },
       relations: {
-        loans:  { name: 'loans',  kind: 'hasMany',    target: 'Loan',   foreignKey: 'bookId' },
-        author: { name: 'author', kind: 'belongsTo',  target: 'Author', foreignKey: 'authorId' },
-        cover:  { name: 'cover',  kind: 'hasOne',     target: 'Cover',  foreignKey: 'bookId' },
+        loans: { name: 'loans', kind: 'hasMany', target: 'Loan', foreignKey: 'bookId' },
+        author: { name: 'author', kind: 'belongsTo', target: 'Author', foreignKey: 'authorId' },
+        cover: { name: 'cover', kind: 'hasOne', target: 'Cover', foreignKey: 'bookId' },
       },
       behaviors: {},
       stateMachine: {
         field: 'status',
         initial: 'available',
         states: {
-          available: { name: 'available', description: 'On the shelf',  terminal: false },
-          borrowed:  { name: 'borrowed',  description: 'With a member', terminal: false },
-          retired:   { name: 'retired',   description: 'Decommissioned', terminal: true },
+          available: { name: 'available', description: 'On the shelf', terminal: false },
+          borrowed: { name: 'borrowed', description: 'With a member', terminal: false },
+          retired: { name: 'retired', description: 'Decommissioned', terminal: true },
         },
         transitions: [
-          { from: 'available', to: 'borrowed',  trigger: 'borrow',  guards: [], effects: [] },
-          { from: 'borrowed',  to: 'available', trigger: 'return',  guards: [], effects: [] },
-          { from: ['available', 'borrowed'], to: 'retired', trigger: 'retire', guards: [], effects: [] },
+          { from: 'available', to: 'borrowed', trigger: 'borrow', guards: [], effects: [] },
+          { from: 'borrowed', to: 'available', trigger: 'return', guards: [], effects: [] },
+          {
+            from: ['available', 'borrowed'],
+            to: 'retired',
+            trigger: 'retire',
+            guards: [],
+            effects: [],
+          },
         ],
       },
       pii: [],

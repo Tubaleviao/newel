@@ -2,7 +2,15 @@
   "name": "@newel/generator-owl",
   "version": "0.0.1",
   "description": "OWL ontology generator for newel (extends RDF output)",
-  "keywords": ["newel", "codegen", "generator", "owl", "ontology", "rdf", "semantic-web"],
+  "keywords": [
+    "newel",
+    "codegen",
+    "generator",
+    "owl",
+    "ontology",
+    "rdf",
+    "semantic-web"
+  ],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
     "url": "https://github.com/Tubaleviao/newel/issues"
@@ -21,7 +29,12 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist/index.js", "dist/index.js.map", "dist/index.d.ts", "dist/index.d.ts.map"],
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",

@@ -15,10 +15,24 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A book in the catalogue',
       fields: {
-        id:     { name: 'id',     type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
-        title:  { name: 'title',  type: 'string', nullable: false, primaryKey: false, pii: false, description: 'Book title' },
-        status: { name: 'status', type: 'enum',   nullable: false, primaryKey: false, pii: false, enumValues: ['available', 'borrowed'] },
-        notes:  { name: 'notes',  type: 'string', nullable: true,  primaryKey: false, pii: false },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        title: {
+          name: 'title',
+          type: 'string',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          description: 'Book title',
+        },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['available', 'borrowed'],
+        },
+        notes: { name: 'notes', type: 'string', nullable: true, primaryKey: false, pii: false },
       },
       relations: {},
       behaviors: {
@@ -39,12 +53,18 @@ const richSchema: FabricSchema = {
         field: 'status',
         initial: 'available',
         states: {
-          available: { name: 'available', description: 'On the shelf',  terminal: false },
-          borrowed:  { name: 'borrowed',  description: 'With a member', terminal: false },
+          available: { name: 'available', description: 'On the shelf', terminal: false },
+          borrowed: { name: 'borrowed', description: 'With a member', terminal: false },
         },
         transitions: [
-          { from: 'available', to: 'borrowed',  trigger: 'borrow',     guards: ['Member must be active'], effects: [] },
-          { from: 'borrowed',  to: 'available', trigger: 'returnBook', guards: [],                        effects: [] },
+          {
+            from: 'available',
+            to: 'borrowed',
+            trigger: 'borrow',
+            guards: ['Member must be active'],
+            effects: [],
+          },
+          { from: 'borrowed', to: 'available', trigger: 'returnBook', guards: [], effects: [] },
         ],
       },
       pii: [],
@@ -55,7 +75,7 @@ const richSchema: FabricSchema = {
       tags: [],
       description: 'A library member',
       fields: {
-        id:   { name: 'id',   type: 'uuid',   nullable: false, primaryKey: true,  pii: false },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         name: { name: 'name', type: 'string', nullable: false, primaryKey: false, pii: true },
       },
       relations: {},
@@ -84,7 +104,7 @@ describe('UiGenerator', () => {
   it('generates one .tsx file per entity plus an index', async () => {
     const gen = new UiGenerator()
     const result = await gen.generate(richSchema, makeCtx())
-    const paths = result.files.map(f => f.path)
+    const paths = result.files.map((f) => f.path)
     expect(paths).toContain('ui/Book.tsx')
     expect(paths).toContain('ui/Member.tsx')
     expect(paths).toContain('ui/index.ts')
@@ -107,14 +127,14 @@ describe('UiGenerator', () => {
     it('generates a form component named <Entity>Form', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('export function BookForm(')
     })
 
     it('generates a FormValues interface with editable fields', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('export interface BookFormValues {')
       expect(bookFile.content).toContain('title:')
       expect(bookFile.content).toContain('status:')
@@ -123,7 +143,7 @@ describe('UiGenerator', () => {
     it('excludes primary key fields from the form', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       // id is the primary key — should not appear in FormValues
       expect(bookFile.content).not.toMatch(/^\s+id[?]?:.*$/m)
     })
@@ -131,7 +151,7 @@ describe('UiGenerator', () => {
     it('renders enum fields as <select>', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('<select')
       expect(bookFile.content).toContain('<option value="available">')
       expect(bookFile.content).toContain('<option value="borrowed">')
@@ -140,7 +160,7 @@ describe('UiGenerator', () => {
     it('marks non-nullable fields as required', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       // title is non-nullable → required={true}
       expect(bookFile.content).toContain('required={true}')
     })
@@ -148,7 +168,7 @@ describe('UiGenerator', () => {
     it('wraps the form in #region / #endregion markers', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('// #region BookForm')
       expect(bookFile.content).toContain('// #endregion BookForm')
     })
@@ -158,14 +178,14 @@ describe('UiGenerator', () => {
     it('generates an ActionPanel component for entities with a state machine', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('export function BookActionPanel(')
     })
 
     it('skips the action panel for entities without a state machine', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const memberFile = result.files.find(f => f.path === 'ui/Member.tsx')!
+      const memberFile = result.files.find((f) => f.path === 'ui/Member.tsx')!
       expect(memberFile.content).not.toContain('export function MemberActionPanel(')
       expect(memberFile.content).toContain('has no state machine')
     })
@@ -173,7 +193,7 @@ describe('UiGenerator', () => {
     it('renders one button per unique trigger', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain("onAction('borrow')")
       expect(bookFile.content).toContain("onAction('returnBook')")
     })
@@ -181,7 +201,7 @@ describe('UiGenerator', () => {
     it('gates each button on the valid from-states', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       // borrow is only valid from 'available'
       expect(bookFile.content).toContain('"available"')
       // returnBook is only valid from 'borrowed'
@@ -191,7 +211,7 @@ describe('UiGenerator', () => {
     it('gates buttons on behavior auth roles', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('"member"')
       expect(bookFile.content).toContain('"librarian"')
       expect(bookFile.content).toContain('userRoles')
@@ -200,7 +220,7 @@ describe('UiGenerator', () => {
     it('adds a title attribute with guard text when guards exist', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       // borrow transition has guard 'Member must be active'
       expect(bookFile.content).toContain('title="Member must be active"')
     })
@@ -208,7 +228,7 @@ describe('UiGenerator', () => {
     it('exports a BookState type union', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('export type BookState =')
       expect(bookFile.content).toContain('"available"')
       expect(bookFile.content).toContain('"borrowed"')
@@ -217,7 +237,7 @@ describe('UiGenerator', () => {
     it('wraps the action panel in #region / #endregion markers', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const bookFile = result.files.find(f => f.path === 'ui/Book.tsx')!
+      const bookFile = result.files.find((f) => f.path === 'ui/Book.tsx')!
       expect(bookFile.content).toContain('// #region BookActionPanel')
       expect(bookFile.content).toContain('// #endregion BookActionPanel')
     })
@@ -227,7 +247,7 @@ describe('UiGenerator', () => {
     it('re-exports form and panel from each entity file', async () => {
       const gen = new UiGenerator()
       const result = await gen.generate(richSchema, makeCtx())
-      const indexFile = result.files.find(f => f.path === 'ui/index.ts')!
+      const indexFile = result.files.find((f) => f.path === 'ui/index.ts')!
       expect(indexFile.content).toContain("from './Book'")
       expect(indexFile.content).toContain("from './Member'")
       expect(indexFile.content).toContain('BookForm')

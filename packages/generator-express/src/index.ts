@@ -10,7 +10,7 @@ import type {
 // --- Helpers ---
 
 function toKebab(s: string): string {
-  return s.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`).replace(/^-/, '')
+  return s.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`).replace(/^-/, '')
 }
 
 function toPlural(name: string): string {
@@ -85,7 +85,7 @@ function collectEndpoints(schema: FabricSchema): EndpointEntry[] {
 // --- Auth middleware ---
 
 function renderAuthMiddleware(roles: string[]): string {
-  const roleList = roles.map(r => `'${r}'`).join(', ')
+  const roleList = roles.map((r) => `'${r}'`).join(', ')
   return `requireRoles([${roleList}])`
 }
 
@@ -103,7 +103,8 @@ function resolveRequestBody(endpoint: EndpointSchema, schema: FabricSchema): str
   if (!endpoint.behavior) return null
   const [entityName, behaviorName] = endpoint.behavior.split('.')
   const entity = entityName ? schema.entities[entityName] : undefined
-  const behavior: BehaviorSchema | undefined = entity && behaviorName ? entity.behaviors[behaviorName] : undefined
+  const behavior: BehaviorSchema | undefined =
+    entity && behaviorName ? entity.behaviors[behaviorName] : undefined
   if (behavior?.input && Object.keys(behavior.input).length > 0) {
     return `${entityName}_${behaviorName}_Input`
   }
@@ -116,7 +117,7 @@ function resolveTargetEntity(endpoint: EndpointSchema, entityNames?: string[]): 
   if (endpoint.returns) return endpoint.returns
   // Infer from the first path segment: /loans/:id → "loans" → match "Loan"
   if (entityNames && entityNames.length > 0) {
-    const firstSegment = endpoint.path.split('/').find(s => s && !s.startsWith(':'))
+    const firstSegment = endpoint.path.split('/').find((s) => s && !s.startsWith(':'))
     if (firstSegment) {
       for (const name of entityNames) {
         if (
@@ -131,11 +132,15 @@ function resolveTargetEntity(endpoint: EndpointSchema, entityNames?: string[]): 
   return null
 }
 
-function buildHandlerBodyPrisma(entry: EndpointEntry, schema: FabricSchema, entityNames: string[]): string[] {
+function buildHandlerBodyPrisma(
+  entry: EndpointEntry,
+  schema: FabricSchema,
+  entityNames: string[],
+): string[] {
   const lines: string[] = []
   const { method, endpoint } = entry
 
-  const pathParams = (entry.fullPath.match(/:[a-zA-Z_]+/g) ?? []).map(p => p.slice(1))
+  const pathParams = (entry.fullPath.match(/:[a-zA-Z_]+/g) ?? []).map((p) => p.slice(1))
   const entityName = resolveTargetEntity(endpoint, entityNames)
   const repoVar = entityName ? `${lcFirst(entityName)}Repository` : null
 
@@ -153,7 +158,8 @@ function buildHandlerBodyPrisma(entry: EndpointEntry, schema: FabricSchema, enti
   if (endpoint.behavior) {
     const [eName, bName] = endpoint.behavior.split('.')
     const entity = eName ? schema.entities[eName] : undefined
-    const behavior: BehaviorSchema | undefined = entity && bName ? entity.behaviors[bName] : undefined
+    const behavior: BehaviorSchema | undefined =
+      entity && bName ? entity.behaviors[bName] : undefined
     if (behavior?.rules && behavior.rules.length > 0) {
       for (const rule of behavior.rules) {
         lines.push(`    // Rule: ${rule}`)
@@ -193,7 +199,9 @@ function buildHandlerBodyPrisma(entry: EndpointEntry, schema: FabricSchema, enti
     lines.push(`    const data = Object.fromEntries(`)
     lines.push(`      Object.entries(req.body)`)
     lines.push(`        .filter(([, v]) => v !== '')`)
-    lines.push(`        .map(([k, v]) => [k, typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}$/.test(v) ? new Date(v + 'T00:00:00.000Z') : v])`)
+    lines.push(
+      `        .map(([k, v]) => [k, typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}$/.test(v) ? new Date(v + 'T00:00:00.000Z') : v])`,
+    )
     lines.push(`    )`)
     lines.push(`    const result = await ${repoVar}.create(data)`)
     lines.push(`    res.status(201).json(result)`)
@@ -206,7 +214,7 @@ function buildHandlerBodyTodo(entry: EndpointEntry, schema: FabricSchema): strin
   const lines: string[] = []
   const { method, endpoint } = entry
 
-  const pathParams = (entry.fullPath.match(/:[a-zA-Z_]+/g) ?? []).map(p => p.slice(1))
+  const pathParams = (entry.fullPath.match(/:[a-zA-Z_]+/g) ?? []).map((p) => p.slice(1))
   if (pathParams.length > 0) {
     lines.push(`    const { ${pathParams.join(', ')} } = req.params`)
   }
@@ -220,7 +228,8 @@ function buildHandlerBodyTodo(entry: EndpointEntry, schema: FabricSchema): strin
   if (endpoint.behavior) {
     const [entityName, behaviorName] = endpoint.behavior.split('.')
     const entity = entityName ? schema.entities[entityName] : undefined
-    const behavior: BehaviorSchema | undefined = entity && behaviorName ? entity.behaviors[behaviorName] : undefined
+    const behavior: BehaviorSchema | undefined =
+      entity && behaviorName ? entity.behaviors[behaviorName] : undefined
     if (behavior?.rules && behavior.rules.length > 0) {
       for (const rule of behavior.rules) {
         lines.push(`    // Rule: ${rule}`)
@@ -264,8 +273,12 @@ function collectRepositoryImports(entries: EndpointEntry[], entityNames: string[
   return repos
 }
 
-function generateRouterFile(entries: EndpointEntry[], schema: FabricSchema, orm: 'prisma' | null): string {
-  const hasAuth = entries.some(e => e.endpoint.auth?.roles && e.endpoint.auth.roles.length > 0)
+function generateRouterFile(
+  entries: EndpointEntry[],
+  schema: FabricSchema,
+  orm: 'prisma' | null,
+): string {
+  const hasAuth = entries.some((e) => e.endpoint.auth?.roles && e.endpoint.auth.roles.length > 0)
   const entityTypes = collectEntityTypes(entries)
   const entityNames = Object.keys(schema.entities)
   const lines: string[] = []
@@ -292,15 +305,19 @@ function generateRouterFile(entries: EndpointEntry[], schema: FabricSchema, orm:
     const roles = endpoint.auth?.roles ?? []
     const authArg = roles.length > 0 ? `${renderAuthMiddleware(roles)}, ` : ''
     const desc = endpoint.description ? ` // ${endpoint.description}` : ''
-    const bodyLines = orm === 'prisma'
-      ? buildHandlerBodyPrisma(entry, schema, entityNames)
-      : buildHandlerBodyTodo(entry, schema)
-    const indented = bodyLines.map(l => '  ' + l).join('\n')
-    const bodyStr = bodyLines.length > 0
-      ? `\n  try {\n${indented}\n  } catch (err: any) {\n    res.status(500).json({ error: err.message })\n  }\n  `
-      : `\n  try {} catch (err: any) { res.status(500).json({ error: err.message }) }\n  `
+    const bodyLines =
+      orm === 'prisma'
+        ? buildHandlerBodyPrisma(entry, schema, entityNames)
+        : buildHandlerBodyTodo(entry, schema)
+    const indented = bodyLines.map((l) => '  ' + l).join('\n')
+    const bodyStr =
+      bodyLines.length > 0
+        ? `\n  try {\n${indented}\n  } catch (err: any) {\n    res.status(500).json({ error: err.message })\n  }\n  `
+        : `\n  try {} catch (err: any) { res.status(500).json({ error: err.message }) }\n  `
 
-    lines.push(`router.${method}('${fullPath}', ${authArg}async (req: Request, res: Response) => {${bodyStr}})${desc}`)
+    lines.push(
+      `router.${method}('${fullPath}', ${authArg}async (req: Request, res: Response) => {${bodyStr}})${desc}`,
+    )
     lines.push(``)
   }
 

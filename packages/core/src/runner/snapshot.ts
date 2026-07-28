@@ -29,7 +29,7 @@ export function readSnapshot(outputDir: string): IRSnapshot | null {
   }
   if (snapshot?.schema?.version !== CURRENT_IR_VERSION) {
     console.warn(
-      `[newel] snapshot discarded: IR version mismatch (snapshot has "${snapshot?.schema?.version}", current is "${CURRENT_IR_VERSION}"). Incremental migrations will fall back to full generation.`
+      `[newel] snapshot discarded: IR version mismatch (snapshot has "${snapshot?.schema?.version}", current is "${CURRENT_IR_VERSION}"). Incremental migrations will fall back to full generation.`,
     )
     return null
   }

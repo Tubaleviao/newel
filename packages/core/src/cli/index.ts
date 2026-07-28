@@ -37,7 +37,9 @@ program
   .description('Run all generators in dependency order')
   .option('-c, --config <path>', 'path to newel.config.ts', './newel.config.ts')
   .option('-w, --watch', 'watch for changes and re-generate automatically', false)
-  .action((opts: { config: string; watch: boolean }) => generateCommand(opts.config, { watch: opts.watch }))
+  .action((opts: { config: string; watch: boolean }) =>
+    generateCommand(opts.config, { watch: opts.watch }),
+  )
 
 program
   .command('diff')

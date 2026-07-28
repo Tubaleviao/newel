@@ -46,12 +46,7 @@ export type {
   AuthSchema,
 } from './ir/types'
 
-export type {
-  Generator,
-  GeneratorContext,
-  GeneratorOutput,
-  GeneratedFile,
-} from './runner/types'
+export type { Generator, GeneratorContext, GeneratorOutput, GeneratedFile } from './runner/types'
 
 export { runGenerators } from './runner/runner'
 export { topoSort } from './runner/dag'

@@ -23,11 +23,25 @@ const bookSchema: FabricSchema = {
       tags: [],
       description: 'A book',
       fields: {
-        id:     { name: 'id',     type: 'uuid',    nullable: false, primaryKey: true,  pii: false },
-        title:  { name: 'title',  type: 'string',  nullable: false, primaryKey: false, pii: false },
-        status: { name: 'status', type: 'enum',    nullable: false, primaryKey: false, pii: false, enumValues: ['available', 'borrowed'] },
-        notes:  { name: 'notes',  type: 'string',  nullable: true,  primaryKey: false, pii: false },
-        borrowerId: { name: 'borrowerId', type: 'uuid', nullable: true, primaryKey: false, pii: false, foreignKey: 'Member.id' },
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        title: { name: 'title', type: 'string', nullable: false, primaryKey: false, pii: false },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['available', 'borrowed'],
+        },
+        notes: { name: 'notes', type: 'string', nullable: true, primaryKey: false, pii: false },
+        borrowerId: {
+          name: 'borrowerId',
+          type: 'uuid',
+          nullable: true,
+          primaryKey: false,
+          pii: false,
+          foreignKey: 'Member.id',
+        },
       },
       relations: {},
       behaviors: {},
@@ -36,13 +50,13 @@ const bookSchema: FabricSchema = {
         initial: 'available',
         states: {
           available: { name: 'available', description: 'On the shelf', terminal: false },
-          borrowed:  { name: 'borrowed',  description: 'Checked out',  terminal: false },
-          lost:      { name: 'lost',      description: 'Permanently lost', terminal: true },
+          borrowed: { name: 'borrowed', description: 'Checked out', terminal: false },
+          lost: { name: 'lost', description: 'Permanently lost', terminal: true },
         },
         transitions: [
-          { from: 'available', to: 'borrowed', trigger: 'borrow',  guards: [], effects: [] },
-          { from: 'borrowed',  to: 'available', trigger: 'return', guards: [], effects: [] },
-          { from: 'borrowed',  to: 'lost',      trigger: 'markLost', guards: [], effects: [] },
+          { from: 'available', to: 'borrowed', trigger: 'borrow', guards: [], effects: [] },
+          { from: 'borrowed', to: 'available', trigger: 'return', guards: [], effects: [] },
+          { from: 'borrowed', to: 'lost', trigger: 'markLost', guards: [], effects: [] },
         ],
       },
       pii: [],
@@ -72,15 +86,15 @@ describe('SqlGenerator', () => {
   describe('initial generation (no previous snapshot)', () => {
     it('produces schema.sql and one init migration', async () => {
       const result = await generator.generate(bookSchema, makeCtx())
-      const paths = result.files.map(f => f.path)
+      const paths = result.files.map((f) => f.path)
       expect(paths).toContain('sql/schema.sql')
-      expect(paths.some(p => p.startsWith('sql/migrations/'))).toBe(true)
+      expect(paths.some((p) => p.startsWith('sql/migrations/'))).toBe(true)
       expect(paths.length).toBe(2)
     })
 
     it('migration is numbered 000001', async () => {
       const result = await generator.generate(bookSchema, makeCtx())
-      const migPath = result.files.find(f => f.path.startsWith('sql/migrations/'))?.path ?? ''
+      const migPath = result.files.find((f) => f.path.startsWith('sql/migrations/'))?.path ?? ''
       expect(migPath).toMatch(/000001__/)
     })
 
@@ -97,7 +111,7 @@ describe('SqlGenerator', () => {
 
     beforeAll(async () => {
       const result = await generator.generate(bookSchema, makeCtx())
-      content = result.files.find(f => f.path === 'sql/schema.sql')!.content
+      content = result.files.find((f) => f.path === 'sql/schema.sql')!.content
     })
 
     it('creates table for each entity', () => {
@@ -159,7 +173,7 @@ describe('SqlGenerator', () => {
         },
       }
       const result = await generator.generate(noTerminalSchema, makeCtx())
-      const ddl = result.files.find(f => f.path === 'sql/schema.sql')!.content
+      const ddl = result.files.find((f) => f.path === 'sql/schema.sql')!.content
       expect(ddl).not.toContain('chk_')
     })
   })
@@ -168,7 +182,7 @@ describe('SqlGenerator', () => {
     it('emits no migration file when schema is unchanged', async () => {
       const prev = makeSnapshot(bookSchema)
       const result = await generator.generate(bookSchema, makeCtx(prev))
-      const migrPaths = result.files.filter(f => f.path.startsWith('sql/migrations/'))
+      const migrPaths = result.files.filter((f) => f.path.startsWith('sql/migrations/'))
       expect(migrPaths).toHaveLength(0)
     })
 
@@ -181,13 +195,19 @@ describe('SqlGenerator', () => {
             ...bookSchema.entities.Book,
             fields: {
               ...bookSchema.entities.Book.fields,
-              publishedAt: { name: 'publishedAt', type: 'timestamp', nullable: true, primaryKey: false, pii: false },
+              publishedAt: {
+                name: 'publishedAt',
+                type: 'timestamp',
+                nullable: true,
+                primaryKey: false,
+                pii: false,
+              },
             },
           },
         },
       }
       const result = await generator.generate(next, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile).toBeDefined()
       expect(migFile!.content).toContain('ADD COLUMN IF NOT EXISTS published_at')
     })
@@ -200,13 +220,13 @@ describe('SqlGenerator', () => {
           Book: {
             ...bookSchema.entities.Book,
             fields: Object.fromEntries(
-              Object.entries(bookSchema.entities.Book.fields).filter(([k]) => k !== 'notes')
+              Object.entries(bookSchema.entities.Book.fields).filter(([k]) => k !== 'notes'),
             ),
           },
         },
       }
       const result = await generator.generate(withoutNotes, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile).toBeDefined()
       expect(migFile!.content).toContain('MANUAL REVIEW')
       expect(migFile!.content).toContain('notes')
@@ -215,7 +235,7 @@ describe('SqlGenerator', () => {
     it('emits CREATE TABLE for new entity', async () => {
       const prev = makeSnapshot(minimalSchema)
       const result = await generator.generate(bookSchema, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile).toBeDefined()
       expect(migFile!.content).toContain('CREATE TABLE IF NOT EXISTS books')
     })
@@ -223,7 +243,7 @@ describe('SqlGenerator', () => {
     it('emits MANUAL REVIEW for dropped table', async () => {
       const prev = makeSnapshot(bookSchema)
       const result = await generator.generate(minimalSchema, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile).toBeDefined()
       expect(migFile!.content).toContain('MANUAL REVIEW')
       expect(migFile!.content).toContain('books')
@@ -247,9 +267,11 @@ describe('SqlGenerator', () => {
         },
       }
       const result = await generator.generate(withReserved, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile).toBeDefined()
-      expect(migFile!.content).toContain("ALTER TYPE book_status_enum ADD VALUE IF NOT EXISTS 'reserved'")
+      expect(migFile!.content).toContain(
+        "ALTER TYPE book_status_enum ADD VALUE IF NOT EXISTS 'reserved'",
+      )
     })
 
     it('adds DEFAULT placeholder for NOT NULL added columns', async () => {
@@ -261,13 +283,19 @@ describe('SqlGenerator', () => {
             ...bookSchema.entities.Book,
             fields: {
               ...bookSchema.entities.Book.fields,
-              isbn: { name: 'isbn', type: 'string', nullable: false, primaryKey: false, pii: false },
+              isbn: {
+                name: 'isbn',
+                type: 'string',
+                nullable: false,
+                primaryKey: false,
+                pii: false,
+              },
             },
           },
         },
       }
       const result = await generator.generate(withRequired, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile!.content).toContain('NOT NULL DEFAULT')
       expect(migFile!.content).toContain('TODO: backfill')
     })
@@ -287,7 +315,7 @@ describe('SqlGenerator', () => {
         },
       }
       const result = await generator.generate(notesRequired, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile!.content).toContain('ALTER COLUMN notes SET NOT NULL')
     })
 
@@ -306,7 +334,7 @@ describe('SqlGenerator', () => {
         },
       }
       const result = await generator.generate(titleNullable, makeCtx(prev))
-      const migFile = result.files.find(f => f.path.startsWith('sql/migrations/'))
+      const migFile = result.files.find((f) => f.path.startsWith('sql/migrations/'))
       expect(migFile!.content).toContain('ALTER COLUMN title DROP NOT NULL')
     })
   })
@@ -320,7 +348,9 @@ describe('SqlGenerator', () => {
             name: 'Book',
             tags: [],
             description: 'Book',
-            fields: { id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false } },
+            fields: {
+              id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+            },
             relations: {
               authors: { name: 'authors', kind: 'manyToMany', target: 'Author' },
             },
@@ -331,7 +361,7 @@ describe('SqlGenerator', () => {
         },
       }
       const result = await generator.generate(schema, makeCtx())
-      const ddl = result.files.find(f => f.path === 'sql/schema.sql')!.content
+      const ddl = result.files.find((f) => f.path === 'sql/schema.sql')!.content
       expect(ddl).toContain('CREATE TABLE IF NOT EXISTS book_author')
     })
   })
@@ -345,7 +375,9 @@ describe('SqlGenerator', () => {
             name: 'LoanRecord',
             tags: [],
             description: 'A loan record',
-            fields: { id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false } },
+            fields: {
+              id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+            },
             relations: {},
             behaviors: {},
             pii: [],
@@ -354,7 +386,7 @@ describe('SqlGenerator', () => {
         },
       }
       const result = await generator.generate(schema, makeCtx())
-      const ddl = result.files.find(f => f.path === 'sql/schema.sql')!.content
+      const ddl = result.files.find((f) => f.path === 'sql/schema.sql')!.content
       expect(ddl).toContain('CREATE TABLE IF NOT EXISTS loan_records')
     })
   })

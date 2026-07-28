@@ -1,7 +1,10 @@
 /** Shared naming utilities used by SQL, Prisma, and other generators. */
 
 export function toSnakeCase(s: string): string {
-  return s.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')
+  return s
+    .replace(/([A-Z])/g, '_$1')
+    .toLowerCase()
+    .replace(/^_/, '')
 }
 
 export function tableName(entityName: string): string {
@@ -16,5 +19,8 @@ export function enumTypeName(entityName: string, fieldName: string): string {
 }
 
 export function slugify(label: string): string {
-  return label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '')
 }

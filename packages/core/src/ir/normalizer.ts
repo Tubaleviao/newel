@@ -48,29 +48,47 @@ function normalizeField(name: string, raw: FieldInput, context?: string): FieldS
 }
 
 function normalizeTransition(
-  raw: { from: string | string[], to: string, trigger: string, guard?: string, guards?: string[], effect?: string, effects?: string[] },
+  raw: {
+    from: string | string[]
+    to: string
+    trigger: string
+    guard?: string
+    guards?: string[]
+    effect?: string
+    effects?: string[]
+  },
   behaviorRules?: string[],
   context?: string,
 ): TransitionSchema {
   const loc = context ?? 'transition'
   if (!raw.to) throw new Error(`${loc}: transition is missing required "to" state`)
-  if (!raw.from && raw.from !== '') throw new Error(`${loc}: transition is missing required "from" state`)
+  if (!raw.from && raw.from !== '')
+    throw new Error(`${loc}: transition is missing required "from" state`)
   const explicitGuards = raw.guards ?? (raw.guard ? [raw.guard] : null)
   const guards = explicitGuards ?? behaviorRules ?? []
   const effects = raw.effects ?? (raw.effect ? [raw.effect] : [])
   return { from: raw.from, to: raw.to, trigger: raw.trigger, guards, effects }
 }
 
-function normalizeState(name: string, raw: { description?: string, terminal?: boolean } | string): StateSchema {
+function normalizeState(
+  name: string,
+  raw: { description?: string; terminal?: boolean } | string,
+): StateSchema {
   if (typeof raw === 'string') {
     return { name, description: raw, terminal: false }
   }
   return { name, description: raw.description ?? '', terminal: raw.terminal ?? false }
 }
 
-function normalizeStateMachine(raw: StateMachineInput, behaviors: Record<string, BehaviorSchema>, entityName: string): StateMachineSchema {
-  if (!raw.field) throw new Error(`entities.${entityName}.stateMachine: missing required "field" property`)
-  if (!raw.initial) throw new Error(`entities.${entityName}.stateMachine: missing required "initial" state`)
+function normalizeStateMachine(
+  raw: StateMachineInput,
+  behaviors: Record<string, BehaviorSchema>,
+  entityName: string,
+): StateMachineSchema {
+  if (!raw.field)
+    throw new Error(`entities.${entityName}.stateMachine: missing required "field" property`)
+  if (!raw.initial)
+    throw new Error(`entities.${entityName}.stateMachine: missing required "initial" state`)
   if (!raw.states || Object.keys(raw.states).length === 0) {
     throw new Error(`entities.${entityName}.stateMachine: must declare at least one state`)
   }
@@ -125,11 +143,15 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
 
   const tags = raw.tags ?? []
   if (!Array.isArray(tags)) {
-    throw new Error(`entities.${name}: "tags" must be an array of strings, got ${JSON.stringify(tags)}`)
+    throw new Error(
+      `entities.${name}: "tags" must be an array of strings, got ${JSON.stringify(tags)}`,
+    )
   }
-  const badTagIdx = tags.findIndex(t => typeof t !== 'string')
+  const badTagIdx = tags.findIndex((t) => typeof t !== 'string')
   if (badTagIdx !== -1) {
-    throw new Error(`entities.${name}: "tags[${badTagIdx}]" must be a string, got ${JSON.stringify(tags[badTagIdx])}`)
+    throw new Error(
+      `entities.${name}: "tags[${badTagIdx}]" must be a string, got ${JSON.stringify(tags[badTagIdx])}`,
+    )
   }
 
   return {
@@ -140,7 +162,9 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     fields,
     relations: raw.relations ?? {},
     behaviors,
-    stateMachine: raw.stateMachine ? normalizeStateMachine(raw.stateMachine, behaviors, name) : undefined,
+    stateMachine: raw.stateMachine
+      ? normalizeStateMachine(raw.stateMachine, behaviors, name)
+      : undefined,
     pii,
     gdpr,
   }
@@ -149,11 +173,20 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
 function normalizeEndpoint(key: string, raw: EndpointInput, apiName: string): EndpointSchema {
   const spaceIdx = key.indexOf(' ')
   if (spaceIdx === -1) {
-    throw new Error(`apis.${apiName}.endpoints["${key}"]: endpoint key must be "METHOD /path" (e.g. "POST /orders")`)
+    throw new Error(
+      `apis.${apiName}.endpoints["${key}"]: endpoint key must be "METHOD /path" (e.g. "POST /orders")`,
+    )
   }
   const method = key.slice(0, spaceIdx).toUpperCase()
   const path = key.slice(spaceIdx + 1)
-  return { method, path, description: raw.description, behavior: raw.behavior, returns: raw.returns, auth: raw.auth }
+  return {
+    method,
+    path,
+    description: raw.description,
+    behavior: raw.behavior,
+    returns: raw.returns,
+    auth: raw.auth,
+  }
 }
 
 function normalizeApi(name: string, raw: ApiInput): ApiSchema {

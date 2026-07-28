@@ -8,12 +8,12 @@ Write one file. Generate everything.
 
 ## Why newel?
 
-| Tool | Data shape | DB + client | Behavior | Semantic meaning |
-|------|:---:|:---:|:---:|:---:|
-| LinkML | ✅ | ❌ | ❌ | ✅ |
-| Prisma | ✅ | ✅ | ❌ | ❌ |
-| XState | ❌ | ❌ | ✅ | ❌ |
-| **newel** | ✅ | ✅ | ✅ | ✅ |
+| Tool      | Data shape | DB + client | Behavior | Semantic meaning |
+| --------- | :--------: | :---------: | :------: | :--------------: |
+| LinkML    |     ✅     |     ❌      |    ❌    |        ✅        |
+| Prisma    |     ✅     |     ✅      |    ❌    |        ❌        |
+| XState    |     ❌     |     ❌      |    ✅    |        ❌        |
+| **newel** |     ✅     |     ✅      |    ✅    |        ✅        |
 
 ---
 
@@ -43,23 +43,23 @@ The wizard asks a few questions:
 
 It then creates:
 
-| File | Purpose |
-|------|---------|
-| `package.json` | Scripts + all required dependencies for the chosen generators |
-| `newel.config.ts` | Generator configuration wired up and ready |
-| `src/fabric.ts` | Starter schema with a `User` entity and state machine |
-| `tsconfig.json` | TypeScript configuration |
-| `.gitignore` | Ignores `node_modules/`, `dist/`, and `src/generated/` |
+| File              | Purpose                                                       |
+| ----------------- | ------------------------------------------------------------- |
+| `package.json`    | Scripts + all required dependencies for the chosen generators |
+| `newel.config.ts` | Generator configuration wired up and ready                    |
+| `src/fabric.ts`   | Starter schema with a `User` entity and state machine         |
+| `tsconfig.json`   | TypeScript configuration                                      |
+| `.gitignore`      | Ignores `node_modules/`, `dist/`, and `src/generated/`        |
 
 **Available presets:**
 
-| Preset | Included generators |
-|--------|---------------------|
-| Minimal | `typescript` |
-| API | `typescript`, `openapi`, `sql` |
-| Full-stack | `typescript`, `openapi`, `sql`, `ui`, `prisma`, `express`, `app` |
-| Semantic / data | `typescript`, `rdf`, `owl`, `jsonschema` |
-| Custom | Pick any combination interactively |
+| Preset          | Included generators                                              |
+| --------------- | ---------------------------------------------------------------- |
+| Minimal         | `typescript`                                                     |
+| API             | `typescript`, `openapi`, `sql`                                   |
+| Full-stack      | `typescript`, `openapi`, `sql`, `ui`, `prisma`, `express`, `app` |
+| Semantic / data | `typescript`, `rdf`, `owl`, `jsonschema`                         |
+| Custom          | Pick any combination interactively                               |
 
 After scaffolding:
 
@@ -100,30 +100,57 @@ export default defineEntity({
   description: 'A registered user',
   goal: 'Track user identity and authentication state',
   fields: {
-    id:        { type: 'uuid',      primaryKey: true },
-    email:     { type: 'string',    pii: true, gdpr: { category: 'contact', retention: '7y', legalBasis: 'contract' } },
-    name:      { type: 'string' },
-    status:    { type: 'enum',      values: ['active', 'suspended', 'deleted'] },
+    id: { type: 'uuid', primaryKey: true },
+    email: {
+      type: 'string',
+      pii: true,
+      gdpr: { category: 'contact', retention: '7y', legalBasis: 'contract' },
+    },
+    name: { type: 'string' },
+    status: { type: 'enum', values: ['active', 'suspended', 'deleted'] },
     createdAt: { type: 'timestamp' },
   },
   stateMachine: {
     field: 'status',
     initial: 'active',
     states: {
-      active:    'User can log in and use the app',
+      active: 'User can log in and use the app',
       suspended: 'Temporarily blocked',
-      deleted:   { description: 'Soft-deleted, data retained for compliance', terminal: true },
+      deleted: { description: 'Soft-deleted, data retained for compliance', terminal: true },
     },
     transitions: [
-      { from: 'active',               to: 'suspended', trigger: 'suspend',   guard: 'Only an admin may suspend a user' },
-      { from: 'suspended',            to: 'active',    trigger: 'reinstate', guard: 'Only an admin may reinstate a user' },
-      { from: ['active', 'suspended'], to: 'deleted',  trigger: 'delete',    effect: 'Anonymises PII fields after retention period' },
+      {
+        from: 'active',
+        to: 'suspended',
+        trigger: 'suspend',
+        guard: 'Only an admin may suspend a user',
+      },
+      {
+        from: 'suspended',
+        to: 'active',
+        trigger: 'reinstate',
+        guard: 'Only an admin may reinstate a user',
+      },
+      {
+        from: ['active', 'suspended'],
+        to: 'deleted',
+        trigger: 'delete',
+        effect: 'Anonymises PII fields after retention period',
+      },
     ],
   },
   behaviors: {
-    suspend:   { description: 'Temporarily blocks a user', rules: ['Only an admin may suspend a user'], auth: { roles: ['admin'] } },
-    reinstate: { description: 'Restores access for a suspended user', rules: ['Only an admin may reinstate a user'], auth: { roles: ['admin'] } },
-    delete:    { description: 'Soft-deletes a user account', auth: { roles: ['admin'] } },
+    suspend: {
+      description: 'Temporarily blocks a user',
+      rules: ['Only an admin may suspend a user'],
+      auth: { roles: ['admin'] },
+    },
+    reinstate: {
+      description: 'Restores access for a suspended user',
+      rules: ['Only an admin may reinstate a user'],
+      auth: { roles: ['admin'] },
+    },
+    delete: { description: 'Soft-deletes a user account', auth: { roles: ['admin'] } },
   },
 })
 ```
@@ -135,10 +162,10 @@ import { defineApi } from '@newel/core'
 
 export default defineApi({
   endpoints: {
-    'GET /users/:id':            { returns: 'User',          auth: { roles: ['admin'] } },
-    'POST /users/:id/suspend':   { behavior: 'User.suspend' },
+    'GET /users/:id': { returns: 'User', auth: { roles: ['admin'] } },
+    'POST /users/:id/suspend': { behavior: 'User.suspend' },
     'POST /users/:id/reinstate': { behavior: 'User.reinstate' },
-    'DELETE /users/:id':         { behavior: 'User.delete' },
+    'DELETE /users/:id': { behavior: 'User.delete' },
   },
 })
 ```
@@ -149,7 +176,7 @@ This is the root entry point that assembles your entities and APIs. It is never 
 
 ```typescript
 import { defineFabric } from '@newel/core'
-import User    from './entities/User'
+import User from './entities/User'
 import UserAPI from './apis/UserAPI'
 
 export default defineFabric({
@@ -168,9 +195,7 @@ import { TypeScriptGenerator } from '@newel/generator-typescript'
 export default defineConfig({
   schema: './src/fabric.ts',
   output: './src/generated',
-  generators: [
-    new TypeScriptGenerator(),
-  ],
+  generators: [new TypeScriptGenerator()],
 })
 ```
 
@@ -181,10 +206,10 @@ Run newel through your local install, not `npx`, so you always use the exact ver
 ```json
 {
   "scripts": {
-    "validate":    "newel validate    -s ./src/fabric.ts",
-    "inspect":     "newel inspect     -s ./src/fabric.ts",
-    "generate":    "newel generate    -c ./newel.config.ts",
-    "diff":        "newel diff        -c ./newel.config.ts",
+    "validate": "newel validate    -s ./src/fabric.ts",
+    "inspect": "newel inspect     -s ./src/fabric.ts",
+    "generate": "newel generate    -c ./newel.config.ts",
+    "diff": "newel diff        -c ./newel.config.ts",
     "check-drift": "newel check-drift -c ./newel.config.ts"
   }
 }
@@ -245,19 +270,19 @@ export const userSchema = z.object({
 
 ## Available generators
 
-| Package | Output | Depends on |
-|---------|--------|------------|
-| `@newel/generator-typescript` | TS interfaces + Zod schemas | — |
-| `@newel/generator-openapi` | OpenAPI 3.x YAML with auto-transition endpoints | `typescript` |
-| `@newel/generator-sql` | Safe incremental SQL migrations via IR diff | `typescript` |
-| `@newel/generator-docs` | Markdown docs + GDPR data map | `openapi`, `typescript` |
-| `@newel/generator-jsonschema` | JSON Schema draft-07 per entity | — |
-| `@newel/generator-rdf` | RDF/Turtle ontology | — |
-| `@newel/generator-owl` | OWL ontology (extends RDF output) | `rdf` |
-| `@newel/generator-ui` | React forms + state-machine-aware action buttons | `typescript` |
-| `@newel/generator-prisma` | Prisma schema + typed repositories | `typescript` |
-| `@newel/generator-express` | Express router + typed handlers | `typescript` (or `prisma`) |
-| `@newel/generator-app` | Full-stack scaffold (Express + Vite React) | `express`, `prisma`, `ui` |
+| Package                       | Output                                           | Depends on                 |
+| ----------------------------- | ------------------------------------------------ | -------------------------- |
+| `@newel/generator-typescript` | TS interfaces + Zod schemas                      | —                          |
+| `@newel/generator-openapi`    | OpenAPI 3.x YAML with auto-transition endpoints  | `typescript`               |
+| `@newel/generator-sql`        | Safe incremental SQL migrations via IR diff      | `typescript`               |
+| `@newel/generator-docs`       | Markdown docs + GDPR data map                    | `openapi`, `typescript`    |
+| `@newel/generator-jsonschema` | JSON Schema draft-07 per entity                  | —                          |
+| `@newel/generator-rdf`        | RDF/Turtle ontology                              | —                          |
+| `@newel/generator-owl`        | OWL ontology (extends RDF output)                | `rdf`                      |
+| `@newel/generator-ui`         | React forms + state-machine-aware action buttons | `typescript`               |
+| `@newel/generator-prisma`     | Prisma schema + typed repositories               | `typescript`               |
+| `@newel/generator-express`    | Express router + typed handlers                  | `typescript` (or `prisma`) |
+| `@newel/generator-app`        | Full-stack scaffold (Express + Vite React)       | `express`, `prisma`, `ui`  |
 
 ---
 
@@ -281,10 +306,10 @@ Tags are purely user-defined and composable — an entity can carry multiple tag
 
 Two worked examples are included in the repo under `examples/`:
 
-| Example | Description |
-|---------|-------------|
-| `examples/library/` | Full-stack library management system — uses all generators including `ui`, `prisma`, `express`, and `app` |
-| `examples/rest-api/` | Order management REST API — uses `typescript`, `openapi`, `sql`, `docs`, `jsonschema`, `rdf`, `owl` |
+| Example              | Description                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `examples/library/`  | Full-stack library management system — uses all generators including `ui`, `prisma`, `express`, and `app` |
+| `examples/rest-api/` | Order management REST API — uses `typescript`, `openapi`, `sql`, `docs`, `jsonschema`, `rdf`, `owl`       |
 
 To run an example after building the monorepo:
 
@@ -309,13 +334,15 @@ export class MyGenerator implements Generator {
   readonly dependsOn: string[] = [] // or ['typescript'] to receive its output
 
   async generate(schema: FabricSchema, ctx: GeneratorContext): Promise<GeneratorOutput> {
-    const lines = Object.values(schema.entities).map(e => `entity: ${e.name}`)
+    const lines = Object.values(schema.entities).map((e) => `entity: ${e.name}`)
     return {
-      files: [{
-        path: 'my-output/entities.txt',
-        content: lines.join('\n'),
-        header: '# @generated — do not edit\n',
-      }],
+      files: [
+        {
+          path: 'my-output/entities.txt',
+          content: lines.join('\n'),
+          header: '# @generated — do not edit\n',
+        },
+      ],
     }
   }
 }

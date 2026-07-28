@@ -9,7 +9,7 @@ import type {
 // --- Helpers ---
 
 function toKebab(s: string): string {
-  return s.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`).replace(/^-/, '')
+  return s.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`).replace(/^-/, '')
 }
 
 function toPlural(name: string): string {
@@ -57,8 +57,14 @@ function toSqliteSchema(prismaSchemaContent: string): string {
   let currentModel = ''
   for (const line of schema.split('\n')) {
     const mm = line.match(/^model\s+(\w+)\s*\{/)
-    if (mm?.[1]) { currentModel = mm[1]; continue }
-    if (line.trim() === '}') { currentModel = ''; continue }
+    if (mm?.[1]) {
+      currentModel = mm[1]
+      continue
+    }
+    if (line.trim() === '}') {
+      currentModel = ''
+      continue
+    }
     if (currentModel && line.includes('@relation')) {
       // e.g. "  book  Book  @relation(fields: [bookId], references: [id])"
       const rm = line.match(/^\s+\w+\s+(\w+)\s+@relation/)
@@ -73,7 +79,7 @@ function toSqliteSchema(prismaSchemaContent: string): string {
 
   // Inject back-relation fields before each parent model's closing brace
   for (const [parent, rels] of backRelations) {
-    const additions = rels.map(r => `  ${r.field}  ${r.child}[]`).join('\n')
+    const additions = rels.map((r) => `  ${r.field}  ${r.child}[]`).join('\n')
     schema = schema.replace(
       new RegExp(`(model\\s+${parent}\\s*\\{[^}]*)\\n\\}`, 's'),
       `$1\n${additions}\n}`,
@@ -95,7 +101,7 @@ interface EndpointEntry {
 }
 
 function resolveEntityFromPath(path: string, entityNames: string[]): string | null {
-  const firstSeg = path.split('/').find(s => s && !s.startsWith(':'))
+  const firstSeg = path.split('/').find((s) => s && !s.startsWith(':'))
   if (!firstSeg) return null
   for (const name of entityNames) {
     if (
@@ -133,12 +139,14 @@ function collectApiEndpoints(schema: FabricSchema): EndpointEntry[] {
 // --- Generated file content ---
 
 function generateEnvFile(): string {
-  return [
-    'DATABASE_URL="file:./dev.db"',
-    'NODE_ENV=development',
-    'PORT=3000',
-    '# dev.db is the local SQLite database — add it to .gitignore',
-  ].join('\n') + '\n'
+  return (
+    [
+      'DATABASE_URL="file:./dev.db"',
+      'NODE_ENV=development',
+      'PORT=3000',
+      '# dev.db is the local SQLite database — add it to .gitignore',
+    ].join('\n') + '\n'
+  )
 }
 
 function generateServerTs(appName: string): string {
@@ -216,26 +224,28 @@ export default defineConfig({
 }
 
 function generateClientTsConfig(): string {
-  return JSON.stringify(
-    {
-      compilerOptions: {
-        target: 'ES2020',
-        lib: ['ES2020', 'DOM', 'DOM.Iterable'],
-        module: 'ESNext',
-        moduleResolution: 'bundler',
-        jsx: 'react-jsx',
-        strict: true,
-        esModuleInterop: true,
-        skipLibCheck: true,
-        paths: {
-          '@generated/*': ['../../*'],
+  return (
+    JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2020',
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          jsx: 'react-jsx',
+          strict: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          paths: {
+            '@generated/*': ['../../*'],
+          },
         },
+        include: ['.'],
       },
-      include: ['.'],
-    },
-    null,
-    2,
-  ) + '\n'
+      null,
+      2,
+    ) + '\n'
+  )
 }
 
 function generateIndexHtml(appName: string): string {
@@ -294,7 +304,9 @@ function generateApiClient(schema: FabricSchema): string {
   lines.push(`  _devRoles = roles`)
   lines.push(`}`)
   lines.push(``)
-  lines.push(`async function apiFetch<T>(method: string, path: string, body?: unknown): Promise<T> {`)
+  lines.push(
+    `async function apiFetch<T>(method: string, path: string, body?: unknown): Promise<T> {`,
+  )
   lines.push(`  const headers: Record<string, string> = {`)
   lines.push(`    'Content-Type': 'application/json',`)
   lines.push(`    'X-Dev-Roles': _devRoles,`)
@@ -336,7 +348,7 @@ function deriveFunctionName(entry: EndpointEntry): string {
   // POST /books          → createBook
   // DELETE /loans/:id    → deleteLoan
   // POST /books/:id/borrow → borrowBook
-  const segments = entry.path.split('/').filter(s => s && !s.startsWith(':'))
+  const segments = entry.path.split('/').filter((s) => s && !s.startsWith(':'))
   const entitySeg = segments[0] ?? 'item'
 
   if (entry.method === 'get' && entry.isList) {
@@ -372,7 +384,14 @@ function toPascalSingular(kebabPlural: string): string {
   s = s.charAt(0).toUpperCase() + s.slice(1)
   // naive de-pluralize
   if (s.endsWith('ies')) return s.slice(0, -3) + 'y'
-  if (s.endsWith('ses') || s.endsWith('xes') || s.endsWith('zes') || s.endsWith('ches') || s.endsWith('shes')) return s.slice(0, -2)
+  if (
+    s.endsWith('ses') ||
+    s.endsWith('xes') ||
+    s.endsWith('zes') ||
+    s.endsWith('ches') ||
+    s.endsWith('shes')
+  )
+    return s.slice(0, -2)
   if (s.endsWith('s') && !s.endsWith('ss')) return s.slice(0, -1)
   return s
 }
@@ -389,8 +408,12 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
   const entries = collectApiEndpoints(schema)
 
   // Find the concrete function names from the api-client (same logic as deriveFunctionName)
-  const listEntry = entries.find(e => e.method === 'get' && e.isList && e.entityName === entityName)
-  const createEntry = entries.find(e => e.method === 'post' && !e.path.includes('/:id/') && e.entityName === entityName)
+  const listEntry = entries.find(
+    (e) => e.method === 'get' && e.isList && e.entityName === entityName,
+  )
+  const createEntry = entries.find(
+    (e) => e.method === 'post' && !e.path.includes('/:id/') && e.entityName === entityName,
+  )
   const listFn = listEntry ? deriveFunctionName(listEntry) : null
   const createFn = createEntry ? deriveFunctionName(createEntry) : null
 
@@ -398,18 +421,25 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
   const hasCreateEndpoint = createFn !== null
 
   // Detect belongsTo relations whose target has a list endpoint in the API
-  interface RelationInfo { fieldName: string; targetEntity: string; listFn: string; labelField: string }
+  interface RelationInfo {
+    fieldName: string
+    targetEntity: string
+    listFn: string
+    labelField: string
+  }
   const relations: RelationInfo[] = []
   for (const rel of Object.values(entity.relations ?? {})) {
     if (rel.kind !== 'belongsTo' || !rel.foreignKey) continue
-    const targetListEntry = entries.find(e => e.method === 'get' && e.isList && e.entityName === rel.target)
+    const targetListEntry = entries.find(
+      (e) => e.method === 'get' && e.isList && e.entityName === rel.target,
+    )
     if (!targetListEntry) continue
     const targetEntity = schema.entities[rel.target]
     if (!targetEntity) continue
     // Pick a human-readable label field: first non-pk string field
-    const labelField = Object.values(targetEntity.fields).find(
-      f => !f.primaryKey && (f.type === 'string'),
-    )?.name ?? 'id'
+    const labelField =
+      Object.values(targetEntity.fields).find((f) => !f.primaryKey && f.type === 'string')?.name ??
+      'id'
     relations.push({
       fieldName: rel.foreignKey,
       targetEntity: rel.target,
@@ -428,7 +458,9 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
     hasCreateEndpoint ? `${entityName}Form` : null,
     hasCreateEndpoint ? `${entityName}FormValues` : null,
     hasStateMachine ? `${entityName}ActionPanel` : null,
-  ].filter(Boolean).join(', ')
+  ]
+    .filter(Boolean)
+    .join(', ')
   lines.push(`import { ${uiImports} } from '@generated/ui/${entityName}'`)
   lines.push(`import * as api from '../api-client'`)
   lines.push(``)
@@ -441,7 +473,9 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
   lines.push(`  const [error, setError] = useState('')`)
   // State for related entity options (for foreign-key selects)
   for (const rel of relations) {
-    lines.push(`  const [${lcFirst(rel.targetEntity)}Options, set${rel.targetEntity}Options] = useState<any[]>([])`)
+    lines.push(
+      `  const [${lcFirst(rel.targetEntity)}Options, set${rel.targetEntity}Options] = useState<any[]>([])`,
+    )
   }
   lines.push(``)
 
@@ -462,7 +496,9 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
     lines.push(`  useEffect(() => {`)
     if (hasListEndpoint) lines.push(`    load()`)
     for (const rel of relations) {
-      lines.push(`    api.${rel.listFn}().then((d: any) => set${rel.targetEntity}Options(d)).catch(() => {})`)
+      lines.push(
+        `    api.${rel.listFn}().then((d: any) => set${rel.targetEntity}Options(d)).catch(() => {})`,
+      )
     }
     lines.push(`  }, [])`)
   } else if (hasListEndpoint) {
@@ -514,12 +550,16 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
     lines.push(`        </tr></thead>`)
     lines.push(`        <tbody>`)
     lines.push(`          {items.map(item => (`)
-    lines.push(`            <tr key={item.id} className={selected?.id === item.id ? 'selected-row' : ''}>`)
+    lines.push(
+      `            <tr key={item.id} className={selected?.id === item.id ? 'selected-row' : ''}>`,
+    )
     for (const f of fields) {
       lines.push(`              <td>{String(item.${f} ?? '')}</td>`)
     }
     lines.push(`              <td>`)
-    lines.push(`                <button type="button" onClick={() => setSelected(selected?.id === item.id ? null : item)}>`)
+    lines.push(
+      `                <button type="button" onClick={() => setSelected(selected?.id === item.id ? null : item)}>`,
+    )
     lines.push(`                  {selected?.id === item.id ? 'Deselect' : 'Select'}`)
     lines.push(`                </button>`)
     lines.push(`              </td>`)
@@ -528,7 +568,9 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
     lines.push(`        </tbody>`)
     lines.push(`      </table>`)
   } else {
-    lines.push(`      <p><em>No list endpoint configured — add GET ${listPath} to your API to see items here.</em></p>`)
+    lines.push(
+      `      <p><em>No list endpoint configured — add GET ${listPath} to your API to see items here.</em></p>`,
+    )
   }
 
   if (hasStateMachine) {
@@ -557,17 +599,21 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
         lines.push(`          <span>${rel.fieldName} *</span>`)
         lines.push(`          <select`)
         lines.push(`            value={form.${rel.fieldName} ?? ''}`)
-        lines.push(`            onChange={e => setForm(prev => ({ ...prev, ${rel.fieldName}: e.target.value }))}`)
+        lines.push(
+          `            onChange={e => setForm(prev => ({ ...prev, ${rel.fieldName}: e.target.value }))}`,
+        )
         lines.push(`          >`)
         lines.push(`            <option value="">Select ${rel.targetEntity}…</option>`)
         lines.push(`            {${lcFirst(rel.targetEntity)}Options.map((o: any) => (`)
-        lines.push(`              <option key={o.id} value={o.id}>{o.${rel.labelField} ?? o.id}</option>`)
+        lines.push(
+          `              <option key={o.id} value={o.id}>{o.${rel.labelField} ?? o.id}</option>`,
+        )
         lines.push(`            ))}`)
         lines.push(`          </select>`)
         lines.push(`        </label>`)
       }
       lines.push(`      </div>`)
-      const fkFields = relations.map(r => `'${r.fieldName}'`)
+      const fkFields = relations.map((r) => `'${r.fieldName}'`)
       lines.push(`      <${entityName}Form`)
       lines.push(`        values={form}`)
       lines.push(`        onChange={(field, value) => {`)
@@ -579,12 +625,16 @@ function generateEntityPage(entityName: string, schema: FabricSchema): string {
     } else {
       lines.push(`      <${entityName}Form`)
       lines.push(`        values={form}`)
-      lines.push(`        onChange={(field, value) => setForm(prev => ({ ...prev, [field]: value }))}`)
+      lines.push(
+        `        onChange={(field, value) => setForm(prev => ({ ...prev, [field]: value }))}`,
+      )
       lines.push(`        onSubmit={handleSubmit}`)
       lines.push(`      />`)
     }
   } else {
-    lines.push(`      <p><em>No create endpoint — add <code>POST ${listPath}</code> to your API schema to enable creating ${entityName} records here.</em></p>`)
+    lines.push(
+      `      <p><em>No create endpoint — add <code>POST ${listPath}</code> to your API schema to enable creating ${entityName} records here.</em></p>`,
+    )
   }
   lines.push(`    </div>`)
   lines.push(`  )`)
@@ -636,11 +686,15 @@ function generateAppTsx(schema: FabricSchema): string {
   lines.push(`            placeholder="member,librarian"`)
   lines.push(`          />`)
   lines.push(`        </label>`)
-  lines.push(`        <em style={{ color: '#888', fontSize: '0.8rem' }}>Comma-separated roles sent as X-Dev-Roles header</em>`)
+  lines.push(
+    `        <em style={{ color: '#888', fontSize: '0.8rem' }}>Comma-separated roles sent as X-Dev-Roles header</em>`,
+  )
   lines.push(`      </div>`)
   lines.push(`      <nav>`)
   for (const name of entityNames) {
-    lines.push(`        <button className={page === '${name}' ? 'active' : ''} onClick={() => setPage('${name}')}>${name}</button>`)
+    lines.push(
+      `        <button className={page === '${name}' ? 'active' : ''} onClick={() => setPage('${name}')}>${name}</button>`,
+    )
   }
   lines.push(`      </nav>`)
   lines.push(`      {PageComponent ? <PageComponent /> : <p>Select a page</p>}`)
@@ -664,7 +718,8 @@ export class AppGenerator implements Generator {
 
     // Get Prisma schema from upstream generator output
     const prismaOutput = ctx.outputs.get('prisma')
-    const prismaSchemaContent = prismaOutput?.files.find(f => f.path === 'prisma/schema.prisma')?.content ?? ''
+    const prismaSchemaContent =
+      prismaOutput?.files.find((f) => f.path === 'prisma/schema.prisma')?.content ?? ''
     const sqliteSchema = prismaSchemaContent ? toSqliteSchema(prismaSchemaContent) : ''
 
     const files = [
@@ -717,7 +772,7 @@ export class AppGenerator implements Generator {
         content: generateApiClient(schema),
         header: '// @generated by @newel/generator-app — do not edit\n',
       },
-      ...entityNames.map(name => ({
+      ...entityNames.map((name) => ({
         path: `app/client/pages/${name}Page.tsx`,
         content: generateEntityPage(name, schema),
         header: '// @generated by @newel/generator-app — do not edit\n',

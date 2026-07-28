@@ -11,50 +11,65 @@ describe('normalizeSchema', () => {
   })
 
   it('reports entity and field name when type is missing', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      entities: { Order: { fields: { status: {} } } },
-    })).toThrow('entities.Order.fields.status: missing required property "type"')
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        entities: { Order: { fields: { status: {} } } },
+      }),
+    ).toThrow('entities.Order.fields.status: missing required property "type"')
   })
 
   it('reports entity and field name when enum has no values', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      entities: { Order: { fields: { status: { type: 'enum' } } } },
-    })).toThrow('entities.Order.fields.status: enum field must specify "values" or "enumValues"')
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        entities: { Order: { fields: { status: { type: 'enum' } } } },
+      }),
+    ).toThrow('entities.Order.fields.status: enum field must specify "values" or "enumValues"')
   })
 
   it('reports entity and field name in behavior input fields', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      entities: {
-        Order: {
-          fields: { id: { type: 'uuid' } },
-          behaviors: {
-            placeOrder: { description: 'Place', rules: [], input: { qty: {} } },
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        entities: {
+          Order: {
+            fields: { id: { type: 'uuid' } },
+            behaviors: {
+              placeOrder: { description: 'Place', rules: [], input: { qty: {} } },
+            },
           },
         },
-      },
-    })).toThrow('entities.Order.behaviors.placeOrder.fields.qty: missing required property "type"')
+      }),
+    ).toThrow('entities.Order.behaviors.placeOrder.fields.qty: missing required property "type"')
   })
 
   it('reports stateMachine errors with entity context', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      entities: {
-        Order: {
-          fields: { status: { type: 'enum', values: ['draft'] } },
-          stateMachine: { field: '', initial: 'draft', states: { draft: 'Draft' }, transitions: [] },
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        entities: {
+          Order: {
+            fields: { status: { type: 'enum', values: ['draft'] } },
+            stateMachine: {
+              field: '',
+              initial: 'draft',
+              states: { draft: 'Draft' },
+              transitions: [],
+            },
+          },
         },
-      },
-    })).toThrow('entities.Order.stateMachine: missing required "field" property')
+      }),
+    ).toThrow('entities.Order.stateMachine: missing required "field" property')
   })
 
   it('reports endpoint format errors with api context', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      apis: { OrderAPI: { endpoints: { '/orders': { returns: 'Order' } } } },
-    })).toThrow('apis.OrderAPI.endpoints["/orders"]: endpoint key must be "METHOD /path"')
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        apis: { OrderAPI: { endpoints: { '/orders': { returns: 'Order' } } } },
+      }),
+    ).toThrow('apis.OrderAPI.endpoints["/orders"]: endpoint key must be "METHOD /path"')
   })
 
   it('produces a valid schema from minimal input', () => {
@@ -76,23 +91,39 @@ describe('normalizeSchema', () => {
   it('preserves explicit tags on an entity', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },
-      entities: { Wolf: { tags: ['creature', 'npc'], fields: { id: { type: 'uuid', primaryKey: true } } } },
+      entities: {
+        Wolf: { tags: ['creature', 'npc'], fields: { id: { type: 'uuid', primaryKey: true } } },
+      },
     })
     expect(schema.entities['Wolf'].tags).toEqual(['creature', 'npc'])
   })
 
   it('rejects a non-array tags value', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      entities: { Wolf: { tags: 'creature' as unknown as string[], fields: { id: { type: 'uuid', primaryKey: true } } } },
-    })).toThrow('entities.Wolf: "tags" must be an array of strings')
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        entities: {
+          Wolf: {
+            tags: 'creature' as unknown as string[],
+            fields: { id: { type: 'uuid', primaryKey: true } },
+          },
+        },
+      }),
+    ).toThrow('entities.Wolf: "tags" must be an array of strings')
   })
 
   it('rejects tags array containing non-string elements', () => {
-    expect(() => normalizeSchema({
-      meta: { name: 'Test' },
-      entities: { Wolf: { tags: [42] as unknown as string[], fields: { id: { type: 'uuid', primaryKey: true } } } },
-    })).toThrow('entities.Wolf: "tags[0]" must be a string')
+    expect(() =>
+      normalizeSchema({
+        meta: { name: 'Test' },
+        entities: {
+          Wolf: {
+            tags: [42] as unknown as string[],
+            fields: { id: { type: 'uuid', primaryKey: true } },
+          },
+        },
+      }),
+    ).toThrow('entities.Wolf: "tags[0]" must be a string')
   })
 
   it('normalises field defaults', () => {
@@ -135,7 +166,13 @@ describe('normalizeSchema', () => {
       entities: {
         Member: {
           fields: {
-            email: { type: 'email', pii: true, gdprCategory: 'contact', gdprRetention: '7y', gdprLegalBasis: 'contract' },
+            email: {
+              type: 'email',
+              pii: true,
+              gdprCategory: 'contact',
+              gdprRetention: '7y',
+              gdprLegalBasis: 'contract',
+            },
           },
         },
       },
@@ -153,7 +190,11 @@ describe('normalizeSchema', () => {
       entities: {
         Member: {
           fields: {
-            email: { type: 'email', pii: true, gdpr: { category: 'contact', retention: '7y', legalBasis: 'consent' } },
+            email: {
+              type: 'email',
+              pii: true,
+              gdpr: { category: 'contact', retention: '7y', legalBasis: 'consent' },
+            },
           },
         },
       },
@@ -170,9 +211,9 @@ describe('normalizeSchema', () => {
       entities: {
         Member: {
           fields: {
-            id:    { type: 'uuid' },
+            id: { type: 'uuid' },
             email: { type: 'email', pii: true, gdprCategory: 'contact' },
-            name:  { type: 'string', pii: true, gdprCategory: 'identity' },
+            name: { type: 'string', pii: true, gdprCategory: 'identity' },
           },
         },
       },
@@ -199,7 +240,13 @@ describe('normalizeSchema', () => {
               borrowed: { description: 'With member' },
             },
             transitions: [
-              { from: 'available', to: 'borrowed', trigger: 'borrow', guard: 'Member must be active', effect: 'Sends confirmation' },
+              {
+                from: 'available',
+                to: 'borrowed',
+                trigger: 'borrow',
+                guard: 'Member must be active',
+                effect: 'Sends confirmation',
+              },
             ],
           },
         },
@@ -221,7 +268,13 @@ describe('normalizeSchema', () => {
             initial: 'available',
             states: { available: 'On shelf', borrowed: 'With member' },
             transitions: [
-              { from: ['available'], to: 'borrowed', trigger: 'borrow', guards: ['Rule A', 'Rule B'], effects: ['Effect 1'] },
+              {
+                from: ['available'],
+                to: 'borrowed',
+                trigger: 'borrow',
+                guards: ['Rule A', 'Rule B'],
+                effects: ['Effect 1'],
+              },
             ],
           },
         },
@@ -258,15 +311,16 @@ describe('normalizeSchema', () => {
         Order: {
           fields: { status: { type: 'enum', values: ['draft', 'placed'] } },
           behaviors: {
-            placeOrder: { description: 'Place the order', rules: ['Must have items', 'Customer must be active'] },
+            placeOrder: {
+              description: 'Place the order',
+              rules: ['Must have items', 'Customer must be active'],
+            },
           },
           stateMachine: {
             field: 'status',
             initial: 'draft',
             states: { draft: 'Draft', placed: 'Placed' },
-            transitions: [
-              { from: 'draft', to: 'placed', trigger: 'placeOrder' },
-            ],
+            transitions: [{ from: 'draft', to: 'placed', trigger: 'placeOrder' }],
           },
         },
       },
@@ -312,9 +366,7 @@ describe('normalizeSchema', () => {
             field: 'status',
             initial: 'available',
             states: { available: 'On shelf', borrowed: 'With member' },
-            transitions: [
-              { from: 'available', to: 'borrowed', trigger: 'borrow' },
-            ],
+            transitions: [{ from: 'available', to: 'borrowed', trigger: 'borrow' }],
           },
         },
       },
@@ -330,7 +382,7 @@ describe('normalizeSchema', () => {
         LibraryAPI: {
           endpoints: {
             'POST /loans': { behavior: 'Loan.borrow', description: 'Borrow a book' },
-            'GET /books':  { returns: 'Book', auth: { roles: ['member', 'admin'] } },
+            'GET /books': { returns: 'Book', auth: { roles: ['member', 'admin'] } },
           },
         },
       },

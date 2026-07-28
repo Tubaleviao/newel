@@ -20,17 +20,17 @@ function fieldToSqlType(entityName: string, field: FieldSchema): string {
     return enumTypeName(entityName, field.name)
   }
   const map: Record<string, string> = {
-    string:    'TEXT',
-    number:    'NUMERIC',
-    integer:   'INTEGER',
-    decimal:   'NUMERIC(19, 4)',
-    boolean:   'BOOLEAN',
-    uuid:      'UUID',
+    string: 'TEXT',
+    number: 'NUMERIC',
+    integer: 'INTEGER',
+    decimal: 'NUMERIC(19, 4)',
+    boolean: 'BOOLEAN',
+    uuid: 'UUID',
     timestamp: 'TIMESTAMPTZ',
-    date:      'DATE',
-    email:     'TEXT',
-    url:       'TEXT',
-    json:      'JSONB',
+    date: 'DATE',
+    email: 'TEXT',
+    url: 'TEXT',
+    json: 'JSONB',
   }
   return map[field.type] ?? 'TEXT'
 }
@@ -39,8 +39,8 @@ function fieldToSqlType(entityName: string, field: FieldSchema): string {
 
 function terminalCheckConstraint(entityName: string, sm: StateMachineSchema): string | null {
   const terminalStates = Object.values(sm.states)
-    .filter(s => s.terminal)
-    .map(s => `'${s.name}'`)
+    .filter((s) => s.terminal)
+    .map((s) => `'${s.name}'`)
 
   if (terminalStates.length === 0) return null
 
@@ -54,7 +54,7 @@ function terminalCheckConstraint(entityName: string, sm: StateMachineSchema): st
 
 function renderCreateEnum(entityName: string, field: FieldSchema): string {
   const typeName = enumTypeName(entityName, field.name)
-  const vals = (field.enumValues ?? []).map(v => `'${v}'`).join(', ')
+  const vals = (field.enumValues ?? []).map((v) => `'${v}'`).join(', ')
   return `CREATE TYPE ${typeName} AS ENUM (${vals});`
 }
 
@@ -222,7 +222,7 @@ function diffSchemas(prev: FabricSchema, next: FabricSchema): EntityDiff[] {
         // Detect enum values additions
         if (field.type === 'enum' && pf.type === 'enum') {
           const prevVals = new Set(pf.enumValues ?? [])
-          const newVals = (field.enumValues ?? []).filter(v => !prevVals.has(v))
+          const newVals = (field.enumValues ?? []).filter((v) => !prevVals.has(v))
           if (newVals.length > 0) {
             enumValuesAdded.push({ field, newValues: newVals })
           }
@@ -333,8 +333,12 @@ function renderIncrementalMigration(
       const sqlType = fieldToSqlType(diff.entityName, field)
       if (!field.nullable && !field.primaryKey) {
         // NOT NULL column — must provide a default for existing rows
-        lines.push(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType} NOT NULL DEFAULT '';`)
-        lines.push(`-- TODO: backfill ${colName} with appropriate values, then consider removing DEFAULT`)
+        lines.push(
+          `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType} NOT NULL DEFAULT '';`,
+        )
+        lines.push(
+          `-- TODO: backfill ${colName} with appropriate values, then consider removing DEFAULT`,
+        )
       } else {
         lines.push(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType};`)
       }
@@ -344,8 +348,12 @@ function renderIncrementalMigration(
     for (const { prev: pf, next: nf } of diff.fields.changed) {
       const colName = toSnakeCase(nf.name)
       if (pf.type !== nf.type) {
-        lines.push(`-- MANUAL REVIEW: Column "${table}.${colName}" type changed from ${pf.type} → ${nf.type}`)
-        lines.push(`-- ALTER TABLE ${table} ALTER COLUMN ${colName} TYPE ${fieldToSqlType(diff.entityName, nf)} USING ${colName}::${fieldToSqlType(diff.entityName, nf)};`)
+        lines.push(
+          `-- MANUAL REVIEW: Column "${table}.${colName}" type changed from ${pf.type} → ${nf.type}`,
+        )
+        lines.push(
+          `-- ALTER TABLE ${table} ALTER COLUMN ${colName} TYPE ${fieldToSqlType(diff.entityName, nf)} USING ${colName}::${fieldToSqlType(diff.entityName, nf)};`,
+        )
       }
       if (pf.nullable && !nf.nullable) {
         lines.push(`ALTER TABLE ${table} ALTER COLUMN ${colName} SET NOT NULL;`)
@@ -358,7 +366,9 @@ function renderIncrementalMigration(
     for (const field of diff.fields.removed) {
       const colName = toSnakeCase(field.name)
       lines.push(`-- MANUAL REVIEW: Column "${table}.${colName}" was removed from the schema.`)
-      lines.push(`-- ALTER TABLE ${table} DROP COLUMN IF EXISTS ${colName}; -- uncomment after verifying data migration`)
+      lines.push(
+        `-- ALTER TABLE ${table} DROP COLUMN IF EXISTS ${colName}; -- uncomment after verifying data migration`,
+      )
     }
 
     if (
@@ -426,7 +436,7 @@ export class SqlGenerator implements Generator {
       const migrationsDir = path.join(ctx.outputDir, 'migrations')
       let existingMigrationPaths: string[] = []
       if (fs.existsSync(migrationsDir)) {
-        existingMigrationPaths = fs.readdirSync(migrationsDir).map(f => `sql/migrations/${f}`)
+        existingMigrationPaths = fs.readdirSync(migrationsDir).map((f) => `sql/migrations/${f}`)
       }
 
       const num = nextMigrationNumber(existingMigrationPaths)

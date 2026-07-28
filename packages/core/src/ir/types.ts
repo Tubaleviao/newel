@@ -1,16 +1,7 @@
 export type GdprCategory =
-  | 'identity'
-  | 'contact'
-  | 'financial'
-  | 'health'
-  | 'behavioral'
-  | 'location'
+  'identity' | 'contact' | 'financial' | 'health' | 'behavioral' | 'location'
 
-export type GdprLegalBasis =
-  | 'consent'
-  | 'contract'
-  | 'legal-obligation'
-  | 'legitimate-interest'
+export type GdprLegalBasis = 'consent' | 'contract' | 'legal-obligation' | 'legitimate-interest'
 
 export type FieldType =
   | 'string'

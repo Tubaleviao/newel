@@ -1,8 +1,8 @@
 import { defineFabric } from '@newel/core'
 import Customer from '../entities/Customer'
-import Order    from '../entities/Order'
+import Order from '../entities/Order'
 import LineItem from '../entities/LineItem'
-import OrderAPI    from '../apis/OrderAPI'
+import OrderAPI from '../apis/OrderAPI'
 import CustomerAPI from '../apis/CustomerAPI'
 
 export default defineFabric({

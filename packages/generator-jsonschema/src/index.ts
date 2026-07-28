@@ -38,17 +38,17 @@ function fieldToJsonSchema(field: FieldSchema): JsonSchemaProperty {
   }
 
   const mapping: Record<string, JsonSchemaProperty> = {
-    string:    { type: 'string' },
-    number:    { type: 'number' },
-    integer:   { type: 'integer' },
-    decimal:   { type: 'number' },
-    boolean:   { type: 'boolean' },
-    uuid:      { type: 'string', format: 'uuid' },
+    string: { type: 'string' },
+    number: { type: 'number' },
+    integer: { type: 'integer' },
+    decimal: { type: 'number' },
+    boolean: { type: 'boolean' },
+    uuid: { type: 'string', format: 'uuid' },
     timestamp: { type: 'string', format: 'date-time' },
-    date:      { type: 'string', format: 'date' },
-    email:     { type: 'string', format: 'email' },
-    url:       { type: 'string', format: 'uri' },
-    json:      {},
+    date: { type: 'string', format: 'date' },
+    email: { type: 'string', format: 'email' },
+    url: { type: 'string', format: 'uri' },
+    json: {},
   }
 
   const m = mapping[field.type]
