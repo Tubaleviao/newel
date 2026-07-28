@@ -143,7 +143,7 @@ templates and tone differ.
 **Acceptance criteria:**
 - Output is importable into a VitePress project without manual edits
 - Player-facing language: no internal field names exposed
-- Configurable via `quoin.config.ts` to suppress sections (e.g. hide `rules`
+- Configurable via `newel.config.ts` to suppress sections (e.g. hide `rules`
   that are implementation notes)
 
 ---

@@ -161,7 +161,7 @@ describe('PrismaGenerator', () => {
     const gen = new PrismaGenerator()
     const result = await gen.generate(schema, makeCtx())
     const content = result.files.find(f => f.path === 'prisma/repository.ts')!.content
-    expect(content).toContain('Rule: Member must have no overdue loans')
+    expect(content).toContain('TODO guard: Member must have no overdue loans')
     expect(content).toContain('entity.status === "available"')
     expect(content).toContain('"borrowed"')
   })

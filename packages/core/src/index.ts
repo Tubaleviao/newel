@@ -64,3 +64,5 @@ export type { IRSnapshot } from './runner/snapshot'
 export { definePatchSet } from './ir/patch'
 export type { Patch, MergePatch, SuppressPatch, PatchSet } from './ir/patch'
 export { applyPatches, collectSuppressPatterns, isSuppressed } from './ir/apply-patches'
+
+export { toSnakeCase, tableName, enumTypeName, slugify } from './utils'

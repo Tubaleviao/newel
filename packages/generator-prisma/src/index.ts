@@ -7,23 +7,12 @@ import type {
   FieldSchema,
   RelationSchema,
 } from '@newel/core'
+import { toSnakeCase, tableName } from '@newel/core'
 
 // --- Naming helpers ---
 
 function lcFirst(s: string): string {
   return s.charAt(0).toLowerCase() + s.slice(1)
-}
-
-function toSnakeCase(s: string): string {
-  return s.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')
-}
-
-function tableName(name: string): string {
-  // Prisma uses PascalCase model names; snake_case is the @map table convention
-  const snake = toSnakeCase(name)
-  if (snake.endsWith('s')) return snake
-  if (snake.endsWith('y') && !/[aeiou]y$/.test(snake)) return snake.slice(0, -1) + 'ies'
-  return snake + 's'
 }
 
 // --- Field type mapping: newel IR → Prisma scalar ---
@@ -43,7 +32,7 @@ const PRISMA_TYPE_MAP: Record<string, string> = {
 }
 
 function fieldToPrismaType(entityName: string, field: FieldSchema): string {
-  if (field.type === 'enum' && field.enumValues) {
+  if (field.type === 'enum' && field.enumValues && field.enumValues.length > 0) {
     return `${entityName}${field.name.charAt(0).toUpperCase() + field.name.slice(1)}Enum`
   }
   return PRISMA_TYPE_MAP[field.type] ?? 'String'
@@ -130,7 +119,7 @@ function generatePrismaSchema(schema: FabricSchema): string {
   // Enums first
   for (const [name, entity] of Object.entries(schema.entities)) {
     for (const field of Object.values(entity.fields)) {
-      if (field.type === 'enum' && field.enumValues) {
+      if (field.type === 'enum' && field.enumValues && field.enumValues.length > 0) {
         blocks.push(renderPrismaEnum(name, field))
         blocks.push(``)
       }
@@ -231,10 +220,6 @@ function generateRepositoryClass(entityName: string, entity: EntitySchema): stri
       const toState = transition.to
       const stateField = entity.stateMachine.field
       const methodLines: string[] = [``, `  async ${triggerName}(id: ${idType}): Promise<ReturnType<typeof prisma.${client}.update>> {`]
-
-      for (const rule of behavior.rules) {
-        methodLines.push(`    // Rule: ${rule}`)
-      }
 
       // Fetch-then-guard comment pattern
       methodLines.push(`    const entity = await this.findById(id)`)

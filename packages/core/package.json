@@ -22,7 +22,7 @@
     }
   },
   "bin": {
-    "quoin": "dist/cli/index.js"
+    "newel": "dist/cli/index.js"
   },
   "files": ["dist"],
   "scripts": {
