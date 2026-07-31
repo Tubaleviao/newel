@@ -229,7 +229,7 @@ importers:
   packages/generator-bible:
     dependencies:
       '@newel/core':
-        specifier: file:../core
+        specifier: workspace:*
         version: link:../core
     devDependencies:
       '@types/jest':
