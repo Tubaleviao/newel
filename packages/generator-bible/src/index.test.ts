@@ -22,9 +22,30 @@ const richSchema: FabricSchema = {
       tags: ['creature'],
       description: 'A wild boar that roams the temperate forest.',
       fields: {
-        tier: { name: 'tier', type: 'integer', nullable: false, primaryKey: false, pii: false, description: 'Difficulty tier' },
-        baseHp: { name: 'baseHp', type: 'integer', nullable: false, primaryKey: false, pii: false, description: 'Base hit points' },
-        status: { name: 'status', type: 'enum', nullable: false, primaryKey: false, pii: false, enumValues: ['idle', 'aggressive', 'dead'] },
+        tier: {
+          name: 'tier',
+          type: 'integer',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          description: 'Difficulty tier',
+        },
+        baseHp: {
+          name: 'baseHp',
+          type: 'integer',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          description: 'Base hit points',
+        },
+        status: {
+          name: 'status',
+          type: 'enum',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+          enumValues: ['idle', 'aggressive', 'dead'],
+        },
       },
       relations: {
         biome: { name: 'biome', kind: 'belongsTo', target: 'TemperateForest' },

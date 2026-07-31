@@ -66,7 +66,13 @@ function renderStateMachine(sm: StateMachineSchema): string {
 
   const transRows = sm.transitions.map((t) => {
     const from = Array.isArray(t.from) ? t.from.map((f) => `\`${f}\``).join(', ') : `\`${t.from}\``
-    return [from, `\`${t.to}\``, `\`${t.trigger}\``, esc(t.guards.join('; ')), esc(t.effects.join('; '))]
+    return [
+      from,
+      `\`${t.to}\``,
+      `\`${t.trigger}\``,
+      esc(t.guards.join('; ')),
+      esc(t.effects.join('; ')),
+    ]
   })
   lines.push(mdTable(['From', 'To', 'Trigger', 'Guards', 'Effects'], transRows))
 
