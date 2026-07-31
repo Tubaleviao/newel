@@ -279,6 +279,7 @@ export const userSchema = z.object({
 | `@newel/generator-jsonschema` | JSON Schema draft-07 per entity                  | —                          |
 | `@newel/generator-rdf`        | RDF/Turtle ontology                              | —                          |
 | `@newel/generator-owl`        | OWL ontology (extends RDF output)                | `rdf`                      |
+| `@newel/generator-bible`      | Design bible — per-entity Markdown pages + index | —                          |
 | `@newel/generator-ui`         | React forms + state-machine-aware action buttons | `typescript`               |
 | `@newel/generator-prisma`     | Prisma schema + typed repositories               | `typescript`               |
 | `@newel/generator-express`    | Express router + typed handlers                  | `typescript` (or `prisma`) |
