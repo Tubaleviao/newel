@@ -6,25 +6,25 @@ Phases 1–12 and 14 are complete. This document tracks what comes next.
 
 ## Completed phases
 
-| Phase | Description                                                |
-| ----- | ---------------------------------------------------------- |
-| 1     | IR types, Builder DSL, `validate`, `inspect`               |
-| 1b    | Guard deduplication in normaliser                          |
-| 2     | Generator interface, DAG runner, `generate`, `check-drift` |
-| 2b    | IR snapshot writing in runner                              |
-| 3     | `generator-typescript` — TS interfaces + Zod schemas       |
-| 4     | `generator-openapi` — OpenAPI 3.x YAML                     |
-| 5     | `generator-sql` + safe incremental migrations              |
-| 6     | `generator-docs` + GDPR report                             |
-| 7     | `generator-jsonschema`, `generator-rdf`, `generator-owl`   |
-| 8     | `diff` command, watch mode, DX polish                      |
-| 9     | Semantic patches against the IR                            |
-| 10    | `generator-ui` — React entity forms + action panels        |
+| Phase | Description                                                             |
+| ----- | ----------------------------------------------------------------------- |
+| 1     | IR types, Builder DSL, `validate`, `inspect`                            |
+| 1b    | Guard deduplication in normaliser                                       |
+| 2     | Generator interface, DAG runner, `generate`, `check-drift`              |
+| 2b    | IR snapshot writing in runner                                           |
+| 3     | `generator-typescript` — TS interfaces + Zod schemas                    |
+| 4     | `generator-openapi` — OpenAPI 3.x YAML                                  |
+| 5     | `generator-sql` + safe incremental migrations                           |
+| 6     | `generator-docs` + GDPR report                                          |
+| 7     | `generator-jsonschema`, `generator-rdf`, `generator-owl`                |
+| 8     | `diff` command, watch mode, DX polish                                   |
+| 9     | Semantic patches against the IR                                         |
+| 10    | `generator-ui` — React entity forms + action panels                     |
 | 11a   | Entity `tags: string[]` — replaces closed `ConceptRole` enum; IR v3.0.0 |
-| 11b   | Weighted spawn relations (`spawns?: SpawnSchema[]`)        |
-| 11c   | System-level rule blocks (`systems?` on `FabricSchema`)    |
-| 12    | `generator-bible` — per-entity Markdown pages + index      |
-| 14    | `generator-godot` — Godot 4.x `.tres` resources + GDScript enums |
+| 11b   | Weighted spawn relations (`spawns?: SpawnSchema[]`)                     |
+| 11c   | System-level rule blocks (`systems?` on `FabricSchema`)                 |
+| 12    | `generator-bible` — per-entity Markdown pages + index                   |
+| 14    | `generator-godot` — Godot 4.x `.tres` resources + GDScript enums        |
 
 ---
 

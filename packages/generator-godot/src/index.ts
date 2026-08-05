@@ -34,7 +34,13 @@ function pluralizeTag(tag: string): string {
   if (tag.endsWith('y') && !tag.endsWith('ey') && !tag.endsWith('ay') && !tag.endsWith('oy')) {
     return tag.slice(0, -1) + 'ies'
   }
-  if (tag.endsWith('s') || tag.endsWith('sh') || tag.endsWith('ch') || tag.endsWith('x') || tag.endsWith('z')) {
+  if (
+    tag.endsWith('s') ||
+    tag.endsWith('sh') ||
+    tag.endsWith('ch') ||
+    tag.endsWith('x') ||
+    tag.endsWith('z')
+  ) {
     return tag + 'es'
   }
   return tag + 's'
@@ -79,11 +85,15 @@ function renderTres(entity: EntitySchema): string {
 
 function gdTresValue(field: FieldSchema): string {
   switch (field.type) {
-    case 'integer': return '0'
+    case 'integer':
+      return '0'
     case 'decimal':
-    case 'number': return '0.0'
-    case 'boolean': return 'false'
-    default: return '""'
+    case 'number':
+      return '0.0'
+    case 'boolean':
+      return 'false'
+    default:
+      return '""'
   }
 }
 
