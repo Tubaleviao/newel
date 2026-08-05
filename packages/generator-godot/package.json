@@ -1,13 +1,13 @@
 {
-  "name": "@newel/generator-bible",
+  "name": "@newel/generator-godot",
   "version": "0.0.1",
-  "description": "Design-bible generator for newel — static Markdown from the fabric IR",
+  "description": "Godot 4.x resource generator for newel — .tres files and GDScript enums from the fabric IR",
   "keywords": [
     "newel",
     "codegen",
     "generator",
-    "bible",
-    "markdown"
+    "godot",
+    "gdscript"
   ],
   "homepage": "https://github.com/Tubaleviao/newel#readme",
   "bugs": {
