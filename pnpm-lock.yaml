@@ -295,7 +295,7 @@ importers:
   packages/generator-godot:
     dependencies:
       '@newel/core':
-        specifier: file:../core
+        specifier: workspace:*
         version: link:../core
     devDependencies:
       '@types/jest':

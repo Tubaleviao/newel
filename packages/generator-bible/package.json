@@ -39,7 +39,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@newel/core": "file:../core"
+    "@newel/core": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

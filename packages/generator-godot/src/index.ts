@@ -40,36 +40,12 @@ function pluralizeTag(tag: string): string {
   return tag + 's'
 }
 
-function gdFieldType(field: FieldSchema): string {
-  switch (field.type) {
-    case 'integer': return 'int'
-    case 'decimal':
-    case 'number': return 'float'
-    case 'boolean': return 'bool'
-    case 'enum': return 'int'
-    default: return 'String'
-  }
-}
-
-function gdDefaultValue(field: FieldSchema): string {
-  switch (field.type) {
-    case 'integer': return '0'
-    case 'decimal':
-    case 'number': return '0.0'
-    case 'boolean': return 'false'
-    case 'enum':
-      return field.enumValues?.length ? `${screamingSnake(field.enumValues[0])}` : '0'
-    default: return '""'
-  }
-}
-
 // ---------------------------------------------------------------------------
 // .tres resource file
 // ---------------------------------------------------------------------------
 
 function renderTres(entity: EntitySchema): string {
   const lines: string[] = []
-  lines.push(`; IR version: ${SUPPORTED_IR_VERSION}`)
   lines.push(`[gd_resource type="Resource" format=3]`)
   lines.push('')
   lines.push('[resource]')
@@ -116,9 +92,8 @@ function gdTresValue(field: FieldSchema): string {
 // ---------------------------------------------------------------------------
 
 function gdEnumConst(val: string): string {
-  // GDScript identifiers must start with a letter or underscore
-  const sanitized = /^[0-9]/.test(val) ? `TIER_${val}` : screamingSnake(val)
-  return sanitized
+  const snake = screamingSnake(val)
+  return /^[0-9]/.test(snake) ? `V_${snake}` : snake
 }
 
 function renderEnums(entity: EntitySchema): string | null {
@@ -132,7 +107,6 @@ function renderEnums(entity: EntitySchema): string | null {
   if (!enumFields.length && !hasSm) return null
 
   const lines: string[] = []
-  lines.push(`# IR version: ${SUPPORTED_IR_VERSION}`)
   lines.push(`extends Resource`)
   lines.push(`class_name ${entity.name}Data`)
   lines.push('')
@@ -169,7 +143,6 @@ function renderStateMachineEnum(sm: StateMachineSchema): string {
 
 function renderGameData(schema: FabricSchema): string {
   const lines: string[] = []
-  lines.push(`# IR version: ${SUPPORTED_IR_VERSION}`)
   lines.push(`# Autoload singleton — add to Project → Autoload as "GameData"`)
   lines.push(`extends Node`)
   lines.push('')
