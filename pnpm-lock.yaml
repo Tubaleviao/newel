@@ -47,6 +47,9 @@ importers:
       '@newel/generator-express':
         specifier: workspace:*
         version: link:../../packages/generator-express
+      '@newel/generator-godot':
+        specifier: workspace:*
+        version: link:../../packages/generator-godot
       '@newel/generator-openapi':
         specifier: workspace:*
         version: link:../../packages/generator-openapi
@@ -120,6 +123,9 @@ importers:
       '@newel/generator-docs':
         specifier: workspace:*
         version: link:../../packages/generator-docs
+      '@newel/generator-godot':
+        specifier: workspace:*
+        version: link:../../packages/generator-godot
       '@newel/generator-jsonschema':
         specifier: workspace:*
         version: link:../../packages/generator-jsonschema
