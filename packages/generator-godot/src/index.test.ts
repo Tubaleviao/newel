@@ -285,4 +285,168 @@ describe('GodotGenerator', () => {
     const lines = gd.content.split('\n')
     expect(lines[0]).toBe('extends Node')
   })
+
+  it('throws on duplicate GDScript enum constants from case-variant enum values', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Weapon: {
+          name: 'Weapon',
+          tags: [],
+          description: '',
+          fields: {
+            rarity: {
+              name: 'rarity',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['common', 'COMMON'],
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    await expect(gen.generate(schema, makeCtx())).rejects.toThrow(
+      'duplicate GDScript constant "COMMON"',
+    )
+  })
+
+  it('throws on slug collision between two entities', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Dragon: {
+          name: 'Dragon',
+          tags: ['creature'],
+          description: '',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+        dragon: {
+          name: 'dragon',
+          tags: ['creature'],
+          description: '',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    await expect(gen.generate(schema, makeCtx())).rejects.toThrow('same output path')
+  })
+
+  it('sanitizes spaces and hyphens in entity names and tags for res:// paths', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        'Cave Spider': {
+          name: 'Cave Spider',
+          tags: ['forest creature'],
+          description: '',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const paths = result.files.map((f) => f.path)
+    expect(paths).not.toContain(expect.stringMatching(/\s/))
+    expect(paths.some((p) => p.includes('cave_spider'))).toBe(true)
+  })
+
+  it('uses field-name prefix for digit-leading state names in state machine enum', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Phase: {
+          name: 'Phase',
+          tags: [],
+          description: '',
+          fields: {
+            stage: {
+              name: 'stage',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['1st', '2nd'],
+            },
+          },
+          relations: {},
+          behaviors: {},
+          stateMachine: {
+            field: 'stage',
+            initial: '1st',
+            states: {
+              '1st': { name: '1st', description: 'First phase', terminal: false },
+              '2nd': { name: '2nd', description: 'Second phase', terminal: false },
+            },
+            transitions: [],
+          },
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const gd = result.files.find((f) => f.path.endsWith('.gd'))!
+    expect(gd.content).toContain('STAGE_1ST,')
+    expect(gd.content).toContain('STAGE_2ND,')
+  })
+
+  it('gdEnumConst handles empty-string enum value without producing bare comma', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Thing: {
+          name: 'Thing',
+          tags: [],
+          description: '',
+          fields: {
+            kind: {
+              name: 'kind',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: [''],
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const gd = result.files.find((f) => f.path.endsWith('.gd'))!
+    const lines = gd.content.split('\n')
+    for (const line of lines) {
+      expect(line.trim()).not.toBe(',')
+    }
+  })
 })
