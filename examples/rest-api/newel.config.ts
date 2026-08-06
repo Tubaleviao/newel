@@ -6,6 +6,7 @@ import { DocsGenerator } from '@newel/generator-docs'
 import { JsonSchemaGenerator } from '@newel/generator-jsonschema'
 import { RdfGenerator } from '@newel/generator-rdf'
 import { OwlGenerator } from '@newel/generator-owl'
+import { GodotGenerator } from '@newel/generator-godot'
 
 export default defineConfig({
   schema: './src/fabric.ts',
@@ -18,5 +19,6 @@ export default defineConfig({
     new JsonSchemaGenerator(),
     new RdfGenerator(),
     new OwlGenerator(),
+    new GodotGenerator(),
   ],
 })
