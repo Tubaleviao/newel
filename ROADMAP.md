@@ -1,25 +1,30 @@
 # Newel Roadmap
 
-Phases 1–10 are complete. This document tracks what comes next.
+Phases 1–12 and 14 are complete. This document tracks what comes next.
 
 ---
 
 ## Completed phases
 
-| Phase | Description                                                |
-| ----- | ---------------------------------------------------------- |
-| 1     | IR types, Builder DSL, `validate`, `inspect`               |
-| 1b    | Guard deduplication in normaliser                          |
-| 2     | Generator interface, DAG runner, `generate`, `check-drift` |
-| 2b    | IR snapshot writing in runner                              |
-| 3     | `generator-typescript` — TS interfaces + Zod schemas       |
-| 4     | `generator-openapi` — OpenAPI 3.x YAML                     |
-| 5     | `generator-sql` + safe incremental migrations              |
-| 6     | `generator-docs` + GDPR report                             |
-| 7     | `generator-jsonschema`, `generator-rdf`, `generator-owl`   |
-| 8     | `diff` command, watch mode, DX polish                      |
-| 9     | Semantic patches against the IR                            |
-| 10    | `generator-ui` — React entity forms + action panels        |
+| Phase | Description                                                             |
+| ----- | ----------------------------------------------------------------------- |
+| 1     | IR types, Builder DSL, `validate`, `inspect`                            |
+| 1b    | Guard deduplication in normaliser                                       |
+| 2     | Generator interface, DAG runner, `generate`, `check-drift`              |
+| 2b    | IR snapshot writing in runner                                           |
+| 3     | `generator-typescript` — TS interfaces + Zod schemas                    |
+| 4     | `generator-openapi` — OpenAPI 3.x YAML                                  |
+| 5     | `generator-sql` + safe incremental migrations                           |
+| 6     | `generator-docs` + GDPR report                                          |
+| 7     | `generator-jsonschema`, `generator-rdf`, `generator-owl`                |
+| 8     | `diff` command, watch mode, DX polish                                   |
+| 9     | Semantic patches against the IR                                         |
+| 10    | `generator-ui` — React entity forms + action panels                     |
+| 11a   | Entity `tags: string[]` — replaces closed `ConceptRole` enum; IR v3.0.0 |
+| 11b   | Weighted spawn relations (`spawns?: SpawnSchema[]`)                     |
+| 11c   | System-level rule blocks (`systems?` on `FabricSchema`)                 |
+| 12    | `generator-bible` — per-entity Markdown pages + index                   |
+| 14    | `generator-godot` — Godot 4.x `.tres` resources + GDScript enums        |
 
 ---
 
@@ -154,28 +159,34 @@ templates and tone differ.
 
 ---
 
-## Phase 14 — `generator-godot`
+## Phase 14 — `generator-godot` ✅ Done
 
 A new package `packages/generator-godot` that emits Godot 4.x-compatible
 resource files from the IR.
 
 **What it generates:**
 
-- `.tres` (Godot TextResource) files for items, materials, creatures
-- `*.gd` enums for entity states and field types
-- `autoload/GameData.gd` — a singleton that loads all generated resources at
-  runtime
+- `.tres` (Godot TextResource) files per entity, grouped under `godot/<tag-plural>/`
+  (e.g. `godot/creatures/`, `godot/items/`, `godot/technologies/`)
+- `.gd` enum files per entity that has enum-typed fields or a state machine:
+  - State machine states are exposed as a `State` enum with `SCREAMING_SNAKE` constants
+  - Enum fields each get their own named enum; the state-machine field is deduped
+    automatically to avoid a duplicate `State` declaration
+  - Numeric-only enum values (e.g. tier levels `'1'`…`'5'`) are prefixed to
+    produce valid GDScript identifiers (`TIER_1`…`TIER_5`)
+- `godot/autoload/GameData.gd` — a `Node` singleton with one typed `Dictionary`
+  constant per tag group, each entry `preload()`-ing the entity's `.tres` file
 
-**Dependencies:** Phase 11a (`kind` routing), Phase 11b (spawn weights for
-biome resources)
+**Dependencies:** Phase 11a (`tags` for grouping entities into output directories)
 
 **Acceptance criteria:**
 
-- Generated `.tres` files load in Godot 4.x without errors
-- State machine states appear as `enum` constants in corresponding `.gd` files
-- `GameData.gd` exposes typed dictionaries keyed by entity name
-- Generator is engine-version pinned in its README and fails loudly if the IR
-  version it was built against changes
+- Generated `.tres` files load in Godot 4.x without errors ✓
+- State machine states appear as `State` enum constants in corresponding `.gd` files ✓
+- `GameData.gd` exposes typed dictionaries keyed by entity name ✓
+- Generator fails loudly if the IR version it was built against changes ✓
+- 11 passing tests covering version guard, empty schema, `.tres` format, SM
+  metadata, enum generation, GameData structure, and `@generated` header ✓
 
 ---
 
