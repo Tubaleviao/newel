@@ -68,15 +68,16 @@ function pluralizeTag(tag: string): string {
 // .tres resource file
 // ---------------------------------------------------------------------------
 
-function renderTres(entity: EntitySchema): string {
+function renderTres(entity: EntitySchema, gdScriptPath: string): string {
   const lines: string[] = []
   lines.push(`[gd_resource type="Resource" format=3]`)
   lines.push('')
+  lines.push(`[ext_resource type="Script" path="res://${gdScriptPath}" id="1"]`)
+  lines.push('')
   lines.push('[resource]')
+  lines.push('script = ExtResource("1")')
 
-  // Write scalar fields (skip enum fields — those become typed int constants)
   for (const field of Object.values(entity.fields)) {
-    if (field.type === 'enum') continue
     const value = gdTresValue(field)
     lines.push(`${field.name} = ${value}`)
   }
@@ -110,6 +111,8 @@ function gdTresValue(field: FieldSchema): string {
       return '0.0'
     case 'boolean':
       return 'false'
+    case 'enum':
+      return '0'
     default:
       return '""'
   }
@@ -128,15 +131,13 @@ function gdEnumConst(val: string, fieldName?: string): string {
   return snake
 }
 
-function renderEnums(entity: EntitySchema): string | null {
+function renderEnums(entity: EntitySchema): string {
   const smField = entity.stateMachine?.field
   // Skip the field whose name matches the state machine field — the SM enum covers it
   const enumFields = Object.values(entity.fields).filter(
     (f) => f.type === 'enum' && f.enumValues?.length && f.name !== smField,
   )
   const hasSm = entity.stateMachine && Object.keys(entity.stateMachine.states).length > 0
-
-  if (!enumFields.length && !hasSm) return null
 
   const lines: string[] = []
   lines.push(`class_name ${entity.name}Data`)
@@ -169,7 +170,7 @@ function renderEnums(entity: EntitySchema): string | null {
 
 function renderStateMachineEnum(sm: StateMachineSchema): string {
   const lines: string[] = []
-  lines.push(`enum State {`)
+  lines.push(`enum ${pascalCase(sm.field)} {`)
   const seen = new Set<string>()
   for (const state of Object.values(sm.states)) {
     const constant = gdEnumConst(state.name, sm.field)
@@ -247,6 +248,7 @@ export class GodotGenerator implements Generator {
       const dir = pluralizeTag(toSlug(tag))
 
       const tresPath = `godot/${dir}/${slug}.tres`
+      const gdPath = `godot/${dir}/${slug}.gd`
       if (seenPaths.has(tresPath)) {
         throw new Error(
           `@newel/generator-godot: entities "${entity.name}" and another entity produce the same output path "${tresPath}" — rename one of them`,
@@ -254,23 +256,20 @@ export class GodotGenerator implements Generator {
       }
       seenPaths.add(tresPath)
 
+      // GDScript class file — always emitted so .tres can reference it via script=
+      files.push({
+        path: gdPath,
+        content: renderEnums(entity),
+        header: gdHeader,
+      })
+
       // .tres resource — Godot requires [gd_resource] on the very first line,
       // so no comment header is prepended.
       files.push({
         path: tresPath,
-        content: renderTres(entity),
+        content: renderTres(entity, gdPath),
         header: '',
       })
-
-      // GDScript enum file (only when there are enums or a state machine)
-      const enumContent = renderEnums(entity)
-      if (enumContent) {
-        files.push({
-          path: `godot/${dir}/${slug}.gd`,
-          content: enumContent,
-          header: gdHeader,
-        })
-      }
     }
 
     // Autoload singleton

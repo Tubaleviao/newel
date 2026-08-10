@@ -155,7 +155,23 @@ describe('GodotGenerator', () => {
     expect(tres.content).toContain('initial_state = "idle"')
   })
 
-  it('produces a .gd enum file for entities with enum fields or a state machine', async () => {
+  it('.tres file has ext_resource and script= referencing the companion .gd', async () => {
+    const gen = new GodotGenerator()
+    const result = await gen.generate(richSchema, makeCtx())
+    const tres = result.files.find((f) => f.path === 'godot/creatures/forestboar.tres')!
+    expect(tres.content).toContain('[ext_resource type="Script" path="res://godot/creatures/forestboar.gd"')
+    expect(tres.content).toContain('script = ExtResource(')
+  })
+
+  it('.tres file serializes enum fields as integer 0 (not skipped)', async () => {
+    const gen = new GodotGenerator()
+    const result = await gen.generate(richSchema, makeCtx())
+    const tres = result.files.find((f) => f.path === 'godot/creatures/forestboar.tres')!
+    // "status" is the sm field and is serialized; non-sm enum fields must also appear
+    expect(tres.content).toContain('status = 0')
+  })
+
+  it('produces a .gd file for every entity (always emitted so .tres can reference it)', async () => {
     const gen = new GodotGenerator()
     const result = await gen.generate(richSchema, makeCtx())
     const paths = result.files.map((f) => f.path)
@@ -163,11 +179,13 @@ describe('GodotGenerator', () => {
     expect(paths).toContain('godot/items/ironchestplate.gd')
   })
 
-  it('.gd file contains state machine enum with SCREAMING_SNAKE constants', async () => {
+  it('.gd file contains state machine enum named after sm.field with SCREAMING_SNAKE constants', async () => {
     const gen = new GodotGenerator()
     const result = await gen.generate(richSchema, makeCtx())
     const gd = result.files.find((f) => f.path === 'godot/creatures/forestboar.gd')!
-    expect(gd.content).toContain('enum State {')
+    // sm.field is "status", so the enum must be named Status, not State
+    expect(gd.content).toContain('enum Status {')
+    expect(gd.content).not.toContain('enum State {')
     expect(gd.content).toContain('IDLE,')
     expect(gd.content).toContain('AGGRESSIVE,')
     expect(gd.content).toContain('DEAD,')
