@@ -449,4 +449,36 @@ describe('GodotGenerator', () => {
       expect(line.trim()).not.toBe(',')
     }
   })
+
+  it('pascalCase converts camelCase field names to PascalCase enum names', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Creature: {
+          name: 'Creature',
+          tags: ['creature'],
+          description: '',
+          fields: {
+            aggressionLevel: {
+              name: 'aggressionLevel',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['passive', 'aggressive'],
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const gd = result.files.find((f) => f.path.endsWith('.gd'))!
+    expect(gd.content).toContain('enum AggressionLevel {')
+  })
 })

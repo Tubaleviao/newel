@@ -21,6 +21,7 @@ const SUPPORTED_IR_VERSION = '3.0.0'
 
 function pascalCase(s: string): string {
   return s
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
     .split(/[-_\s]+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join('')
@@ -138,8 +139,8 @@ function renderEnums(entity: EntitySchema): string | null {
   if (!enumFields.length && !hasSm) return null
 
   const lines: string[] = []
-  lines.push(`extends Resource`)
   lines.push(`class_name ${entity.name}Data`)
+  lines.push(`extends Resource`)
   lines.push('')
 
   for (const field of enumFields) {
