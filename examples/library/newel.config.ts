@@ -8,6 +8,7 @@ import { PrismaGenerator } from '@newel/generator-prisma'
 import { ExpressGenerator } from '@newel/generator-express'
 import { AppGenerator } from '@newel/generator-app'
 import { GodotGenerator } from '@newel/generator-godot'
+import { WikiGenerator } from '@newel/generator-wiki'
 
 export default defineConfig({
   schema: './src/fabric.ts',
@@ -23,5 +24,6 @@ export default defineConfig({
     new ExpressGenerator({ orm: 'prisma' }),
     new AppGenerator(),
     new GodotGenerator(),
+    new WikiGenerator(),
   ],
 })

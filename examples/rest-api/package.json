@@ -19,6 +19,7 @@
     "@newel/generator-jsonschema": "workspace:*",
     "@newel/generator-rdf": "workspace:*",
     "@newel/generator-owl": "workspace:*",
-    "@newel/generator-godot": "workspace:*"
+    "@newel/generator-godot": "workspace:*",
+    "@newel/generator-wiki": "workspace:*"
   }
 }

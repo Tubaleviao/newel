@@ -1,6 +1,6 @@
 # Newel Roadmap
 
-Phases 1–12 and 14 are complete. This document tracks what comes next.
+Phases 1–14 are complete. This document tracks what comes next.
 
 ---
 
@@ -24,6 +24,7 @@ Phases 1–12 and 14 are complete. This document tracks what comes next.
 | 11b   | Weighted spawn relations (`spawns?: SpawnSchema[]`)                     |
 | 11c   | System-level rule blocks (`systems?` on `FabricSchema`)                 |
 | 12    | `generator-bible` — per-entity Markdown pages + index                   |
+| 13    | `generator-wiki` — player-facing VitePress-compatible Markdown wiki     |
 | 14    | `generator-godot` — Godot 4.x `.tres` resources + GDScript enums        |
 
 ---
@@ -139,10 +140,10 @@ design bible from a fabric.
 
 ---
 
-## Phase 13 — `generator-wiki`
+## Phase 13 — `generator-wiki` ✅ Done
 
 A new package `packages/generator-wiki` that produces wiki-ready output
-(MediaWiki markup or a static site compatible with VitePress/Docusaurus).
+compatible with VitePress/Docusaurus.
 
 **Difference from `generator-bible`:** The bible is an internal design document;
 the wiki is player-facing public documentation. The same IR generates both, but
@@ -152,10 +153,12 @@ templates and tone differ.
 
 **Acceptance criteria:**
 
-- Output is importable into a VitePress project without manual edits
-- Player-facing language: no internal field names exposed
-- Configurable via `newel.config.ts` to suppress sections (e.g. hide `rules`
-  that are implementation notes)
+- Output is importable into a VitePress project without manual edits ✓
+- Player-facing language: no internal field names exposed (primary keys, PII flags
+  omitted; sections titled "Attributes", "Actions", "States", "Related") ✓
+- Configurable via `WikiGeneratorOptions.hiddenSections` to suppress any section
+  (`'fields'`, `'relations'`, `'stateMachine'`, `'behaviors'`) ✓
+- 14 passing tests covering all criteria above ✓
 
 ---
 
