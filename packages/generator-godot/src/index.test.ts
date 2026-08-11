@@ -159,7 +159,9 @@ describe('GodotGenerator', () => {
     const gen = new GodotGenerator()
     const result = await gen.generate(richSchema, makeCtx())
     const tres = result.files.find((f) => f.path === 'godot/creatures/forestboar.tres')!
-    expect(tres.content).toContain('[ext_resource type="Script" path="res://godot/creatures/forestboar.gd"')
+    expect(tres.content).toContain(
+      '[ext_resource type="Script" path="res://godot/creatures/forestboar.gd"',
+    )
     expect(tres.content).toContain('script = ExtResource(')
   })
 
