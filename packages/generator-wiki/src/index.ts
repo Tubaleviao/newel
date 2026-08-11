@@ -25,7 +25,10 @@ export interface WikiGeneratorOptions {
 // ---------------------------------------------------------------------------
 
 function esc(s: string): string {
-  return s.replace(/\|/g, '\\|').replace(/`/g, '\\`').replace(/\n/g, ' ')
+  return s
+    .replace(/\|/g, '\\|')
+    .replace(/`/g, '\\`')
+    .replace(/\r?\n|\r/g, ' ')
 }
 
 function escLinkText(s: string): string {
@@ -37,8 +40,12 @@ function escInline(s: string): string {
 }
 
 function mermaidId(name: string): string {
-  if (!/[ :[\]{}"]/.test(name)) return name
-  return `"${name.replace(/"/g, '#quot;')}"`
+  // Sanitize characters that are problematic inside Mermaid stateDiagram-v2 node IDs.
+  // Newlines break the code block regardless of quoting; double-quotes cannot be escaped
+  // inside a quoted string in the stateDiagram-v2 grammar — replace all with underscores.
+  const safe = name.replace(/[\r\n]+/g, '_').replace(/"/g, '_')
+  if (!/[ :[\]{}]/.test(safe)) return safe
+  return `"${safe}"`
 }
 
 function mermaidSanitize(s: string): string {
@@ -100,7 +107,7 @@ function renderStateMachine(sm: StateMachineSchema): string {
     const froms = Array.isArray(t.from) ? t.from : [t.from]
     const guards = t.guards.map(mermaidSanitize)
     const safeTrigger = mermaidSanitize(t.trigger)
-    const label = safeTrigger + (guards.length ? `\\n[${guards.join('; ')}]` : '')
+    const label = safeTrigger + (guards.length ? ` [${guards.join('; ')}]` : '')
     for (const f of froms) {
       lines.push(`  ${mermaidId(f)} --> ${mermaidId(t.to)} : ${label}`)
     }
@@ -281,6 +288,9 @@ export class WikiGenerator implements Generator {
         count += 1
         slug = `${base}-${count + 1}`
       }
+      // Persist the final count so subsequent entities with the same base start
+      // from the correct offset and produce contiguous suffix numbers.
+      slugCounts.set(base, count + 1)
       taken.add(slug)
       entitySlugs.set(key, slug)
     }

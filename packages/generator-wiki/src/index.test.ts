@@ -647,9 +647,11 @@ describe('WikiGenerator', () => {
     const gen = new WikiGenerator()
     const result = await gen.generate(schema, makeCtx())
     const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
-    // The quoted ID must not contain a raw " that would break Mermaid's parser
+    // Double-quotes are replaced with underscores so the Mermaid parser never
+    // sees a raw " inside a quoted node ID (which would break stateDiagram-v2).
     expect(page.content).not.toMatch(/"say "hello""/)
-    expect(page.content).toContain('#quot;')
+    expect(page.content).not.toContain('#quot;')
+    expect(page.content).toContain('say _hello_')
   })
 
   it('trigger containing a pipe is sanitized in the mermaid transition label', async () => {
@@ -692,9 +694,36 @@ describe('WikiGenerator', () => {
     const schema: FabricSchema = {
       ...richSchema,
       entities: {
-        Foo1: { name: 'Foo', tags: [], description: 'First.', fields: {}, relations: {}, behaviors: {}, pii: [], gdpr: {} },
-        Foo2: { name: 'Foo', tags: [], description: 'Second.', fields: {}, relations: {}, behaviors: {}, pii: [], gdpr: {} },
-        Foo2Natural: { name: 'Foo 2', tags: [], description: 'Natural foo-2.', fields: {}, relations: {}, behaviors: {}, pii: [], gdpr: {} },
+        Foo1: {
+          name: 'Foo',
+          tags: [],
+          description: 'First.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+        Foo2: {
+          name: 'Foo',
+          tags: [],
+          description: 'Second.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+        Foo2Natural: {
+          name: 'Foo 2',
+          tags: [],
+          description: 'Natural foo-2.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
       },
     }
     const gen = new WikiGenerator()
@@ -704,6 +733,74 @@ describe('WikiGenerator', () => {
       .map((f) => f.path)
     const unique = new Set(entityPaths)
     expect(unique.size).toBe(entityPaths.length)
+  })
+
+  it('CRLF in field description is collapsed to a space so table row is not broken', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Item: {
+          name: 'Item',
+          tags: [],
+          description: 'An item.',
+          fields: {
+            note: {
+              name: 'note',
+              type: 'string',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              description: 'Line one\r\nLine two',
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/item.md')!
+    expect(page.content).not.toContain('\r')
+    expect(page.content).toContain('Line one Line two')
+  })
+
+  it('newline in state name is replaced so mermaid diagram is not broken', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Mob: {
+          name: 'Mob',
+          tags: [],
+          description: 'A mob.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          stateMachine: {
+            field: 'status',
+            initial: 'in\nprogress',
+            states: {
+              'in\nprogress': { name: 'in\nprogress', description: 'Ongoing', terminal: false },
+              done: { name: 'done', description: 'Done', terminal: true },
+            },
+            transitions: [
+              { from: 'in\nprogress', to: 'done', trigger: 'finish', guards: [], effects: [] },
+            ],
+          },
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
+    // The literal newline must not appear inside the mermaid code block
+    const mermaidBlock = page.content.match(/```mermaid[\s\S]*?```/)?.[0] ?? ''
+    expect(mermaidBlock).not.toContain('in\nprogress')
+    expect(mermaidBlock).toContain('in_progress')
   })
 
   it('cross-link resolves correctly when entity key differs from entity name', async () => {
