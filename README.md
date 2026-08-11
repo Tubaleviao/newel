@@ -270,21 +270,22 @@ export const userSchema = z.object({
 
 ## Available generators
 
-| Package                       | Output                                           | Depends on                 |
-| ----------------------------- | ------------------------------------------------ | -------------------------- |
-| `@newel/generator-typescript` | TS interfaces + Zod schemas                      | —                          |
-| `@newel/generator-openapi`    | OpenAPI 3.x YAML with auto-transition endpoints  | `typescript`               |
-| `@newel/generator-sql`        | Safe incremental SQL migrations via IR diff      | `typescript`               |
-| `@newel/generator-docs`       | Markdown docs + GDPR data map                    | `openapi`, `typescript`    |
-| `@newel/generator-jsonschema` | JSON Schema draft-07 per entity                  | —                          |
-| `@newel/generator-rdf`        | RDF/Turtle ontology                              | —                          |
-| `@newel/generator-owl`        | OWL ontology (extends RDF output)                | `rdf`                      |
-| `@newel/generator-bible`      | Design bible — per-entity Markdown pages + index | —                          |
-| `@newel/generator-godot`      | Godot 4.x `.tres` resources + GDScript enums     | —                          |
-| `@newel/generator-ui`         | React forms + state-machine-aware action buttons | `typescript`               |
-| `@newel/generator-prisma`     | Prisma schema + typed repositories               | `typescript`               |
-| `@newel/generator-express`    | Express router + typed handlers                  | `typescript` (or `prisma`) |
-| `@newel/generator-app`        | Full-stack scaffold (Express + Vite React)       | `express`, `prisma`, `ui`  |
+| Package                       | Output                                             | Depends on                 |
+| ----------------------------- | -------------------------------------------------- | -------------------------- |
+| `@newel/generator-typescript` | TS interfaces + Zod schemas                        | —                          |
+| `@newel/generator-openapi`    | OpenAPI 3.x YAML with auto-transition endpoints    | `typescript`               |
+| `@newel/generator-sql`        | Safe incremental SQL migrations via IR diff        | `typescript`               |
+| `@newel/generator-docs`       | Markdown docs + GDPR data map                      | `openapi`, `typescript`    |
+| `@newel/generator-jsonschema` | JSON Schema draft-07 per entity                    | —                          |
+| `@newel/generator-rdf`        | RDF/Turtle ontology                                | —                          |
+| `@newel/generator-owl`        | OWL ontology (extends RDF output)                  | `rdf`                      |
+| `@newel/generator-bible`      | Design bible — per-entity Markdown pages + index   | —                          |
+| `@newel/generator-wiki`       | Player-facing wiki — VitePress-compatible Markdown | `bible`                    |
+| `@newel/generator-godot`      | Godot 4.x `.tres` resources + GDScript enums       | —                          |
+| `@newel/generator-ui`         | React forms + state-machine-aware action buttons   | `typescript`               |
+| `@newel/generator-prisma`     | Prisma schema + typed repositories                 | `typescript`               |
+| `@newel/generator-express`    | Express router + typed handlers                    | `typescript` (or `prisma`) |
+| `@newel/generator-app`        | Full-stack scaffold (Express + Vite React)         | `express`, `prisma`, `ui`  |
 
 ---
 
