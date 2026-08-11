@@ -584,4 +584,161 @@ describe('WikiGenerator', () => {
     // No creature section because 'boss' sorts before 'creature'
     expect(index.content).not.toContain('## Creature')
   })
+
+  it('newline in field description is collapsed to a space so table row is not broken', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Item: {
+          name: 'Item',
+          tags: [],
+          description: 'An item.',
+          fields: {
+            note: {
+              name: 'note',
+              type: 'string',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              description: 'Line one\nLine two',
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/item.md')!
+    expect(page.content).toContain('Line one Line two')
+    expect(page.content).not.toContain('Line one\nLine two')
+  })
+
+  it('state name containing a double-quote is escaped in mermaid output', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Mob: {
+          name: 'Mob',
+          tags: [],
+          description: 'A mob.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          stateMachine: {
+            field: 'status',
+            initial: 'say "hello"',
+            states: {
+              'say "hello"': { name: 'say "hello"', description: 'Greeting', terminal: false },
+              done: { name: 'done', description: 'Done', terminal: true },
+            },
+            transitions: [
+              { from: 'say "hello"', to: 'done', trigger: 'finish', guards: [], effects: [] },
+            ],
+          },
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
+    // The quoted ID must not contain a raw " that would break Mermaid's parser
+    expect(page.content).not.toMatch(/"say "hello""/)
+    expect(page.content).toContain('#quot;')
+  })
+
+  it('trigger containing a pipe is sanitized in the mermaid transition label', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Mob: {
+          name: 'Mob',
+          tags: [],
+          description: 'A mob.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          stateMachine: {
+            field: 'status',
+            initial: 'idle',
+            states: {
+              idle: { name: 'idle', description: 'Idle', terminal: false },
+              dead: { name: 'dead', description: 'Dead', terminal: true },
+            },
+            transitions: [
+              { from: 'idle', to: 'dead', trigger: 'attack|cast', guards: [], effects: [] },
+            ],
+          },
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
+    expect(page.content).not.toContain('attack|cast')
+    expect(page.content).toContain('attack cast')
+  })
+
+  it('suffix slug does not collide with a natural slug from another entity', async () => {
+    // "Foo" → "foo", "Foo" again → "foo-2", "Foo 2" → naturally "foo-2" too
+    // The suffix slug "foo-2" must be bumped to "foo-3" to avoid the collision.
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Foo1: { name: 'Foo', tags: [], description: 'First.', fields: {}, relations: {}, behaviors: {}, pii: [], gdpr: {} },
+        Foo2: { name: 'Foo', tags: [], description: 'Second.', fields: {}, relations: {}, behaviors: {}, pii: [], gdpr: {} },
+        Foo2Natural: { name: 'Foo 2', tags: [], description: 'Natural foo-2.', fields: {}, relations: {}, behaviors: {}, pii: [], gdpr: {} },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const entityPaths = result.files
+      .filter((f) => f.path.startsWith('wiki/entities/'))
+      .map((f) => f.path)
+    const unique = new Set(entityPaths)
+    expect(unique.size).toBe(entityPaths.length)
+  })
+
+  it('cross-link resolves correctly when entity key differs from entity name', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        tempForest: {
+          name: 'Temperate Forest',
+          tags: ['biome'],
+          description: 'A forest.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+        boar: {
+          name: 'ForestBoar',
+          tags: ['creature'],
+          description: 'A boar.',
+          fields: {},
+          relations: {
+            biome: { name: 'biome', kind: 'belongsTo', target: 'Temperate Forest' },
+          },
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const boarPage = result.files.find((f) => f.path === 'wiki/entities/forestboar.md')!
+    // Link must point to the slug of key "tempForest" → "temperate-forest.md"
+    expect(boarPage.content).toContain('[Temperate Forest](temperate-forest.md)')
+    expect(boarPage.content).not.toContain('undefined')
+  })
 })
