@@ -220,7 +220,7 @@ function renderIndex(schema: FabricSchema): string {
 
 export class WikiGenerator implements Generator {
   readonly name = 'wiki'
-  readonly dependsOn: string[] = ['bible']
+  readonly dependsOn: string[] = []
 
   private readonly hidden: Set<WikiSection>
 

@@ -89,10 +89,10 @@ const richSchema: FabricSchema = {
 }
 
 describe('WikiGenerator', () => {
-  it('has name "wiki" and depends on "bible"', () => {
+  it('has name "wiki" and no dependencies', () => {
     const gen = new WikiGenerator()
     expect(gen.name).toBe('wiki')
-    expect(gen.dependsOn).toEqual(['bible'])
+    expect(gen.dependsOn).toEqual([])
   })
 
   it('produces only an index for an empty schema', async () => {
@@ -186,6 +186,14 @@ describe('WikiGenerator', () => {
     const result = await gen.generate(richSchema, makeCtx())
     const boarPage = result.files.find((f) => f.path === 'wiki/entities/forestboar.md')!
     expect(boarPage.content).not.toContain('## Attributes')
+  })
+
+  it('hiddenSections suppresses relations', async () => {
+    const gen = new WikiGenerator({ hiddenSections: ['relations'] })
+    const result = await gen.generate(richSchema, makeCtx())
+    const boarPage = result.files.find((f) => f.path === 'wiki/entities/forestboar.md')!
+    expect(boarPage.content).not.toContain('## Related')
+    expect(boarPage.content).not.toContain('[TemperateForest](temperateforest.md)')
   })
 
   it('entity page includes @generated header', async () => {
