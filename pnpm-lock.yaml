@@ -65,6 +65,9 @@ importers:
       '@newel/generator-ui':
         specifier: workspace:*
         version: link:../../packages/generator-ui
+      '@newel/generator-wiki':
+        specifier: workspace:*
+        version: link:../../packages/generator-wiki
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -144,6 +147,9 @@ importers:
       '@newel/generator-typescript':
         specifier: workspace:*
         version: link:../../packages/generator-typescript
+      '@newel/generator-wiki':
+        specifier: workspace:*
+        version: link:../../packages/generator-wiki
 
   packages/core:
     dependencies:

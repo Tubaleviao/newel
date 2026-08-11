@@ -7,6 +7,7 @@ import { JsonSchemaGenerator } from '@newel/generator-jsonschema'
 import { RdfGenerator } from '@newel/generator-rdf'
 import { OwlGenerator } from '@newel/generator-owl'
 import { GodotGenerator } from '@newel/generator-godot'
+import { WikiGenerator } from '@newel/generator-wiki'
 
 export default defineConfig({
   schema: './src/fabric.ts',
@@ -20,5 +21,6 @@ export default defineConfig({
     new RdfGenerator(),
     new OwlGenerator(),
     new GodotGenerator(),
+    new WikiGenerator(),
   ],
 })

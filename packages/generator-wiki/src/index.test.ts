@@ -196,6 +196,101 @@ describe('WikiGenerator', () => {
     expect(boarPage.content).not.toContain('[TemperateForest](temperateforest.md)')
   })
 
+  it('state names with spaces are quoted in mermaid diagram', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Mob: {
+          name: 'Mob',
+          tags: [],
+          description: 'A mob.',
+          fields: {},
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          stateMachine: {
+            field: 'status',
+            initial: 'in progress',
+            states: {
+              'in progress': { name: 'in progress', description: 'Ongoing', terminal: false },
+              done: { name: 'done', description: 'Finished', terminal: true },
+            },
+            transitions: [
+              { from: 'in progress', to: 'done', trigger: 'finish', guards: [], effects: [] },
+            ],
+          },
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
+    expect(page.content).toContain('[*] --> "in progress"')
+    expect(page.content).toContain('"in progress" --> done : finish')
+    expect(page.content).not.toContain('[*] --> in progress')
+  })
+
+  it('enum values with pipes are escaped in the attributes table', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Item: {
+          name: 'Item',
+          tags: [],
+          description: 'An item.',
+          fields: {
+            rarity: {
+              name: 'rarity',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['common', 'rare|epic'],
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/item.md')!
+    expect(page.content).toContain('`rare\\|epic`')
+  })
+
+  it('behavior with empty description renders a fallback placeholder', async () => {
+    const schema: FabricSchema = {
+      ...richSchema,
+      entities: {
+        Mob: {
+          name: 'Mob',
+          tags: [],
+          description: 'A mob.',
+          fields: {},
+          relations: {},
+          behaviors: {
+            idle: {
+              name: 'idle',
+              description: '',
+              rules: [],
+              auth: { roles: [] },
+            },
+          },
+          pii: [],
+          gdpr: {},
+        },
+      },
+    }
+    const gen = new WikiGenerator()
+    const result = await gen.generate(schema, makeCtx())
+    const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
+    expect(page.content).toContain('_No description._')
+  })
+
   it('entity page includes @generated header', async () => {
     const gen = new WikiGenerator()
     const result = await gen.generate(richSchema, makeCtx())

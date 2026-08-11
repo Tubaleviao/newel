@@ -28,6 +28,10 @@ function esc(s: string): string {
   return s.replace(/\|/g, '\\|')
 }
 
+function mermaidId(name: string): string {
+  return name.includes(' ') ? `"${name}"` : name
+}
+
 function mdTable(headers: string[], rows: string[][]): string {
   const sep = headers.map((h) => '-'.repeat(Math.max(h.length, 3)))
   return [
@@ -55,7 +59,9 @@ function renderFields(fields: Record<string, FieldSchema>): string {
   if (!visible.length) return '_No fields._'
   const rows = visible.map((f) => [
     esc(f.name),
-    f.type === 'enum' && f.enumValues ? f.enumValues.map((v) => `\`${v}\``).join(', ') : f.type,
+    f.type === 'enum' && f.enumValues
+      ? f.enumValues.map((v) => `\`${esc(v)}\``).join(', ')
+      : f.type,
     esc(f.description ?? ''),
   ])
   return mdTable(['Field', 'Type', 'Description'], rows)
@@ -71,21 +77,22 @@ function renderStateMachine(sm: StateMachineSchema): string {
   lines.push('')
   lines.push('```mermaid')
   lines.push('stateDiagram-v2')
-  lines.push(`  [*] --> ${sm.initial}`)
+  lines.push(`  [*] --> ${mermaidId(sm.initial)}`)
   for (const t of sm.transitions) {
     const froms = Array.isArray(t.from) ? t.from : [t.from]
-    const label = t.trigger + (t.guards.length ? `\\n[${t.guards.join('; ')}]` : '')
+    const guards = t.guards.map((g) => g.replace(/[|:>]/g, ' '))
+    const label = t.trigger + (guards.length ? `\\n[${guards.join('; ')}]` : '')
     for (const f of froms) {
-      lines.push(`  ${f} --> ${t.to} : ${label}`)
+      lines.push(`  ${mermaidId(f)} --> ${mermaidId(t.to)} : ${label}`)
     }
   }
   for (const [name, state] of Object.entries(sm.states)) {
-    if (state.terminal) lines.push(`  ${name} --> [*]`)
+    if (state.terminal) lines.push(`  ${mermaidId(name)} --> [*]`)
   }
   lines.push('```')
   lines.push('')
 
-  const stateRows = Object.values(sm.states).map((s) => [`\`${s.name}\``, esc(s.description)])
+  const stateRows = Object.values(sm.states).map((s) => [`\`${esc(s.name)}\``, esc(s.description)])
   lines.push(mdTable(['State', 'Description'], stateRows))
 
   return lines.join('\n')
@@ -102,7 +109,7 @@ function renderBehaviors(behaviors: Record<string, BehaviorSchema>): string {
   for (const b of Object.values(behaviors)) {
     lines.push(`### ${b.name}`)
     lines.push('')
-    lines.push(b.description)
+    lines.push(b.description || '_No description._')
     lines.push('')
     if (b.rules.length) {
       lines.push('**Conditions:**')
@@ -156,7 +163,7 @@ function renderEntityPage(
     lines.push('')
     const relRows = Object.values(entity.relations).map((r) => {
       const targetSlug = slugify(r.target)
-      const targetLink = allEntities[r.target] ? `[${r.target}](${targetSlug}.md)` : r.target
+      const targetLink = allEntities[r.target] ? `[${r.target}](${targetSlug}.md)` : esc(r.target)
       return [esc(r.name), r.kind, targetLink]
     })
     lines.push(mdTable(['Name', 'Kind', 'Target'], relRows))
@@ -200,7 +207,7 @@ function renderIndex(schema: FabricSchema): string {
     groups[group].push(entity)
   }
 
-  for (const [group, entities] of Object.entries(groups).sort()) {
+  for (const [group, entities] of Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]))) {
     lines.push(`## ${group.charAt(0).toUpperCase() + group.slice(1)}`)
     lines.push('')
     for (const e of entities.sort((a, b) => a.name.localeCompare(b.name))) {
