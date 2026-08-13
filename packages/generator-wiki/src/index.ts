@@ -49,7 +49,7 @@ function mermaidId(name: string): string {
 }
 
 function mermaidSanitize(s: string): string {
-  return s.replace(/[|:><"]/g, ' ')
+  return s.replace(/[|><"]/g, ' ').replace(/:/g, '')
 }
 
 function mdTable(headers: string[], rows: string[][]): string {
@@ -245,7 +245,9 @@ function renderIndex(schema: FabricSchema, slugMap: Map<string, string>): string
     lines.push('')
     for (const [key, e] of entries.sort((a, b) => a[1].name.localeCompare(b[1].name))) {
       const slug = slugMap.get(key) ?? slugify(e.name)
-      const desc = e.description ? ` — ${escInline(e.description.split('.')[0])}` : ''
+      const desc = e.description
+        ? ` — ${escInline(e.description.replace(/\.(?=\s|$).*$/s, ''))}`
+        : ''
       lines.push(`- [${escLinkText(e.name)}](entities/${slug}.md)${desc}`)
     }
     lines.push('')
