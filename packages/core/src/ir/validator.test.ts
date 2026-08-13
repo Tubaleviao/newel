@@ -208,6 +208,35 @@ describe('validateSchema', () => {
     expect(result.valid).toBe(true)
   })
 
+  it('errors when enum defaultValue is not a member of enumValues', () => {
+    const schema = makeSchema({
+      entities: {
+        Item: {
+          fields: {
+            rarity: { type: 'enum', values: ['common', 'uncommon', 'rare'], defaultValue: 'legendary' },
+          },
+        },
+      },
+    })
+    const result = validateSchema(schema)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.path.includes('defaultValue') && e.message.includes('"legendary"'))).toBe(true)
+  })
+
+  it('passes when enum defaultValue is a valid member of enumValues', () => {
+    const schema = makeSchema({
+      entities: {
+        Item: {
+          fields: {
+            rarity: { type: 'enum', values: ['common', 'uncommon', 'rare'], defaultValue: 'rare' },
+          },
+        },
+      },
+    })
+    const result = validateSchema(schema)
+    expect(result.valid).toBe(true)
+  })
+
   it('errors on relation referencing unknown entity', () => {
     const schema = makeSchema({
       entities: {

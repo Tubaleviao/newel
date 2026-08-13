@@ -435,6 +435,107 @@ describe('GodotGenerator', () => {
     expect(gd.content).toContain('STAGE_2ND,')
   })
 
+  it('enum field with string defaultValue emits integer index, not quoted string', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Item: {
+          name: 'Item',
+          tags: ['item'],
+          description: '',
+          fields: {
+            rarity: {
+              name: 'rarity',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['common', 'uncommon', 'rare'],
+              defaultValue: 'uncommon',
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const tres = result.files.find((f) => f.path.endsWith('.tres'))!
+    expect(tres.content).toContain('rarity = 1')
+    expect(tres.content).not.toContain('"uncommon"')
+  })
+
+  it('enum field with string defaultValue for first value emits 0', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Creature: {
+          name: 'Creature',
+          tags: ['creature'],
+          description: '',
+          fields: {
+            tier: {
+              name: 'tier',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['1', '2', '3', '4', '5'],
+              defaultValue: '1',
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const tres = result.files.find((f) => f.path.endsWith('.tres'))!
+    expect(tres.content).toContain('tier = 0')
+    expect(tres.content).not.toContain('tier = "1"')
+  })
+
+  it('enum field with defaultValue not in enumValues throws', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Item: {
+          name: 'Item',
+          tags: ['item'],
+          description: '',
+          fields: {
+            rarity: {
+              name: 'rarity',
+              type: 'enum',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              enumValues: ['common', 'uncommon', 'rare'],
+              defaultValue: 'legendary',
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    await expect(gen.generate(schema, makeCtx())).rejects.toThrow(
+      'defaultValue "legendary" which is not in enumValues',
+    )
+  })
+
   it('gdEnumConst handles empty-string enum value without producing bare comma', async () => {
     const gen = new GodotGenerator()
     const schema: FabricSchema = {
