@@ -470,7 +470,7 @@ describe('WikiGenerator', () => {
     const result = await gen.generate(schema, makeCtx())
     const page = result.files.find((f) => f.path === 'wiki/entities/mob.md')!
     expect(page.content).not.toContain('count < 10')
-    expect(page.content).toContain('count   10')
+    expect(page.content).toContain('count 10')
   })
 
   it('backticks in field descriptions are escaped in the attributes table', async () => {
@@ -823,7 +823,7 @@ describe('WikiGenerator', () => {
           description: 'A boar.',
           fields: {},
           relations: {
-            biome: { name: 'biome', kind: 'belongsTo', target: 'Temperate Forest' },
+            biome: { name: 'biome', kind: 'belongsTo', target: 'tempForest' },
           },
           behaviors: {},
           pii: [],

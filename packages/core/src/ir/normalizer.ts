@@ -44,6 +44,7 @@ function normalizeField(name: string, raw: FieldInput, context?: string): FieldS
     gdprCategory,
     gdprRetention,
     gdprLegalBasis,
+    defaultValue: raw.defaultValue,
   }
 }
 

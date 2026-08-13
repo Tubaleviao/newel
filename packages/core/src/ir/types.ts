@@ -29,6 +29,7 @@ export interface FieldSchema {
   gdprCategory?: GdprCategory
   gdprRetention?: string
   gdprLegalBasis?: GdprLegalBasis
+  defaultValue?: string | number | boolean
 }
 
 export interface RelationSchema {

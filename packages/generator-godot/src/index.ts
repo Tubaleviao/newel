@@ -103,6 +103,17 @@ function renderTres(entity: EntitySchema, gdScriptPath: string): string {
 }
 
 function gdTresValue(field: FieldSchema): string {
+  if (field.defaultValue !== undefined) {
+    const v = field.defaultValue
+    if (typeof v === 'boolean') return v ? 'true' : 'false'
+    if (typeof v === 'number') {
+      if (field.type === 'decimal' || field.type === 'number') {
+        return Number.isInteger(v) ? v.toFixed(1) : String(v)
+      }
+      return String(v)
+    }
+    return JSON.stringify(v)
+  }
   switch (field.type) {
     case 'integer':
       return '0'
