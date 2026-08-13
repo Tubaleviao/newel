@@ -21,6 +21,8 @@ export type FieldInput = {
   gdprCategory?: GdprCategory
   gdprRetention?: string
   gdprLegalBasis?: GdprLegalBasis
+  /** Default value for this field — used by generators to seed resource files */
+  defaultValue?: string | number | boolean
 }
 
 export type TransitionInput = {
