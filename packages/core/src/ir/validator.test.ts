@@ -213,14 +213,22 @@ describe('validateSchema', () => {
       entities: {
         Item: {
           fields: {
-            rarity: { type: 'enum', values: ['common', 'uncommon', 'rare'], defaultValue: 'legendary' },
+            rarity: {
+              type: 'enum',
+              values: ['common', 'uncommon', 'rare'],
+              defaultValue: 'legendary',
+            },
           },
         },
       },
     })
     const result = validateSchema(schema)
     expect(result.valid).toBe(false)
-    expect(result.errors.some((e) => e.path.includes('defaultValue') && e.message.includes('"legendary"'))).toBe(true)
+    expect(
+      result.errors.some(
+        (e) => e.path.includes('defaultValue') && e.message.includes('"legendary"'),
+      ),
+    ).toBe(true)
   })
 
   it('passes when enum defaultValue is a valid member of enumValues', () => {
