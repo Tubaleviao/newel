@@ -1,6 +1,6 @@
 {
   "name": "@newel/generator-sql",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "SQL DDL generator for newel",
   "keywords": [
     "newel",

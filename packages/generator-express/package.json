@@ -1,6 +1,6 @@
 {
   "name": "@newel/generator-express",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Express router generator for newel",
   "keywords": [
     "newel",

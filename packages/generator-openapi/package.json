@@ -1,6 +1,6 @@
 {
   "name": "@newel/generator-openapi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "OpenAPI 3.x YAML generator for newel",
   "keywords": [
     "newel",

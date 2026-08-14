@@ -1,6 +1,6 @@
 {
   "name": "create-newel-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Scaffold a new newel project interactively",
   "keywords": [
     "newel",

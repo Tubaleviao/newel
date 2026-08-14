@@ -1,6 +1,6 @@
 {
   "name": "@newel/generator-owl",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "OWL ontology generator for newel (extends RDF output)",
   "keywords": [
     "newel",
