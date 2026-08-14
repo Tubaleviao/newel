@@ -124,6 +124,20 @@ function validateEntity(
     if (field.type === 'enum' && (!field.enumValues || field.enumValues.length === 0)) {
       errors.push(err(base, `enum field must have at least one value in enumValues`))
     }
+    if (
+      field.type === 'enum' &&
+      field.enumValues &&
+      field.defaultValue !== undefined &&
+      typeof field.defaultValue === 'string' &&
+      !field.enumValues.includes(field.defaultValue)
+    ) {
+      errors.push(
+        err(
+          `${base}.defaultValue`,
+          `defaultValue "${field.defaultValue}" is not a member of enumValues [${field.enumValues.join(', ')}]`,
+        ),
+      )
+    }
     if (field.foreignKey) {
       const [refEntity] = field.foreignKey.split('.')
       if (!(refEntity in schema.entities)) {

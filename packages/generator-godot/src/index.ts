@@ -112,6 +112,15 @@ function gdTresValue(field: FieldSchema): string {
       }
       return String(v)
     }
+    if (typeof v === 'string' && field.type === 'enum' && field.enumValues) {
+      const idx = field.enumValues.indexOf(v)
+      if (idx === -1) {
+        throw new Error(
+          `@newel/generator-godot: enum field "${field.name}" has defaultValue "${v}" which is not in enumValues [${field.enumValues.join(', ')}]`,
+        )
+      }
+      return String(idx)
+    }
     return JSON.stringify(v)
   }
   switch (field.type) {
