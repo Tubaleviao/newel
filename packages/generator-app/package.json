@@ -1,6 +1,6 @@
 {
   "name": "@newel/generator-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Full-stack app scaffold generator for newel",
   "keywords": [
     "newel",

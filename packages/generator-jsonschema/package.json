@@ -1,6 +1,6 @@
 {
   "name": "@newel/generator-jsonschema",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "JSON Schema draft-07 generator for newel",
   "keywords": [
     "newel",
