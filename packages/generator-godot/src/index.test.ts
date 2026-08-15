@@ -631,7 +631,7 @@ describe('GodotGenerator', () => {
               nullable: false,
               primaryKey: false,
               pii: false,
-              defaultValue: ['a', 'b'] as unknown as string,
+              defaultValue: ['a', 'b'],
             },
             opts: {
               name: 'opts',
@@ -639,7 +639,7 @@ describe('GodotGenerator', () => {
               nullable: false,
               primaryKey: false,
               pii: false,
-              defaultValue: { a: 1 } as unknown as string,
+              defaultValue: { a: 1 },
             },
           },
           relations: {},
@@ -682,8 +682,6 @@ describe('GodotGenerator', () => {
       },
       apis: {},
     }
-    await expect(gen.generate(schema, makeCtx())).rejects.toThrow(
-      'is a GDScript reserved word',
-    )
+    await expect(gen.generate(schema, makeCtx())).rejects.toThrow('is a GDScript reserved word')
   })
 })
