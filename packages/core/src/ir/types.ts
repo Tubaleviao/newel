@@ -29,7 +29,10 @@ export interface FieldSchema {
   gdprCategory?: GdprCategory
   gdprRetention?: string
   gdprLegalBasis?: GdprLegalBasis
-  defaultValue?: string | number | boolean
+  /** Default value for this field — used by generators to seed resource files.
+   *  For `json` fields this may be a structured value (array/object), for other
+   *  types a string/number/boolean. Generators interpret it per-type. */
+  defaultValue?: unknown
 }
 
 export interface RelationSchema {

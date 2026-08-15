@@ -151,6 +151,92 @@ function gdEnumConst(val: string, fieldName?: string): string {
   return snake
 }
 
+// Map a fabric FieldType to a GDScript `@export` type. `json` fields are typed
+// `Array` or `Dictionary` based on their default value; enum fields are stored
+// in the .tres as their integer index, so they surface as `int`.
+function gdType(field: FieldSchema): string {
+  switch (field.type) {
+    case 'integer':
+      return 'int'
+    case 'decimal':
+    case 'number':
+      return 'float'
+    case 'boolean':
+      return 'bool'
+    case 'enum':
+      return 'int'
+    case 'json': {
+      const dv: unknown = field.defaultValue
+      if (Array.isArray(dv)) return 'Array'
+      if (dv && typeof dv === 'object') return 'Dictionary'
+      return 'Variant'
+    }
+    case 'string':
+    case 'uuid':
+    case 'email':
+    case 'url':
+    case 'timestamp':
+    case 'date':
+    default:
+      return 'String'
+  }
+}
+
+// GDScript reserved words that cannot be used as `@export var` names. A fabric
+// field that collides with one of these must be renamed in the fabric (fail
+// loudly rather than emit GDScript that will not parse).
+const GDScript_RESERVED = new Set<string>([
+  'if',
+  'elif',
+  'else',
+  'for',
+  'while',
+  'match',
+  'break',
+  'continue',
+  'pass',
+  'return',
+  'class',
+  'class_name',
+  'extends',
+  'is',
+  'in',
+  'as',
+  'self',
+  'super',
+  'signal',
+  'func',
+  'static',
+  'const',
+  'enum',
+  'var',
+  'breakpoint',
+  'preload',
+  'await',
+  'yield',
+  'assert',
+  'void',
+  'null',
+  'true',
+  'false',
+  'int',
+  'float',
+  'bool',
+  'String',
+  'Array',
+  'Dictionary',
+  'Variant',
+  'Object',
+  'Vector2',
+  'Vector3',
+  'Vector4',
+  'Color',
+  'RID',
+  'Callable',
+  'Signal',
+  'Node',
+])
+
 function renderEnums(entity: EntitySchema): string {
   const smField = entity.stateMachine?.field
   // Skip the field whose name matches the state machine field — the SM enum covers it
@@ -183,6 +269,19 @@ function renderEnums(entity: EntitySchema): string {
 
   if (hasSm) {
     lines.push(renderStateMachineEnum(entity.stateMachine!))
+  }
+
+  // Declare every field as an `@export var` so the .tres properties are stored.
+  // Without these declarations Godot drops undeclared .tres properties on load,
+  // so the generated resources came back empty (all fields null).
+  lines.push('')
+  for (const field of Object.values(entity.fields)) {
+    if (GDScript_RESERVED.has(field.name)) {
+      throw new Error(
+        `@newel/generator-godot: field "${field.name}" on entity "${entity.name}" is a GDScript reserved word — rename it in the fabric`,
+      )
+    }
+    lines.push(`@export var ${field.name}: ${gdType(field)}`)
   }
 
   return lines.join('\n') + '\n'
