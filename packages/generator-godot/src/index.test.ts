@@ -602,4 +602,88 @@ describe('GodotGenerator', () => {
     const gd = result.files.find((f) => f.path.endsWith('.gd'))!
     expect(gd.content).toContain('enum AggressionLevel {')
   })
+
+  it('.gd file declares @export var for every field so .tres properties load', async () => {
+    const gen = new GodotGenerator()
+    const result = await gen.generate(richSchema, makeCtx())
+    const gd = result.files.find((f) => f.path === 'godot/creatures/forestboar.gd')!
+    expect(gd.content).toContain('@export var tier: int')
+    expect(gd.content).toContain('@export var baseHp: int')
+    expect(gd.content).toContain('@export var status: int') // state-machine field is declared too
+    const item = result.files.find((f) => f.path === 'godot/items/ironchestplate.gd')!
+    expect(item.content).toContain('@export var weight: float')
+    expect(item.content).toContain('@export var rarity: int')
+  })
+
+  it('maps json fields to Array or Dictionary @export types', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Config: {
+          name: 'Config',
+          tags: ['config'],
+          description: '',
+          fields: {
+            layers: {
+              name: 'layers',
+              type: 'json',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              defaultValue: ['a', 'b'] as unknown as string,
+            },
+            opts: {
+              name: 'opts',
+              type: 'json',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              defaultValue: { a: 1 } as unknown as string,
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    const result = await gen.generate(schema, makeCtx())
+    const gd = result.files.find((f) => f.path.endsWith('.gd'))!
+    expect(gd.content).toContain('@export var layers: Array')
+    expect(gd.content).toContain('@export var opts: Dictionary')
+  })
+
+  it('throws when a field name is a GDScript reserved word', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Recipe: {
+          name: 'Recipe',
+          tags: ['recipe'],
+          description: '',
+          fields: {
+            yield: {
+              name: 'yield',
+              type: 'integer',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+        },
+      },
+      apis: {},
+    }
+    await expect(gen.generate(schema, makeCtx())).rejects.toThrow(
+      'is a GDScript reserved word',
+    )
+  })
 })
