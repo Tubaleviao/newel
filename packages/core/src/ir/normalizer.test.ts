@@ -126,6 +126,42 @@ describe('normalizeSchema', () => {
     ).toThrow('entities.Wolf: "tags[0]" must be a string')
   })
 
+  it('omits spawns when not declared and preserves valid spawns', () => {
+    const base = { fields: { id: { type: 'uuid', primaryKey: true } } } as const
+    const none = normalizeSchema({ meta: { name: 'T' }, entities: { Forest: base } })
+    expect(none.entities['Forest'].spawns).toBeUndefined()
+    const s = normalizeSchema({
+      meta: { name: 'T' },
+      entities: {
+        Wolf: base,
+        Forest: {
+          ...base,
+          spawns: [
+            { target: 'Wolf', weight: 0.3, conditions: ['night'] },
+            { target: 'Wolf', weight: 1 },
+          ],
+        },
+      },
+    })
+    expect(s.entities['Forest'].spawns).toEqual([
+      { target: 'Wolf', weight: 0.3, conditions: ['night'] },
+      { target: 'Wolf', weight: 1 },
+    ])
+  })
+
+  it('rejects out-of-range spawn weight and bad conditions', () => {
+    const mk = (spawns: unknown) => () =>
+      normalizeSchema({
+        meta: { name: 'T' },
+        entities: { Forest: { spawns: spawns as never } },
+      })
+    expect(mk([{ target: 'Wolf', weight: 1.5 }])).toThrow('entities.Forest.spawns[0]: "weight"')
+    expect(mk([{ target: 'Wolf', weight: -0.1 }])).toThrow('"weight"')
+    expect(mk([{ target: '', weight: 0.5 }])).toThrow('"target"')
+    expect(mk([{ target: 'Wolf', weight: 0.5, conditions: [1] }])).toThrow('"conditions"')
+    expect(mk('x')).toThrow('"spawns" must be an array')
+  })
+
   it('normalises field defaults', () => {
     const schema = normalizeSchema({
       meta: { name: 'Test' },

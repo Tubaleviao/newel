@@ -9,6 +9,21 @@ function makeSchema(overrides: object) {
 }
 
 describe('validateSchema', () => {
+  it('errors when a spawn target is not an entity', () => {
+    const schema = makeSchema({
+      entities: { Forest: { spawns: [{ target: 'Ghost', weight: 0.5 }] } },
+    })
+    const result = validateSchema(schema)
+    expect(result.errors.map((e) => e.path)).toContain('entities.Forest.spawns[0].target')
+  })
+
+  it('accepts a spawn whose target exists', () => {
+    const schema = makeSchema({
+      entities: { Wolf: {}, Forest: { spawns: [{ target: 'Wolf', weight: 0.5 }] } },
+    })
+    expect(validateSchema(schema).errors.filter((e) => e.path.includes('spawns'))).toEqual([])
+  })
+
   it('passes a valid schema', () => {
     const schema = makeSchema({
       entities: {

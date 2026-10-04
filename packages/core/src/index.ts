@@ -32,6 +32,7 @@ export type {
   FieldSchema,
   FieldType,
   RelationSchema,
+  SpawnSchema,
   BehaviorSchema,
   StateMachineSchema,
   StateSchema,

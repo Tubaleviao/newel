@@ -43,6 +43,15 @@ export interface RelationSchema {
   through?: string
 }
 
+export interface SpawnSchema {
+  /** Name of the entity that can spawn. */
+  target: string
+  /** Relative probability, 0–1. */
+  weight: number
+  /** Declarative conditions, e.g. ['night', 'rain']. */
+  conditions?: string[]
+}
+
 export interface AuthSchema {
   roles: string[]
   /** Field on the entity that holds the owning user's ID. When set, access is
@@ -89,6 +98,7 @@ export interface EntitySchema {
   goal?: string
   fields: Record<string, FieldSchema>
   relations: Record<string, RelationSchema>
+  spawns?: SpawnSchema[]
   behaviors: Record<string, BehaviorSchema>
   stateMachine?: StateMachineSchema
   pii: string[]
