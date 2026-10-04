@@ -4,6 +4,7 @@ import type {
   RelationSchema,
   BehaviorSchema,
   GdprCategory,
+  SpawnSchema,
 } from '../ir/types'
 import { TypedFieldBuilder } from './field'
 import { RelationBuilder } from './relation'
@@ -17,6 +18,7 @@ export class EntityBuilder {
   private _goal: string | undefined
   private _fields: Record<string, FieldSchema> = {}
   private _relations: Record<string, RelationSchema> = {}
+  private _spawns: SpawnSchema[] = []
   private _behaviors: Record<string, BehaviorSchema> = {}
   private _stateMachine: ReturnType<StateMachineBuilder['toIR']> | undefined
   private _pii: string[] = []
@@ -68,6 +70,18 @@ export class EntityBuilder {
     return this
   }
 
+  spawn(target: string, weight: number, conditions?: string[]): this {
+    if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0 || weight > 1) {
+      throw new Error(
+        `EntityBuilder.spawn(): weight must be a number between 0 and 1, got ${JSON.stringify(weight)}`,
+      )
+    }
+    this._spawns.push(
+      conditions ? { target, weight, conditions: [...conditions] } : { target, weight },
+    )
+    return this
+  }
+
   behavior(name: string, fn: (b: BehaviorBuilder) => BehaviorBuilder | void): this {
     const b = new BehaviorBuilder(name)
     fn(b)
@@ -90,6 +104,7 @@ export class EntityBuilder {
       goal: this._goal,
       fields: { ...this._fields },
       relations: { ...this._relations },
+      ...(this._spawns.length ? { spawns: this._spawns.map((s) => ({ ...s })) } : {}),
       behaviors: { ...this._behaviors },
       stateMachine: this._stateMachine,
       pii: [...this._pii],

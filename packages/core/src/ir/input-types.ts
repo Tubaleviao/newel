@@ -1,4 +1,11 @@
-import type { FieldType, GdprCategory, GdprLegalBasis, RelationSchema, SchemaMeta } from './types'
+import type {
+  FieldType,
+  GdprCategory,
+  GdprLegalBasis,
+  RelationSchema,
+  SchemaMeta,
+  SpawnSchema,
+} from './types'
 
 export type GdprInput = {
   category?: GdprCategory
@@ -83,6 +90,7 @@ export type EntityInput = {
   goal?: string
   fields?: Record<string, FieldInput>
   relations?: Record<string, RelationSchema>
+  spawns?: SpawnSchema[]
   behaviors?: Record<string, BehaviorInput>
   stateMachine?: StateMachineInput
 }

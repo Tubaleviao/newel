@@ -68,7 +68,7 @@ composable in a way a single enum value is not.
 - Existing tests still pass; new tests cover default, explicit tags, and validation errors
 - Generators ignore `tags` where not relevant (no change to their output)
 
-### 11b — Weighted spawn relations
+### 11b — Weighted spawn relations ✅ Done
 
 Extend `RelationSchema` (or add a parallel `SpawnSchema`) to support
 probability-weighted, conditional membership — the minimum needed for biome

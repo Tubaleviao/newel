@@ -108,6 +108,20 @@ function validateEntity(
     }
   }
 
+  entity.spawns?.forEach((spawn, i) => {
+    if (!(spawn.target in schema.entities)) {
+      errors.push(
+        err(
+          `entities.${name}.spawns[${i}].target`,
+          `spawn target "${spawn.target}" does not exist in entities`,
+        ),
+      )
+    }
+    if (typeof spawn.weight !== 'number' || spawn.weight < 0 || spawn.weight > 1) {
+      errors.push(err(`entities.${name}.spawns[${i}].weight`, `weight must be between 0 and 1`))
+    }
+  })
+
   for (const [bName, behavior] of Object.entries(entity.behaviors)) {
     if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {
       errors.push(

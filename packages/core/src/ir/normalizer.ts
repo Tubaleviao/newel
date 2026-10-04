@@ -9,6 +9,7 @@ import type {
   ApiSchema,
   EndpointSchema,
   GdprCategory,
+  SpawnSchema,
 } from './types'
 import type {
   FabricInput,
@@ -125,6 +126,35 @@ function normalizeBehavior(name: string, raw: BehaviorInput, entityName: string)
   }
 }
 
+function normalizeSpawns(entityName: string, raw: unknown): SpawnSchema[] | undefined {
+  if (raw === undefined) return undefined
+  if (!Array.isArray(raw)) {
+    throw new Error(`entities.${entityName}: "spawns" must be an array, got ${JSON.stringify(raw)}`)
+  }
+  return raw.map((s, i) => {
+    const path = `entities.${entityName}.spawns[${i}]`
+    if (typeof s !== 'object' || s === null || Array.isArray(s)) {
+      throw new Error(`${path}: must be an object`)
+    }
+    const { target, weight, conditions } = s as Record<string, unknown>
+    if (typeof target !== 'string' || target === '') {
+      throw new Error(`${path}: "target" must be a non-empty string`)
+    }
+    if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0 || weight > 1) {
+      throw new Error(
+        `${path}: "weight" must be a number between 0 and 1, got ${JSON.stringify(weight)}`,
+      )
+    }
+    if (conditions !== undefined) {
+      if (!Array.isArray(conditions) || conditions.some((c) => typeof c !== 'string')) {
+        throw new Error(`${path}: "conditions" must be an array of strings`)
+      }
+      return { target, weight, conditions: [...(conditions as string[])] }
+    }
+    return { target, weight }
+  })
+}
+
 function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
   const fields: Record<string, FieldSchema> = {}
   const pii: string[] = []
@@ -155,6 +185,8 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     )
   }
 
+  const spawns = normalizeSpawns(name, raw.spawns)
+
   return {
     name,
     tags: [...tags],
@@ -162,6 +194,7 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     goal: raw.goal,
     fields,
     relations: raw.relations ?? {},
+    ...(spawns ? { spawns } : {}),
     behaviors,
     stateMachine: raw.stateMachine
       ? normalizeStateMachine(raw.stateMachine, behaviors, name)
