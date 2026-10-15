@@ -239,6 +239,8 @@ not depend on this.
   and `diff` reports it.
 - Tests cover the localized output of each of the three generators; CI green.
 
+---
+
 ## Phase 16 — Financial application support (Money Moon)
 
 Gaps found when planning to move `../money-moon` (Brazilian tax estimator) to a
