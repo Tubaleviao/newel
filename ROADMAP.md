@@ -193,6 +193,54 @@ resource files from the IR.
 
 ---
 
+## Phase 15 — Localized output for user-facing generators
+
+Newel itself is a developer tool and is exempt from the workspace i18n rule: the CLI,
+`validate` messages and internal design output (`generator-docs`, `generator-bible`,
+`generator-typescript`, `generator-openapi`) stay English-only.
+
+The exception is generators whose output reaches end users. The fabric is where the
+player-facing text of downstream apps comes from (Project Nihon's item, creature and
+skill names, its wiki, generated forms). Without localizable text in the fabric, those
+apps keep a separate translation file that drifts from it. This phase lets the fabric
+carry translations and makes the user-facing generators emit them.
+
+**When:** schedule it when Project Nihon starts its "Localized fabric content" item
+(`../project-nihon/ROADMAP.md`, Deferred). Nihon's UI translation (its Phase 123) does
+not depend on this.
+
+**What to build:**
+
+- `@newel/core` — the fabric may declare `locales: string[]` and a `defaultLocale`;
+  user-facing text fields (`label`, `description`, enum value labels, action labels)
+  accept a plain string (default locale) or a `Record<locale, string>`. Each text gets
+  a stable translation key derived from its IR path (`item.iron_ingot.name`). IR minor
+  version bump; fabrics without `locales` are unaffected.
+- `validate` — warns on a missing translation for a declared locale, naming the IR
+  path (error with `--strict-i18n`).
+- `generator-godot` — emits a Godot CSV translation catalog (one column per locale);
+  `.tres` resources store keys, and `GameData` helpers resolve them with `tr()`.
+- `generator-wiki` — one wiki tree per locale (`<out>/<locale>/...`), default locale at
+  the root path for backward compatibility.
+- `generator-ui` — forms and action panels use keys and ship one JSON message catalog
+  per locale.
+- Other generators read the default-locale text only.
+
+**Dependencies:** none.
+
+**Acceptance criteria:**
+
+- A fabric without `locales` produces byte-identical output to the previous version
+  (existing snapshot tests pass unchanged).
+- A fabric with `locales: ["en", "pt-BR"]` produces a Godot catalog whose key set equals
+  the IR's text keys, a per-locale wiki tree and per-locale UI catalogs.
+- `validate --strict-i18n` fails on a missing translation and names the IR path.
+- Keys are stable: changing a text does not change its key; renaming the entity does,
+  and `diff` reports it.
+- Tests cover the localized output of each of the three generators; CI green.
+
+---
+
 ## Phase 16 — Financial application support (Money Moon)
 
 Gaps found when planning to move `../money-moon` (Brazilian tax estimator) to a
