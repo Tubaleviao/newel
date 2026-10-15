@@ -193,6 +193,51 @@ resource files from the IR.
 
 ---
 
+## Phase 15 — Internationalization: localized fabrics and generators
+
+Translation support is mandatory for every project (workspace rule), and Newel is the
+source of user-facing text for the apps it generates: entity names, field labels, enum
+values, action names and descriptions all come from the fabric. Today they are single
+English strings. This phase makes them localizable once, in the fabric, and teaches the
+generators to emit per-locale output, so downstream apps (Project Nihon first) get
+translation catalogs instead of hard-coded text.
+
+**What to build:**
+
+- `@newel/core` — the fabric declares `locales: string[]` and a `defaultLocale`; any
+  user-facing text field (`label`, `description`, enum value labels, action labels) accepts
+  either a plain string (default locale) or a `Record<locale, string>`. Every text gets a
+  stable translation key derived from its IR path (`item.iron_ingot.name`). IR version bump
+  with a migration note.
+- `validate` — reports, per locale, the texts missing a translation (warning by default,
+  error with `--strict-i18n`); `inspect --i18n` prints coverage per locale.
+- `generator-godot` — emits a Godot CSV translation catalog (one column per locale) and
+  `.tres` resources that store keys, with `GameData` helpers that call `tr()`.
+- `generator-docs`, `generator-bible`, `generator-wiki` — one output tree per locale
+  (`<out>/<locale>/...`), default locale at the root path for backward compatibility.
+- `generator-ui` — forms and action panels use keys and ship a JSON message catalog per
+  locale.
+- `generator-typescript` / `generator-openapi` — descriptions in the default locale;
+  OpenAPI adds `x-i18n` with the other locales.
+- CLI — its own messages go through a small catalog (`en`, `pt-BR`), picked from
+  `--lang`, then `LANG`, then `en`.
+
+**Dependencies:** none.
+
+**Acceptance criteria:**
+
+- A fabric without `locales` produces byte-identical output to the previous version (all
+  existing snapshot tests pass unchanged).
+- A fabric with `locales: ["en", "pt-BR"]` produces a Godot catalog whose key set equals
+  the IR's text keys, and per-locale docs/wiki trees.
+- `validate --strict-i18n` fails on a missing translation and names the IR path.
+- Translation keys are stable: renaming a description's text does not change its key;
+  renaming the entity does, and `diff` reports it.
+- CLI messages render in pt-BR with `--lang pt-BR`; unknown locale falls back to `en`.
+- Tests cover each generator's localized output; CI green.
+
+---
+
 ## Project Nihon
 
 Project Nihon is the reference implementation that drives these phases. See
