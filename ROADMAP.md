@@ -193,6 +193,98 @@ resource files from the IR.
 
 ---
 
+## Phase 16 — Financial application support (Money Moon)
+
+Gaps found when planning to move `../money-moon` (Brazilian tax estimator) to a
+fabric-first workflow. Money Moon's domain rules: money is `bigint` centavos,
+rates are `bigint` basis points, never floating point; months are `"YYYY-MM"`
+strings; every tax rule carries a source, validity window and review status.
+Calculation logic stays hand-written: behaviors declare the typed contract
+(input/output), the domain code implements it.
+
+All sub-phases are additive (IR minor bump), except where noted.
+
+### 16a — `bigint` and `money` field types
+
+Add `'bigint'` and `'money'` to `FieldType`. `money` is a `bigint` amount in the
+currency's minor unit, with an optional currency code:
+
+```ts
+// FieldSchema gains:
+currency?: string // ISO 4217, e.g. 'BRL'; only valid on 'money'
+```
+
+**Acceptance criteria:**
+
+- `generator-typescript`: TS `bigint`, Zod `z.bigint()`
+- `generator-sql`: `BIGINT`; `generator-prisma`: `BigInt`
+- `generator-jsonschema` / `generator-openapi`: `type: string` with an integer
+  pattern (JSON has no safe bigint), `x-newel-type: money` + currency
+- `generator-docs`: shows currency and "minor units" in the fields table
+- Validator rejects `currency` on non-`money` fields
+- Every generator with an exhaustive `FieldType` switch handles both types (tests)
+
+### 16b — String constraints (`pattern`)
+
+Add `pattern?: string` (regex source) to `FieldSchema`, for values such as
+`YearMonth` (`^\d{4}-(0[1-9]|1[0-2])$`) or CNAE codes.
+
+**Acceptance criteria:**
+
+- Zod `.regex()`, JSON Schema / OpenAPI `pattern`, SQL `CHECK (col ~ '...')`
+- Validator rejects patterns that fail `new RegExp()` and `pattern` on
+  non-string fields
+
+### 16c — Entity seed records
+
+Reference tables (tax brackets, municipal fees, rule metadata) are data, not
+code. Add optional seed rows to entities:
+
+```ts
+// EntitySchema gains:
+seeds?: Record<string, unknown>[]
+```
+
+**Acceptance criteria:**
+
+- Validator checks each seed against the entity's fields (types, enum values,
+  pattern, required fields, foreign keys resolve to other seeds)
+- `generator-sql`: idempotent `INSERT ... ON CONFLICT DO NOTHING` in a seed file
+- `generator-typescript`: typed `as const` arrays (bigint literals for
+  `bigint`/`money`), so pure domain code can import rule tables without I/O
+- `generator-docs`: renders seeds as a table per entity (rule catalog with
+  source, validity and status columns)
+- `check-drift` covers seed output
+
+### 16d — `generator-drizzle`
+
+A new package `packages/generator-drizzle` emitting Drizzle ORM `pgTable`
+schema files (Postgres), so Deno/Fresh projects (`money-moon`, `kayozen`) keep
+Drizzle as their query layer.
+
+**Dependencies:** 16a (bigint/money columns), 16b (CHECK constraints)
+
+**Acceptance criteria:**
+
+- One `<entity>.ts` per entity plus an `index.ts` barrel
+- Field types map to Drizzle column builders (`bigint({ mode: 'bigint' })` for
+  `bigint`/`money`, `pgEnum` for enums, `uuid().defaultRandom()` for uuid PKs)
+- Relations emit `relations()` helpers; foreign keys emit `.references()`
+- Output configurable: import specifier (`drizzle-orm/pg-core` vs `npm:` for
+  Deno), output dir, casing
+- Generated schema passes `drizzle-kit generate` without manual edits (test
+  fixture)
+- Generator fails loudly if the IR version it was built against changes
+
+---
+
+## Money Moon
+
+`../money-moon` is the reference implementation for Phase 16. See
+`../money-moon/docs/roadmap.md` (Fase 1.5) for the app-side migration plan.
+
+---
+
 ## Project Nihon
 
 Project Nihon is the reference implementation that drives these phases. See
