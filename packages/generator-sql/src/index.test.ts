@@ -399,6 +399,7 @@ const finSchema: FabricSchema = {
     Charge: {
       name: 'Charge',
       tags: [],
+      description: '',
       fields: {
         id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         amount: {
@@ -449,6 +450,7 @@ describe('SqlGenerator seeds', () => {
       Child: {
         name: 'Child',
         tags: [],
+        description: '',
         fields: {
           code: { name: 'code', type: 'string', nullable: false, primaryKey: true, pii: false },
           parent: {
@@ -469,6 +471,7 @@ describe('SqlGenerator seeds', () => {
       Parent: {
         name: 'Parent',
         tags: [],
+        description: '',
         fields: {
           code: { name: 'code', type: 'string', nullable: false, primaryKey: true, pii: false },
           fee: { name: 'fee', type: 'money', nullable: false, primaryKey: false, pii: false },

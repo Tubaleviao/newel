@@ -159,6 +159,7 @@ const finSchema: FabricSchema = {
     Charge: {
       name: 'Charge',
       tags: [],
+      description: '',
       fields: {
         id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         amount: {
@@ -211,6 +212,7 @@ describe('TypeScriptGenerator seeds', () => {
         Rate: {
           name: 'Rate',
           tags: [],
+          description: '',
           fields: {
             code: { name: 'code', type: 'string', nullable: false, primaryKey: false, pii: false },
             bps: { name: 'bps', type: 'bigint', nullable: false, primaryKey: false, pii: false },

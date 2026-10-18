@@ -241,7 +241,7 @@ not depend on this.
 
 ---
 
-## Phase 16 — Financial application support (Money Moon)
+## Phase 16 — Financial application support (Money Moon) ✅ Done
 
 Gaps found when planning to move `../money-moon` (Brazilian tax estimator) to a
 fabric-first workflow. Money Moon's domain rules: money is `bigint` centavos,
@@ -304,7 +304,7 @@ seeds?: Record<string, unknown>[]
   source, validity and status columns)
 - `check-drift` covers seed output
 
-### 16d — `generator-drizzle`
+### 16d — `generator-drizzle` ✅ Done
 
 A new package `packages/generator-drizzle` emitting Drizzle ORM `pgTable`
 schema files (Postgres), so Deno/Fresh projects (`money-moon`, `kayozen`) keep

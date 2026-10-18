@@ -250,6 +250,7 @@ const finSchema: FabricSchema = {
     Charge: {
       name: 'Charge',
       tags: [],
+      description: '',
       fields: {
         id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
         amount: {
