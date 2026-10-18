@@ -121,6 +121,13 @@ function gdTresValue(field: FieldSchema): string {
       }
       return String(idx)
     }
+    if (
+      typeof v === 'string' &&
+      (field.type === 'bigint' || field.type === 'money') &&
+      /^-?\d+$/.test(v)
+    ) {
+      return v
+    }
     return JSON.stringify(v)
   }
   switch (field.type) {

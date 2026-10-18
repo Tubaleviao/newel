@@ -47,7 +47,8 @@ function normalizeField(name: string, raw: FieldInput, context?: string): FieldS
     gdprCategory,
     gdprRetention,
     gdprLegalBasis,
-    defaultValue: raw.defaultValue,
+    defaultValue:
+      typeof raw.defaultValue === 'bigint' ? raw.defaultValue.toString() : raw.defaultValue,
     // Spread only when set so existing fabrics keep byte-identical IR
     ...(raw.currency !== undefined ? { currency: raw.currency } : {}),
     ...(raw.pattern !== undefined ? { pattern: raw.pattern } : {}),

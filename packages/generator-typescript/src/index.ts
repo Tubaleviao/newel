@@ -111,7 +111,15 @@ function generateZodSchema(entity: EntitySchema): string {
 }
 
 function tsSeedLiteral(field: FieldSchema | undefined, v: unknown): string {
-  if (field && (field.type === 'bigint' || field.type === 'money')) return `${String(v)}n`
+  if (field && (field.type === 'bigint' || field.type === 'money')) {
+    const text = String(v)
+    if (!/^-?\d+$/.test(text)) {
+      throw new Error(
+        `@newel/generator-typescript: ${field.type} field "${field.name}" has non-integer seed value ${JSON.stringify(text)}`,
+      )
+    }
+    return `${text}n`
+  }
   return JSON.stringify(v)
 }
 

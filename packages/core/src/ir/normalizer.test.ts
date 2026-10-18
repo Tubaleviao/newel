@@ -457,4 +457,13 @@ describe('normalizeSchema systems', () => {
       normalizeSchema({ meta: { name: 'X' }, systems: { S: { description: '', rules: [1] } } }),
     ).toThrow('rules')
   })
+
+  it('stores bigint defaultValue as an integer string (JSON-safe IR)', () => {
+    const ir = normalizeSchema({
+      meta: { name: 'X' },
+      entities: { E: { fields: { amount: { type: 'money', defaultValue: 100n } } } },
+    })
+    expect(ir.entities.E.fields.amount.defaultValue).toBe('100')
+    expect(() => JSON.stringify(ir)).not.toThrow()
+  })
 })

@@ -212,6 +212,42 @@ describe('SqlGenerator', () => {
       expect(migFile!.content).toContain('ADD COLUMN IF NOT EXISTS published_at')
     })
 
+    it('uses a numeric default and a pattern CHECK for added money/pattern columns', async () => {
+      const prev = makeSnapshot(bookSchema)
+      const base = bookSchema.entities.Book
+      const next: FabricSchema = {
+        ...bookSchema,
+        entities: {
+          Book: {
+            ...base,
+            fields: {
+              ...base.fields,
+              price: {
+                name: 'price',
+                type: 'money',
+                currency: 'BRL',
+                nullable: false,
+                primaryKey: false,
+                pii: false,
+              },
+              code: {
+                name: 'code',
+                type: 'string',
+                pattern: '^[A-Z]+$',
+                nullable: true,
+                primaryKey: false,
+                pii: false,
+              },
+            },
+          },
+        },
+      }
+      const result = await generator.generate(next, makeCtx(prev))
+      const mig = result.files.find((f) => f.path.startsWith('sql/migrations/'))!.content
+      expect(mig).toContain('price BIGINT NOT NULL DEFAULT 0;')
+      expect(mig).toContain("CHECK (code ~ '^[A-Z]+$')")
+    })
+
     it('emits MANUAL REVIEW block for removed columns', async () => {
       const prev = makeSnapshot(bookSchema)
       const withoutNotes: FabricSchema = {

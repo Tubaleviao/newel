@@ -104,4 +104,27 @@ describe('DrizzleGenerator', () => {
       fs.rmSync(dir, { recursive: true, force: true })
     }
   }, 60000)
+
+  it('uses table refs in CHECKs, AnyPgColumn for self references and skips unpaired hasMany', async () => {
+    const s = normalizeSchema({
+      meta: { name: 'Fx' },
+      entities: {
+        Category: {
+          fields: {
+            id: { type: 'uuid', primaryKey: true },
+            parentId: { type: 'uuid', nullable: true, foreignKey: 'Category.id' },
+            userName: { type: 'string', pattern: '^a+$' },
+          },
+          relations: { items: { name: 'items', kind: 'hasMany', target: 'Item' } },
+        },
+        Item: { fields: { id: { type: 'uuid', primaryKey: true } } },
+      },
+    })
+    const out = await gen({ casing: 'camel' }, s)
+    const cat = out['drizzle/category.ts']
+    expect(cat).toContain('(): AnyPgColumn => categoryTable.id')
+    expect(cat).toContain('type AnyPgColumn')
+    expect(cat).toContain('sql`${table.userName} ~')
+    expect(cat).not.toContain('many(')
+  })
 })

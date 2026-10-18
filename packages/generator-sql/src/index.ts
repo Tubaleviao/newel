@@ -340,8 +340,9 @@ function renderIncrementalMigration(
       const sqlType = fieldToSqlType(diff.entityName, field)
       if (!field.nullable && !field.primaryKey) {
         // NOT NULL column — must provide a default for existing rows
+        const placeholder = field.type === 'bigint' || field.type === 'money' ? '0' : "''"
         lines.push(
-          `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType} NOT NULL DEFAULT '';`,
+          `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType} NOT NULL DEFAULT ${placeholder};`,
         )
         lines.push(
           `-- TODO: backfill ${colName} with appropriate values, then consider removing DEFAULT`,
@@ -349,6 +350,7 @@ function renderIncrementalMigration(
       } else {
         lines.push(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType};`)
       }
+      if (field.pattern !== undefined) lines.push(...patternCheckSql(table, colName, field.pattern))
     }
 
     // Changed columns
@@ -366,6 +368,15 @@ function renderIncrementalMigration(
         lines.push(`ALTER TABLE ${table} ALTER COLUMN ${colName} SET NOT NULL;`)
       } else if (!pf.nullable && nf.nullable) {
         lines.push(`ALTER TABLE ${table} ALTER COLUMN ${colName} DROP NOT NULL;`)
+      }
+      if (pf.pattern !== nf.pattern) {
+        if (nf.pattern !== undefined) {
+          lines.push(...patternCheckSql(table, colName, nf.pattern))
+        } else {
+          lines.push(
+            `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS chk_${table}_${colName}_pattern;`,
+          )
+        }
       }
     }
 
@@ -392,11 +403,27 @@ function renderIncrementalMigration(
   return lines.join('\n')
 }
 
+function patternCheckSql(table: string, col: string, pattern: string): string[] {
+  const lit = pattern.replace(/'/g, "''")
+  return [
+    `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS chk_${table}_${col}_pattern;`,
+    `ALTER TABLE ${table} ADD CONSTRAINT chk_${table}_${col}_pattern CHECK (${col} ~ '${lit}');`,
+  ]
+}
+
 // --- Seed data ---
 
 function sqlLiteral(field: FieldSchema, v: unknown): string {
   if (v === null || v === undefined) return 'NULL'
-  if (field.type === 'bigint' || field.type === 'money') return String(v)
+  if (field.type === 'bigint' || field.type === 'money') {
+    const text = String(v)
+    if (!/^-?\d+$/.test(text)) {
+      throw new Error(
+        `@newel/generator-sql: ${field.type} field "${field.name}" has non-integer seed value ${JSON.stringify(text)}`,
+      )
+    }
+    return text
+  }
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   if (field.type === 'json') return `'${JSON.stringify(v).replace(/'/g, "''")}'::jsonb`
   return `'${String(v).replace(/'/g, "''")}'`

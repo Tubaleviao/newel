@@ -89,7 +89,15 @@ class DrizzleEmitter {
   private defaultExpr(field: FieldSchema): string {
     const v = field.defaultValue
     if (v === undefined) return ''
-    if (field.type === 'bigint' || field.type === 'money') return `.default(${String(v)}n)`
+    if (field.type === 'bigint' || field.type === 'money') {
+      const text = String(v)
+      if (!/^-?\d+$/.test(text)) {
+        throw new Error(
+          `@newel/generator-drizzle: ${field.type} field "${field.name}" has non-integer defaultValue ${JSON.stringify(text)}`,
+        )
+      }
+      return `.default(${text}n)`
+    }
     if (field.type === 'timestamp' || field.type === 'date') return ''
     if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
       return `.default(${JSON.stringify(v)})`
@@ -161,7 +169,13 @@ class DrizzleEmitter {
     if (field.foreignKey) {
       const [refEntity, refField = 'id'] = field.foreignKey.split('.')
       if (this.schema.entities[refEntity]) {
-        expr += `.references(() => ${this.tableVar(refEntity)}.${refField})`
+        if (refEntity === entity.name) {
+          // Self-reference: explicit return type breaks the circular type inference
+          used.add('type AnyPgColumn')
+          expr += `.references((): AnyPgColumn => ${this.tableVar(refEntity)}.${refField})`
+        } else {
+          expr += `.references(() => ${this.tableVar(refEntity)}.${refField})`
+        }
       }
     }
     return expr
@@ -199,7 +213,7 @@ class DrizzleEmitter {
         .replace(/`/g, '\\`')
         .replace(/\$\{/g, '\\${')
       const cname = `chk_${tableName(entity.name)}_${toSnakeCase(f.name)}_pattern`
-      checks.push(`    check(${str(cname)}, sql\`${this.col(f.name)} ~ '${lit}'\`),`)
+      checks.push(`    check(${str(cname)}, sql\`${'${table.' + f.name + '}'} ~ '${lit}'\`),`)
     }
     const tv = this.tableVar(entity.name)
     if (checks.length > 0) {
@@ -218,6 +232,17 @@ class DrizzleEmitter {
     // Join tables for manyToMany owned by this entity
     for (const rel of Object.values(entity.relations)) {
       if (rel.kind !== 'manyToMany') continue
+      // `through` naming an existing entity: that entity's own table is the join table
+      if (rel.through && this.schema.entities[rel.through]) continue
+      // Both sides declare the relation: only the alphabetically first owner emits it
+      const inverse = this.schema.entities[rel.target]?.relations
+      if (
+        entity.name > rel.target &&
+        inverse &&
+        Object.values(inverse).some((r) => r.kind === 'manyToMany' && r.target === entity.name)
+      ) {
+        continue
+      }
       used.add('uuid')
       used.add('primaryKey')
       const left = toSnakeCase(entity.name)
@@ -291,9 +316,15 @@ class DrizzleEmitter {
         ]
       }
       case 'hasOne':
-        return [`  ${rel.name}: one(${targetVar}),`]
-      case 'hasMany':
-        return [`  ${rel.name}: many(${targetVar}),`]
+      case 'hasMany': {
+        // Drizzle infers the join from the target's belongsTo; without one the relation is unusable
+        const target = this.schema.entities[rel.target]
+        const hasInverse = Object.values(target.relations).some(
+          (r) => r.kind === 'belongsTo' && r.target === entity.name,
+        )
+        if (!hasInverse) return []
+        return [`  ${rel.name}: ${rel.kind === 'hasOne' ? 'one' : 'many'}(${targetVar}),`]
+      }
       default:
         return []
     }
