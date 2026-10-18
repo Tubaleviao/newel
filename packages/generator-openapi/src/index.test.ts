@@ -374,7 +374,7 @@ describe('OpenApiGenerator money/bigint/pattern', () => {
     })
     const text = result.files.map((f) => f.content).join('\n')
     expect(text).toContain('x-newel-type: money')
-    expect(text).toContain("x-newel-currency: BRL")
+    expect(text).toContain('x-newel-currency: BRL')
     expect(text).toContain('pattern:')
   })
 })

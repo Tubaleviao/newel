@@ -160,6 +160,25 @@ function normalizeSpawns(entityName: string, raw: unknown): SpawnSchema[] | unde
   })
 }
 
+function normalizeSeeds(
+  entity: string,
+  seeds: Record<string, unknown>[],
+  fields: Record<string, FieldSchema>,
+): Record<string, unknown>[] {
+  if (!Array.isArray(seeds)) throw new Error(`entities.${entity}.seeds: must be an array`)
+  return seeds.map((row, i) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      throw new Error(`entities.${entity}.seeds[${i}]: must be an object`)
+    }
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(row)) {
+      const t = fields[k]?.type
+      out[k] = (t === 'bigint' || t === 'money') && typeof v === 'bigint' ? v.toString() : v
+    }
+    return out
+  })
+}
+
 function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
   const fields: Record<string, FieldSchema> = {}
   const pii: string[] = []
@@ -200,6 +219,7 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     fields,
     relations: raw.relations ?? {},
     ...(spawns ? { spawns } : {}),
+    ...(raw.seeds ? { seeds: normalizeSeeds(name, raw.seeds, fields) } : {}),
     behaviors,
     stateMachine: raw.stateMachine
       ? normalizeStateMachine(raw.stateMachine, behaviors, name)

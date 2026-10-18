@@ -201,3 +201,36 @@ describe('TypeScriptGenerator money/bigint/pattern', () => {
     expect(text).toContain('.regex(new RegExp(')
   })
 })
+
+describe('TypeScriptGenerator seeds', () => {
+  it('emits typed as-const arrays with bigint literals', async () => {
+    const schema: FabricSchema = {
+      version: '3.0.0',
+      meta: { name: 'S', version: '0.1.0' },
+      entities: {
+        Rate: {
+          name: 'Rate',
+          tags: [],
+          fields: {
+            code: { name: 'code', type: 'string', nullable: false, primaryKey: false, pii: false },
+            bps: { name: 'bps', type: 'bigint', nullable: false, primaryKey: false, pii: false },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          seeds: [{ code: 'x', bps: '600' }],
+        },
+      },
+      apis: {},
+    }
+    const result = await new TypeScriptGenerator().generate(schema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files[0].content
+    expect(text).toContain('export const rateSeeds = [')
+    expect(text).toContain('{ code: "x", bps: 600n },')
+    expect(text).toContain('] as const')
+  })
+})

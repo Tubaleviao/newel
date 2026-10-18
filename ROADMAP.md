@@ -283,7 +283,7 @@ Add `pattern?: string` (regex source) to `FieldSchema`, for values such as
 - Validator rejects patterns that fail `new RegExp()` and `pattern` on
   non-string fields
 
-### 16c — Entity seed records
+### 16c — Entity seed records ✅ Done
 
 Reference tables (tax brackets, municipal fees, rule metadata) are data, not
 code. Add optional seed rows to entities:

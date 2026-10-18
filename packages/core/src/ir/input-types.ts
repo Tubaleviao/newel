@@ -95,6 +95,8 @@ export type EntityInput = {
   fields?: Record<string, FieldInput>
   relations?: Record<string, RelationSchema>
   spawns?: SpawnSchema[]
+  /** Seed rows; `bigint`/`money` values may be bigint, integer number or integer string */
+  seeds?: Record<string, unknown>[]
   behaviors?: Record<string, BehaviorInput>
   stateMachine?: StateMachineInput
 }

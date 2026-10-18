@@ -379,3 +379,43 @@ describe('DocsGenerator money/bigint/pattern', () => {
     expect(text).toContain('bigint')
   })
 })
+
+describe('DocsGenerator seeds', () => {
+  it('renders seed rows as a table', async () => {
+    const schema: FabricSchema = {
+      version: '3.0.0',
+      meta: { name: 'S', version: '0.1.0' },
+      entities: {
+        Rule: {
+          name: 'Rule',
+          tags: [],
+          description: 'd',
+          fields: {
+            code: { name: 'code', type: 'string', nullable: false, primaryKey: false, pii: false },
+            status: {
+              name: 'status',
+              type: 'string',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          seeds: [{ code: 'A1', status: 'reviewed' }],
+        },
+      },
+      apis: {},
+    }
+    const result = await new DocsGenerator().generate(schema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files.map((f) => f.content).join('\n')
+    expect(text).toContain('## Seed data')
+    expect(text).toContain('A1')
+    expect(text).toContain('reviewed')
+  })
+})

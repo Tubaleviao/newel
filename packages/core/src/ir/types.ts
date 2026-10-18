@@ -105,6 +105,8 @@ export interface EntitySchema {
   fields: Record<string, FieldSchema>
   relations: Record<string, RelationSchema>
   spawns?: SpawnSchema[]
+  /** Reference-data rows. `bigint`/`money` values are stored as integer strings (JSON-safe). */
+  seeds?: Record<string, unknown>[]
   behaviors: Record<string, BehaviorSchema>
   stateMachine?: StateMachineSchema
   pii: string[]

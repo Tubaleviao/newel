@@ -110,6 +110,20 @@ function generateZodSchema(entity: EntitySchema): string {
   return lines.join('\n')
 }
 
+function tsSeedLiteral(field: FieldSchema | undefined, v: unknown): string {
+  if (field && (field.type === 'bigint' || field.type === 'money')) return `${String(v)}n`
+  return JSON.stringify(v)
+}
+
+function generateSeeds(entity: EntitySchema): string | null {
+  if (!entity.seeds || entity.seeds.length === 0) return null
+  const rows = entity.seeds.map((row) => {
+    const props = Object.entries(row).map(([k, v]) => `${k}: ${tsSeedLiteral(entity.fields[k], v)}`)
+    return `  { ${props.join(', ')} },`
+  })
+  return `export const ${lcFirst(entity.name)}Seeds = [\n${rows.join('\n')}\n] as const`
+}
+
 function generateStateEnum(entity: EntitySchema): string | null {
   const sm = entity.stateMachine
   if (!sm) return null
@@ -140,6 +154,8 @@ export class TypeScriptGenerator implements Generator {
       if (stateEnum) sections.push(stateEnum, '')
       sections.push(iface, '')
       sections.push(zod)
+      const seeds = generateSeeds(entity)
+      if (seeds) sections.push('', seeds)
       sections.push(`// #endregion ${entity.name}`)
       sections.push('')
     }

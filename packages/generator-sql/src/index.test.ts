@@ -440,3 +440,66 @@ describe('SqlGenerator money/bigint/pattern', () => {
     expect(text).toContain("CHECK (period ~ '")
   })
 })
+
+describe('SqlGenerator seeds', () => {
+  const seedSchema: FabricSchema = {
+    version: '3.0.0',
+    meta: { name: 'S', version: '0.1.0' },
+    entities: {
+      Child: {
+        name: 'Child',
+        tags: [],
+        fields: {
+          code: { name: 'code', type: 'string', nullable: false, primaryKey: true, pii: false },
+          parent: {
+            name: 'parent',
+            type: 'string',
+            nullable: false,
+            primaryKey: false,
+            pii: false,
+            foreignKey: 'Parent.code',
+          },
+        },
+        relations: {},
+        behaviors: {},
+        pii: [],
+        gdpr: {},
+        seeds: [{ code: "c'1", parent: 'p1' }],
+      },
+      Parent: {
+        name: 'Parent',
+        tags: [],
+        fields: {
+          code: { name: 'code', type: 'string', nullable: false, primaryKey: true, pii: false },
+          fee: { name: 'fee', type: 'money', nullable: false, primaryKey: false, pii: false },
+        },
+        relations: {},
+        behaviors: {},
+        pii: [],
+        gdpr: {},
+        seeds: [{ code: 'p1', fee: '1500' }],
+      },
+    },
+    apis: {},
+  }
+
+  it('emits idempotent seed inserts with referenced entities first', async () => {
+    const result = await new SqlGenerator().generate(seedSchema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const seed = result.files.find((f) => f.path === 'sql/seed.sql')!.content
+    expect(seed).toContain('ON CONFLICT DO NOTHING')
+    expect(seed).toContain("VALUES ('p1', 1500)")
+    expect(seed).toContain("'c''1'")
+    expect(seed.indexOf('Parent'.toLowerCase())).toBeLessThan(seed.indexOf('child'))
+  })
+
+  it('emits no seed file without seeds', async () => {
+    const result = await new SqlGenerator().generate(
+      { ...seedSchema, entities: {} },
+      { outputDir: '/tmp/s', outputs: new Map<string, GeneratorOutput>() },
+    )
+    expect(result.files.some((f) => f.path === 'sql/seed.sql')).toBe(false)
+  })
+})

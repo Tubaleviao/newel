@@ -154,6 +154,23 @@ function renderEntityPage(entity: EntitySchema): string {
     lines.push('')
   }
 
+  if (entity.seeds && entity.seeds.length > 0) {
+    const cols = Object.keys(entity.fields).filter((c) =>
+      entity.seeds!.some((row) => row[c] !== undefined),
+    )
+    const rows = entity.seeds.map((row) =>
+      cols.map((c) => {
+        const v = row[c]
+        if (v === undefined || v === null) return ''
+        return escMd(typeof v === 'object' ? JSON.stringify(v) : String(v))
+      }),
+    )
+    lines.push('## Seed data')
+    lines.push('')
+    lines.push(mdTable(cols, rows))
+    lines.push('')
+  }
+
   if (Object.keys(entity.relations).length) {
     lines.push('## Relations')
     lines.push('')
