@@ -245,7 +245,31 @@ describe('SqlGenerator', () => {
       const result = await generator.generate(next, makeCtx(prev))
       const mig = result.files.find((f) => f.path.startsWith('sql/migrations/'))!.content
       expect(mig).toContain('price BIGINT NOT NULL DEFAULT 0;')
-      expect(mig).toContain("CHECK (code ~ '^[A-Z]+$')")
+      expect(mig).toContain("CHECK (code ~ '^[A-Z]+$') NOT VALID;")
+    })
+
+    it('detects a pattern-only change on an existing column', async () => {
+      const withPattern = (pattern?: string): FabricSchema => {
+        const e = bookSchema.entities.Book
+        const fields = {
+          ...e.fields,
+          isbn: {
+            name: 'isbn',
+            type: 'string' as const,
+            nullable: true,
+            primaryKey: false,
+            pii: false,
+            ...(pattern ? { pattern } : {}),
+          },
+        }
+        return { ...bookSchema, entities: { ...bookSchema.entities, Book: { ...e, fields } } }
+      }
+      const result = await generator.generate(
+        withPattern('^\\d+$'),
+        makeCtx(makeSnapshot(withPattern())),
+      )
+      const mig = result.files.find((f) => f.path.startsWith('sql/migrations/'))!.content
+      expect(mig).toContain('chk_books_isbn_pattern')
     })
 
     it('emits MANUAL REVIEW block for removed columns', async () => {

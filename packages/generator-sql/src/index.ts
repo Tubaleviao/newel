@@ -235,7 +235,11 @@ function diffSchemas(prev: FabricSchema, next: FabricSchema): EntityDiff[] {
           }
         }
         // Detect other column changes (type, nullability)
-        if (pf.type !== field.type || pf.nullable !== field.nullable) {
+        if (
+          pf.type !== field.type ||
+          pf.nullable !== field.nullable ||
+          pf.pattern !== field.pattern
+        ) {
           fieldDiff.changed.push({ prev: pf, next: field })
         }
       }
@@ -407,7 +411,7 @@ function patternCheckSql(table: string, col: string, pattern: string): string[] 
   const lit = pattern.replace(/'/g, "''")
   return [
     `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS chk_${table}_${col}_pattern;`,
-    `ALTER TABLE ${table} ADD CONSTRAINT chk_${table}_${col}_pattern CHECK (${col} ~ '${lit}');`,
+    `ALTER TABLE ${table} ADD CONSTRAINT chk_${table}_${col}_pattern CHECK (${col} ~ '${lit}') NOT VALID;`,
   ]
 }
 

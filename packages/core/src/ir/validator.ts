@@ -143,7 +143,8 @@ function validateSeeds(
     for (const [fName, field] of Object.entries(entity.fields)) {
       const v = row[fName]
       if (v === undefined) {
-        if (!field.nullable && !field.primaryKey && field.defaultValue === undefined) {
+        // generated SQL/TS seeds emit no column defaults, so every non-null field must be explicit
+        if (!field.nullable) {
           errors.push(err(`${loc}.${fName}`, `missing required field "${fName}"`))
         }
         continue
