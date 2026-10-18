@@ -22,6 +22,10 @@ export type FieldInput = {
   values?: string[]
   enumValues?: string[]
   foreignKey?: string
+  /** ISO 4217 currency code; only valid on 'money' fields */
+  currency?: string
+  /** Regex source for string-like fields */
+  pattern?: string
   pii?: boolean
   /** Nested GDPR object — alternative to flat gdprCategory/gdprRetention/gdprLegalBasis */
   gdpr?: GdprInput

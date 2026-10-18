@@ -274,3 +274,35 @@ describe('validateSchema', () => {
     expect(result.errors.some((e) => e.message.includes('"GhostEntity"'))).toBe(true)
   })
 })
+
+describe('validateSchema money/bigint/pattern', () => {
+  const base = (field: Record<string, unknown>) =>
+    normalizeSchema({
+      meta: { name: 'X' },
+      entities: { E: { fields: { f: field } } },
+    })
+
+  it('accepts currency on money fields', () => {
+    expect(validateSchema(base({ type: 'money', currency: 'BRL' })).valid).toBe(true)
+  })
+
+  it('rejects currency on non-money fields', () => {
+    const r = validateSchema(base({ type: 'bigint', currency: 'BRL' }))
+    expect(r.valid).toBe(false)
+    expect(r.errors[0].path).toBe('entities.E.fields.f.currency')
+  })
+
+  it('rejects invalid regex patterns', () => {
+    const r = validateSchema(base({ type: 'string', pattern: '(' }))
+    expect(r.valid).toBe(false)
+    expect(r.errors[0].path).toBe('entities.E.fields.f.pattern')
+  })
+
+  it('rejects pattern on non-string fields', () => {
+    expect(validateSchema(base({ type: 'integer', pattern: '^1$' })).valid).toBe(false)
+  })
+
+  it('accepts a valid pattern on a string field', () => {
+    expect(validateSchema(base({ type: 'string', pattern: '^\\d+$' })).valid).toBe(true)
+  })
+})

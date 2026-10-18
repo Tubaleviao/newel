@@ -8,6 +8,8 @@ export type FieldType =
   | 'number'
   | 'integer'
   | 'decimal'
+  | 'bigint'
+  | 'money'
   | 'boolean'
   | 'uuid'
   | 'timestamp'
@@ -25,6 +27,10 @@ export interface FieldSchema {
   primaryKey: boolean
   enumValues?: string[]
   foreignKey?: string
+  /** ISO 4217 currency code, e.g. 'BRL'. Only valid on 'money' fields. */
+  currency?: string
+  /** Regex source the value must match. Only valid on string-like fields. */
+  pattern?: string
   pii: boolean
   gdprCategory?: GdprCategory
   gdprRetention?: string

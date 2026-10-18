@@ -86,6 +86,8 @@ function validateStateMachine(
   return { errors, warnings }
 }
 
+const PATTERN_TYPES = new Set(['string', 'email', 'url'])
+
 function validateEntity(
   name: string,
   entity: EntitySchema,
@@ -121,6 +123,23 @@ function validateEntity(
       errors.push(err(`entities.${name}.spawns[${i}].weight`, `weight must be between 0 and 1`))
     }
   })
+
+  for (const [fName, field] of Object.entries(entity.fields)) {
+    const loc = `entities.${name}.fields.${fName}`
+    if (field.currency !== undefined && field.type !== 'money') {
+      errors.push(err(`${loc}.currency`, `"currency" is only valid on "money" fields`))
+    }
+    if (field.pattern !== undefined) {
+      if (!PATTERN_TYPES.has(field.type)) {
+        errors.push(err(`${loc}.pattern`, `"pattern" is only valid on string-like fields`))
+      }
+      try {
+        new RegExp(field.pattern)
+      } catch (e) {
+        errors.push(err(`${loc}.pattern`, `invalid regular expression: ${(e as Error).message}`))
+      }
+    }
+  }
 
   for (const [bName, behavior] of Object.entries(entity.behaviors)) {
     if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {

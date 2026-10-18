@@ -97,6 +97,19 @@ export class TypedFieldBuilder extends FieldBuilder {
     this._schema.type = 'decimal'
     return this
   }
+  bigint(): this {
+    this._schema.type = 'bigint'
+    return this
+  }
+  money(currency?: string): this {
+    this._schema.type = 'money'
+    if (currency !== undefined) this._schema.currency = currency
+    return this
+  }
+  pattern(regex: string): this {
+    this._schema.pattern = regex
+    return this
+  }
   boolean(): this {
     this._schema.type = 'boolean'
     return this

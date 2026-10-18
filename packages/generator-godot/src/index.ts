@@ -125,6 +125,8 @@ function gdTresValue(field: FieldSchema): string {
   }
   switch (field.type) {
     case 'integer':
+    case 'bigint':
+    case 'money':
       return '0'
     case 'decimal':
     case 'number':
@@ -157,6 +159,8 @@ function gdEnumConst(val: string, fieldName?: string): string {
 function gdType(field: FieldSchema): string {
   switch (field.type) {
     case 'integer':
+    case 'bigint':
+    case 'money':
       return 'int'
     case 'decimal':
     case 'number':

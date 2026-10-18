@@ -35,7 +35,11 @@ function renderFieldsTable(fields: Record<string, FieldSchema>): string {
     `\`${f.name}\``,
     f.type === 'enum' && f.enumValues
       ? `enum (${f.enumValues.map((v) => `\`${v}\``).join(', ')})`
-      : f.type,
+      : f.type === 'money'
+        ? `money${f.currency ? ` (${f.currency})` : ''}, minor units`
+        : f.type === 'bigint'
+          ? 'bigint'
+          : f.type,
     f.nullable ? 'no' : 'yes',
     f.pii ? '✓' : '',
     escMd(f.description ?? ''),

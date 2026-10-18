@@ -12,6 +12,9 @@ interface JsonSchemaProperty {
   format?: string
   enum?: string[]
   description?: string
+  pattern?: string
+  'x-newel-type'?: string
+  'x-newel-currency'?: string
   items?: JsonSchemaProperty
   $ref?: string
 }
@@ -42,6 +45,8 @@ function fieldToJsonSchema(field: FieldSchema): JsonSchemaProperty {
     number: { type: 'number' },
     integer: { type: 'integer' },
     decimal: { type: 'number' },
+    bigint: { type: 'string' },
+    money: { type: 'string' },
     boolean: { type: 'boolean' },
     uuid: { type: 'string', format: 'uuid' },
     timestamp: { type: 'string', format: 'date-time' },
@@ -56,6 +61,15 @@ function fieldToJsonSchema(field: FieldSchema): JsonSchemaProperty {
     if (m.type) prop.type = m.type
     if (m.format) prop.format = m.format
   }
+
+  if (field.type === 'bigint' || field.type === 'money') {
+    prop.pattern = '^-?\\d+$'
+  }
+  if (field.type === 'money') {
+    prop['x-newel-type'] = 'money'
+    if (field.currency) prop['x-newel-currency'] = field.currency
+  }
+  if (field.pattern !== undefined) prop.pattern = field.pattern
 
   if (field.nullable) {
     prop.type = prop.type ? [prop.type as string, 'null'] : ['null']

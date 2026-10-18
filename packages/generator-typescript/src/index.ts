@@ -13,6 +13,8 @@ const FIELD_TYPE_MAP: Record<string, string> = {
   number: 'number',
   integer: 'number',
   decimal: 'number',
+  bigint: 'bigint',
+  money: 'bigint',
   boolean: 'boolean',
   uuid: 'string',
   timestamp: 'Date',
@@ -51,6 +53,8 @@ function generateZodType(field: FieldSchema): string {
     number: 'z.number()',
     integer: 'z.number().int()',
     decimal: 'z.number()',
+    bigint: 'z.bigint()',
+    money: 'z.bigint()',
     boolean: 'z.boolean()',
     uuid: 'z.string().uuid()',
     timestamp: 'z.date()',
@@ -97,6 +101,8 @@ function generateZodSchema(entity: EntitySchema): string {
   lines.push(`export const ${lcFirst(entity.name)}Schema = z.object({`)
   for (const [, field] of Object.entries(entity.fields)) {
     let zodType = generateZodType(field)
+    if (field.pattern !== undefined)
+      zodType += `.regex(new RegExp(${JSON.stringify(field.pattern)}))`
     if (field.nullable) zodType += '.nullable()'
     lines.push(`  ${field.name}: ${zodType},`)
   }

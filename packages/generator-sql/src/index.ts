@@ -24,6 +24,8 @@ function fieldToSqlType(entityName: string, field: FieldSchema): string {
     number: 'NUMERIC',
     integer: 'INTEGER',
     decimal: 'NUMERIC(19, 4)',
+    bigint: 'BIGINT',
+    money: 'BIGINT',
     boolean: 'BOOLEAN',
     uuid: 'UUID',
     timestamp: 'TIMESTAMPTZ',
@@ -113,6 +115,11 @@ function renderCreateTable(entityName: string, entity: EntitySchema): string {
     cols.push(renderColumn(entityName, field))
     const fk = renderFkConstraint(entityName, field)
     if (fk) constraints.push(fk)
+    if (field.pattern !== undefined) {
+      const col = toSnakeCase(field.name)
+      const lit = field.pattern.replace(/'/g, "''")
+      constraints.push(`  CONSTRAINT chk_${table}_${col}_pattern CHECK (${col} ~ '${lit}')`)
+    }
   }
 
   // Terminal state CHECK constraint
