@@ -17,6 +17,8 @@ function inputType(field: FieldSchema): string {
     case 'number':
     case 'integer':
     case 'decimal':
+    case 'bigint':
+    case 'money':
       return 'number'
     case 'email':
       return 'email'

@@ -241,7 +241,7 @@ not depend on this.
 
 ---
 
-## Phase 16 — Financial application support (Money Moon)
+## Phase 16 — Financial application support (Money Moon) ✅ Done
 
 Gaps found when planning to move `../money-moon` (Brazilian tax estimator) to a
 fabric-first workflow. Money Moon's domain rules: money is `bigint` centavos,
@@ -252,7 +252,7 @@ Calculation logic stays hand-written: behaviors declare the typed contract
 
 All sub-phases are additive (IR minor bump), except where noted.
 
-### 16a — `bigint` and `money` field types
+### 16a — `bigint` and `money` field types ✅ Done
 
 Add `'bigint'` and `'money'` to `FieldType`. `money` is a `bigint` amount in the
 currency's minor unit, with an optional currency code:
@@ -272,7 +272,7 @@ currency?: string // ISO 4217, e.g. 'BRL'; only valid on 'money'
 - Validator rejects `currency` on non-`money` fields
 - Every generator with an exhaustive `FieldType` switch handles both types (tests)
 
-### 16b — String constraints (`pattern`)
+### 16b — String constraints (`pattern`) ✅ Done
 
 Add `pattern?: string` (regex source) to `FieldSchema`, for values such as
 `YearMonth` (`^\d{4}-(0[1-9]|1[0-2])$`) or CNAE codes.
@@ -283,7 +283,7 @@ Add `pattern?: string` (regex source) to `FieldSchema`, for values such as
 - Validator rejects patterns that fail `new RegExp()` and `pattern` on
   non-string fields
 
-### 16c — Entity seed records
+### 16c — Entity seed records ✅ Done
 
 Reference tables (tax brackets, municipal fees, rule metadata) are data, not
 code. Add optional seed rows to entities:
@@ -304,7 +304,7 @@ seeds?: Record<string, unknown>[]
   source, validity and status columns)
 - `check-drift` covers seed output
 
-### 16d — `generator-drizzle`
+### 16d — `generator-drizzle` ✅ Done
 
 A new package `packages/generator-drizzle` emitting Drizzle ORM `pgTable`
 schema files (Postgres), so Deno/Fresh projects (`money-moon`, `kayozen`) keep

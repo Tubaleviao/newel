@@ -24,6 +24,8 @@ function fieldToSqlType(entityName: string, field: FieldSchema): string {
     number: 'NUMERIC',
     integer: 'INTEGER',
     decimal: 'NUMERIC(19, 4)',
+    bigint: 'BIGINT',
+    money: 'BIGINT',
     boolean: 'BOOLEAN',
     uuid: 'UUID',
     timestamp: 'TIMESTAMPTZ',
@@ -113,6 +115,11 @@ function renderCreateTable(entityName: string, entity: EntitySchema): string {
     cols.push(renderColumn(entityName, field))
     const fk = renderFkConstraint(entityName, field)
     if (fk) constraints.push(fk)
+    if (field.pattern !== undefined) {
+      const col = toSnakeCase(field.name)
+      const lit = field.pattern.replace(/'/g, "''")
+      constraints.push(`  CONSTRAINT chk_${table}_${col}_pattern CHECK (${col} ~ '${lit}')`)
+    }
   }
 
   // Terminal state CHECK constraint
@@ -228,7 +235,11 @@ function diffSchemas(prev: FabricSchema, next: FabricSchema): EntityDiff[] {
           }
         }
         // Detect other column changes (type, nullability)
-        if (pf.type !== field.type || pf.nullable !== field.nullable) {
+        if (
+          pf.type !== field.type ||
+          pf.nullable !== field.nullable ||
+          pf.pattern !== field.pattern
+        ) {
           fieldDiff.changed.push({ prev: pf, next: field })
         }
       }
@@ -333,8 +344,9 @@ function renderIncrementalMigration(
       const sqlType = fieldToSqlType(diff.entityName, field)
       if (!field.nullable && !field.primaryKey) {
         // NOT NULL column — must provide a default for existing rows
+        const placeholder = field.type === 'bigint' || field.type === 'money' ? '0' : "''"
         lines.push(
-          `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType} NOT NULL DEFAULT '';`,
+          `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType} NOT NULL DEFAULT ${placeholder};`,
         )
         lines.push(
           `-- TODO: backfill ${colName} with appropriate values, then consider removing DEFAULT`,
@@ -342,6 +354,7 @@ function renderIncrementalMigration(
       } else {
         lines.push(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${colName} ${sqlType};`)
       }
+      if (field.pattern !== undefined) lines.push(...patternCheckSql(table, colName, field.pattern))
     }
 
     // Changed columns
@@ -359,6 +372,15 @@ function renderIncrementalMigration(
         lines.push(`ALTER TABLE ${table} ALTER COLUMN ${colName} SET NOT NULL;`)
       } else if (!pf.nullable && nf.nullable) {
         lines.push(`ALTER TABLE ${table} ALTER COLUMN ${colName} DROP NOT NULL;`)
+      }
+      if (pf.pattern !== nf.pattern) {
+        if (nf.pattern !== undefined) {
+          lines.push(...patternCheckSql(table, colName, nf.pattern))
+        } else {
+          lines.push(
+            `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS chk_${table}_${colName}_pattern;`,
+          )
+        }
       }
     }
 
@@ -382,6 +404,65 @@ function renderIncrementalMigration(
     }
   }
 
+  return lines.join('\n')
+}
+
+function patternCheckSql(table: string, col: string, pattern: string): string[] {
+  const lit = pattern.replace(/'/g, "''")
+  return [
+    `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS chk_${table}_${col}_pattern;`,
+    `ALTER TABLE ${table} ADD CONSTRAINT chk_${table}_${col}_pattern CHECK (${col} ~ '${lit}') NOT VALID;`,
+  ]
+}
+
+// --- Seed data ---
+
+function sqlLiteral(field: FieldSchema, v: unknown): string {
+  if (v === null || v === undefined) return 'NULL'
+  if (field.type === 'bigint' || field.type === 'money') {
+    const text = String(v)
+    if (!/^-?\d+$/.test(text)) {
+      throw new Error(
+        `@newel/generator-sql: ${field.type} field "${field.name}" has non-integer seed value ${JSON.stringify(text)}`,
+      )
+    }
+    return text
+  }
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+  if (field.type === 'json') return `'${JSON.stringify(v).replace(/'/g, "''")}'::jsonb`
+  return `'${String(v).replace(/'/g, "''")}'`
+}
+
+/** Idempotent seed INSERTs, ordered so referenced entities come first. */
+function generateSeedSql(schema: FabricSchema): string | null {
+  const seeded = Object.values(schema.entities).filter((e) => e.seeds && e.seeds.length > 0)
+  if (seeded.length === 0) return null
+  const ordered: EntitySchema[] = []
+  const visited = new Set<string>()
+  const visit = (e: EntitySchema): void => {
+    if (visited.has(e.name)) return
+    visited.add(e.name)
+    for (const f of Object.values(e.fields)) {
+      const ref = f.foreignKey?.split('.')[0]
+      const target = ref ? schema.entities[ref] : undefined
+      if (target && target !== e && target.seeds?.length) visit(target)
+    }
+    ordered.push(e)
+  }
+  seeded.forEach(visit)
+
+  const lines = [`-- Seed data for ${schema.meta.name}`, '']
+  for (const entity of ordered) {
+    for (const row of entity.seeds ?? []) {
+      const fields = Object.values(entity.fields).filter((f) => row[f.name] !== undefined)
+      const cols = fields.map((f) => toSnakeCase(f.name)).join(', ')
+      const vals = fields.map((f) => sqlLiteral(f, row[f.name])).join(', ')
+      lines.push(
+        `INSERT INTO ${tableName(entity.name)} (${cols}) VALUES (${vals}) ON CONFLICT DO NOTHING;`,
+      )
+    }
+    lines.push('')
+  }
   return lines.join('\n')
 }
 
@@ -412,6 +493,15 @@ export class SqlGenerator implements Generator {
       content: generateDdl(schema),
       header: '-- @generated by @newel/generator-sql — do not edit\n',
     })
+
+    const seedSql = generateSeedSql(schema)
+    if (seedSql) {
+      files.push({
+        path: 'sql/seed.sql',
+        content: seedSql,
+        header: '-- @generated by @newel/generator-sql — do not edit\n',
+      })
+    }
 
     if (!prevSnapshot) {
       // First run: emit init migration

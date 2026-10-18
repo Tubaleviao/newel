@@ -31,6 +31,9 @@ interface OAProperty {
   enum?: string[]
   description?: string
   nullable?: boolean
+  pattern?: string
+  xNewelType?: string
+  xNewelCurrency?: string
 }
 
 function fieldToOAProperty(field: FieldSchema): OAProperty {
@@ -49,6 +52,8 @@ function fieldToOAProperty(field: FieldSchema): OAProperty {
     number: { type: 'number' },
     integer: { type: 'integer' },
     decimal: { type: 'number', format: 'double' },
+    bigint: { type: 'string' },
+    money: { type: 'string' },
     boolean: { type: 'boolean' },
     uuid: { type: 'string', format: 'uuid' },
     timestamp: { type: 'string', format: 'date-time' },
@@ -66,6 +71,13 @@ function fieldToOAProperty(field: FieldSchema): OAProperty {
     prop.type = 'string'
   }
 
+  if (field.type === 'bigint' || field.type === 'money') prop.pattern = '^-?\\d+$'
+  if (field.type === 'money') {
+    prop.xNewelType = 'money'
+    if (field.currency) prop.xNewelCurrency = field.currency
+  }
+  if (field.pattern !== undefined) prop.pattern = field.pattern
+
   return prop
 }
 
@@ -74,6 +86,11 @@ function renderOAProperty(name: string, prop: OAProperty, depth: number): string
   lines.push(`${indent(depth)}${yamlStr(name)}:`)
   if (prop.type) lines.push(`${indent(depth + 1)}type: ${prop.type}`)
   if (prop.format) lines.push(`${indent(depth + 1)}format: ${prop.format}`)
+  if (prop.pattern) lines.push(`${indent(depth + 1)}pattern: ${yamlStr(prop.pattern)}`)
+  if (prop.xNewelType) lines.push(`${indent(depth + 1)}x-newel-type: ${prop.xNewelType}`)
+  if (prop.xNewelCurrency) {
+    lines.push(`${indent(depth + 1)}x-newel-currency: ${yamlStr(prop.xNewelCurrency)}`)
+  }
   if (prop.nullable) lines.push(`${indent(depth + 1)}nullable: true`)
   if (prop.description) lines.push(`${indent(depth + 1)}description: ${yamlStr(prop.description)}`)
   if (prop.enum) {

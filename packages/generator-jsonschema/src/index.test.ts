@@ -242,3 +242,53 @@ describe('JsonSchemaGenerator', () => {
     })
   })
 })
+
+const finSchema: FabricSchema = {
+  version: '3.0.0',
+  meta: { name: 'Fin', version: '0.1.0' },
+  entities: {
+    Charge: {
+      name: 'Charge',
+      tags: [],
+      description: '',
+      fields: {
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        amount: {
+          name: 'amount',
+          type: 'money',
+          currency: 'BRL',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+        count: { name: 'count', type: 'bigint', nullable: false, primaryKey: false, pii: false },
+        period: {
+          name: 'period',
+          type: 'string',
+          pattern: '^\\d{4}-(0[1-9]|1[0-2])$',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+      },
+      relations: {},
+      behaviors: {},
+      pii: [],
+      gdpr: {},
+    },
+  },
+  apis: {},
+}
+
+describe('JsonSchemaGenerator money/bigint/pattern', () => {
+  it('handles money, bigint and pattern fields', async () => {
+    const result = await new JsonSchemaGenerator().generate(finSchema, {
+      outputDir: '/tmp/fin',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files.map((f) => f.content).join('\n')
+    expect(text).toContain('"x-newel-type": "money"')
+    expect(text).toContain('"x-newel-currency": "BRL"')
+    expect(text).toContain('"pattern"')
+  })
+})

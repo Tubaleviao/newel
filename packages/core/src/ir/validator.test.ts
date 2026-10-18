@@ -274,3 +274,87 @@ describe('validateSchema', () => {
     expect(result.errors.some((e) => e.message.includes('"GhostEntity"'))).toBe(true)
   })
 })
+
+describe('validateSchema money/bigint/pattern', () => {
+  const base = (field: Record<string, unknown>) =>
+    normalizeSchema({
+      meta: { name: 'X' },
+      entities: { E: { fields: { f: field } } },
+    })
+
+  it('accepts currency on money fields', () => {
+    expect(validateSchema(base({ type: 'money', currency: 'BRL' })).valid).toBe(true)
+  })
+
+  it('rejects currency on non-money fields', () => {
+    const r = validateSchema(base({ type: 'bigint', currency: 'BRL' }))
+    expect(r.valid).toBe(false)
+    expect(r.errors[0].path).toBe('entities.E.fields.f.currency')
+  })
+
+  it('rejects invalid regex patterns', () => {
+    const r = validateSchema(base({ type: 'string', pattern: '(' }))
+    expect(r.valid).toBe(false)
+    expect(r.errors[0].path).toBe('entities.E.fields.f.pattern')
+  })
+
+  it('rejects pattern on non-string fields', () => {
+    expect(validateSchema(base({ type: 'integer', pattern: '^1$' })).valid).toBe(false)
+  })
+
+  it('accepts a valid pattern on a string field', () => {
+    expect(validateSchema(base({ type: 'string', pattern: '^\\d+$' })).valid).toBe(true)
+  })
+})
+
+describe('validateSchema seeds', () => {
+  const make = (seeds: Record<string, unknown>[], extraSeeds?: Record<string, unknown>[]) =>
+    normalizeSchema({
+      meta: { name: 'X' },
+      entities: {
+        Parent: {
+          fields: { code: { type: 'string', primaryKey: true, pattern: '^p\\d$' } },
+          ...(extraSeeds ? { seeds: extraSeeds } : {}),
+        },
+        E: {
+          fields: {
+            id: { type: 'string', primaryKey: true },
+            rate: { type: 'bigint' },
+            kind: { type: 'enum', values: ['a', 'b'] },
+            parent: { type: 'string', foreignKey: 'Parent.code' },
+          },
+          seeds,
+        },
+      },
+    })
+  const good = { id: 'e', rate: 10n, kind: 'a', parent: 'p1' }
+
+  it('accepts valid seeds', () => {
+    expect(validateSchema(make([good], [{ code: 'p1' }])).valid).toBe(true)
+  })
+
+  it('rejects wrong type, bad enum, missing field, unknown field, bad pattern', () => {
+    const r = validateSchema(
+      make(
+        [
+          { ...good, rate: 'x' },
+          { ...good, kind: 'z' },
+          { id: 'e', rate: 1, kind: 'a' },
+          { ...good, extra: 1 },
+        ],
+        [{ code: 'bad' }],
+      ),
+    )
+    const paths = r.errors.map((e) => e.path)
+    expect(paths).toContain('entities.E.seeds[0].rate')
+    expect(paths).toContain('entities.E.seeds[1].kind')
+    expect(paths).toContain('entities.E.seeds[2].parent')
+    expect(paths).toContain('entities.E.seeds[3].extra')
+    expect(paths).toContain('entities.Parent.seeds[0].code')
+  })
+
+  it('rejects foreign keys that do not resolve to a seed', () => {
+    const r = validateSchema(make([good], [{ code: 'p2' }]))
+    expect(r.errors.map((e) => e.path)).toContain('entities.E.seeds[0].parent')
+  })
+})

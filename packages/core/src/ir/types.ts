@@ -8,6 +8,8 @@ export type FieldType =
   | 'number'
   | 'integer'
   | 'decimal'
+  | 'bigint'
+  | 'money'
   | 'boolean'
   | 'uuid'
   | 'timestamp'
@@ -25,6 +27,10 @@ export interface FieldSchema {
   primaryKey: boolean
   enumValues?: string[]
   foreignKey?: string
+  /** ISO 4217 currency code, e.g. 'BRL'. Only valid on 'money' fields. */
+  currency?: string
+  /** Regex source the value must match. Only valid on string-like fields. */
+  pattern?: string
   pii: boolean
   gdprCategory?: GdprCategory
   gdprRetention?: string
@@ -99,6 +105,8 @@ export interface EntitySchema {
   fields: Record<string, FieldSchema>
   relations: Record<string, RelationSchema>
   spawns?: SpawnSchema[]
+  /** Reference-data rows. `bigint`/`money` values are stored as integer strings (JSON-safe). */
+  seeds?: Record<string, unknown>[]
   behaviors: Record<string, BehaviorSchema>
   stateMachine?: StateMachineSchema
   pii: string[]

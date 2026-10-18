@@ -16,6 +16,8 @@ const XSD_MAP: Record<string, string> = {
   number: 'xsd:double',
   integer: 'xsd:integer',
   decimal: 'xsd:decimal',
+  bigint: 'xsd:integer',
+  money: 'xsd:integer',
   boolean: 'xsd:boolean',
   uuid: 'xsd:string',
   timestamp: 'xsd:dateTime',

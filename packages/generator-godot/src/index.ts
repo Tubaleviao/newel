@@ -82,19 +82,27 @@ function renderTres(entity: EntitySchema, gdScriptPath: string): string {
     lines.push(`${field.name} = ${value}`)
   }
 
+  // Entity-level metadata must not duplicate a key already written for a field
+  // (a fabric field named `description` or `tags` is common).
+  const fieldNames = new Set(Object.values(entity.fields).map((f) => f.name))
+
   // Write state machine initial state as a string property
-  if (entity.stateMachine) {
+  if (
+    entity.stateMachine &&
+    !fieldNames.has('state_machine_field') &&
+    !fieldNames.has('initial_state')
+  ) {
     lines.push(`state_machine_field = "${entity.stateMachine.field}"`)
     lines.push(`initial_state = "${entity.stateMachine.initial}"`)
   }
 
   // Write description
-  if (entity.description) {
+  if (entity.description && !fieldNames.has('description')) {
     lines.push(`description = ${JSON.stringify(entity.description)}`)
   }
 
   // Write tags array
-  if (entity.tags.length) {
+  if (entity.tags.length && !fieldNames.has('tags')) {
     const tagStr = entity.tags.map((t) => JSON.stringify(t)).join(', ')
     lines.push(`tags = [${tagStr}]`)
   }
@@ -121,10 +129,19 @@ function gdTresValue(field: FieldSchema): string {
       }
       return String(idx)
     }
+    if (
+      typeof v === 'string' &&
+      (field.type === 'bigint' || field.type === 'money') &&
+      /^-?\d+$/.test(v)
+    ) {
+      return v
+    }
     return JSON.stringify(v)
   }
   switch (field.type) {
     case 'integer':
+    case 'bigint':
+    case 'money':
       return '0'
     case 'decimal':
     case 'number':
@@ -157,6 +174,8 @@ function gdEnumConst(val: string, fieldName?: string): string {
 function gdType(field: FieldSchema): string {
   switch (field.type) {
     case 'integer':
+    case 'bigint':
+    case 'money':
       return 'int'
     case 'decimal':
     case 'number':

@@ -212,6 +212,66 @@ describe('SqlGenerator', () => {
       expect(migFile!.content).toContain('ADD COLUMN IF NOT EXISTS published_at')
     })
 
+    it('uses a numeric default and a pattern CHECK for added money/pattern columns', async () => {
+      const prev = makeSnapshot(bookSchema)
+      const base = bookSchema.entities.Book
+      const next: FabricSchema = {
+        ...bookSchema,
+        entities: {
+          Book: {
+            ...base,
+            fields: {
+              ...base.fields,
+              price: {
+                name: 'price',
+                type: 'money',
+                currency: 'BRL',
+                nullable: false,
+                primaryKey: false,
+                pii: false,
+              },
+              code: {
+                name: 'code',
+                type: 'string',
+                pattern: '^[A-Z]+$',
+                nullable: true,
+                primaryKey: false,
+                pii: false,
+              },
+            },
+          },
+        },
+      }
+      const result = await generator.generate(next, makeCtx(prev))
+      const mig = result.files.find((f) => f.path.startsWith('sql/migrations/'))!.content
+      expect(mig).toContain('price BIGINT NOT NULL DEFAULT 0;')
+      expect(mig).toContain("CHECK (code ~ '^[A-Z]+$') NOT VALID;")
+    })
+
+    it('detects a pattern-only change on an existing column', async () => {
+      const withPattern = (pattern?: string): FabricSchema => {
+        const e = bookSchema.entities.Book
+        const fields = {
+          ...e.fields,
+          isbn: {
+            name: 'isbn',
+            type: 'string' as const,
+            nullable: true,
+            primaryKey: false,
+            pii: false,
+            ...(pattern ? { pattern } : {}),
+          },
+        }
+        return { ...bookSchema, entities: { ...bookSchema.entities, Book: { ...e, fields } } }
+      }
+      const result = await generator.generate(
+        withPattern('^\\d+$'),
+        makeCtx(makeSnapshot(withPattern())),
+      )
+      const mig = result.files.find((f) => f.path.startsWith('sql/migrations/'))!.content
+      expect(mig).toContain('chk_books_isbn_pattern')
+    })
+
     it('emits MANUAL REVIEW block for removed columns', async () => {
       const prev = makeSnapshot(bookSchema)
       const withoutNotes: FabricSchema = {
@@ -389,5 +449,120 @@ describe('SqlGenerator', () => {
       const ddl = result.files.find((f) => f.path === 'sql/schema.sql')!.content
       expect(ddl).toContain('CREATE TABLE IF NOT EXISTS loan_records')
     })
+  })
+})
+
+const finSchema: FabricSchema = {
+  version: '3.0.0',
+  meta: { name: 'Fin', version: '0.1.0' },
+  entities: {
+    Charge: {
+      name: 'Charge',
+      tags: [],
+      description: '',
+      fields: {
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        amount: {
+          name: 'amount',
+          type: 'money',
+          currency: 'BRL',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+        count: { name: 'count', type: 'bigint', nullable: false, primaryKey: false, pii: false },
+        period: {
+          name: 'period',
+          type: 'string',
+          pattern: '^\\d{4}-(0[1-9]|1[0-2])$',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+      },
+      relations: {},
+      behaviors: {},
+      pii: [],
+      gdpr: {},
+    },
+  },
+  apis: {},
+}
+
+describe('SqlGenerator money/bigint/pattern', () => {
+  it('handles money, bigint and pattern fields', async () => {
+    const result = await new SqlGenerator().generate(finSchema, {
+      outputDir: '/tmp/fin',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files.map((f) => f.content).join('\n')
+    expect(text).toContain('amount BIGINT NOT NULL')
+    expect(text).toContain('count BIGINT NOT NULL')
+    expect(text).toContain("CHECK (period ~ '")
+  })
+})
+
+describe('SqlGenerator seeds', () => {
+  const seedSchema: FabricSchema = {
+    version: '3.0.0',
+    meta: { name: 'S', version: '0.1.0' },
+    entities: {
+      Child: {
+        name: 'Child',
+        tags: [],
+        description: '',
+        fields: {
+          code: { name: 'code', type: 'string', nullable: false, primaryKey: true, pii: false },
+          parent: {
+            name: 'parent',
+            type: 'string',
+            nullable: false,
+            primaryKey: false,
+            pii: false,
+            foreignKey: 'Parent.code',
+          },
+        },
+        relations: {},
+        behaviors: {},
+        pii: [],
+        gdpr: {},
+        seeds: [{ code: "c'1", parent: 'p1' }],
+      },
+      Parent: {
+        name: 'Parent',
+        tags: [],
+        description: '',
+        fields: {
+          code: { name: 'code', type: 'string', nullable: false, primaryKey: true, pii: false },
+          fee: { name: 'fee', type: 'money', nullable: false, primaryKey: false, pii: false },
+        },
+        relations: {},
+        behaviors: {},
+        pii: [],
+        gdpr: {},
+        seeds: [{ code: 'p1', fee: '1500' }],
+      },
+    },
+    apis: {},
+  }
+
+  it('emits idempotent seed inserts with referenced entities first', async () => {
+    const result = await new SqlGenerator().generate(seedSchema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const seed = result.files.find((f) => f.path === 'sql/seed.sql')!.content
+    expect(seed).toContain('ON CONFLICT DO NOTHING')
+    expect(seed).toContain("VALUES ('p1', 1500)")
+    expect(seed).toContain("'c''1'")
+    expect(seed.indexOf('Parent'.toLowerCase())).toBeLessThan(seed.indexOf('child'))
+  })
+
+  it('emits no seed file without seeds', async () => {
+    const result = await new SqlGenerator().generate(
+      { ...seedSchema, entities: {} },
+      { outputDir: '/tmp/s', outputs: new Map<string, GeneratorOutput>() },
+    )
+    expect(result.files.some((f) => f.path === 'sql/seed.sql')).toBe(false)
   })
 })

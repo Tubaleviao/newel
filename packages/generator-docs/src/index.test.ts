@@ -331,3 +331,92 @@ describe('DocsGenerator', () => {
     })
   })
 })
+
+const finSchema: FabricSchema = {
+  version: '3.0.0',
+  meta: { name: 'Fin', version: '0.1.0' },
+  entities: {
+    Charge: {
+      name: 'Charge',
+      tags: [],
+      description: '',
+      fields: {
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        amount: {
+          name: 'amount',
+          type: 'money',
+          currency: 'BRL',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+        count: { name: 'count', type: 'bigint', nullable: false, primaryKey: false, pii: false },
+        period: {
+          name: 'period',
+          type: 'string',
+          pattern: '^\\d{4}-(0[1-9]|1[0-2])$',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+      },
+      relations: {},
+      behaviors: {},
+      pii: [],
+      gdpr: {},
+    },
+  },
+  apis: {},
+}
+
+describe('DocsGenerator money/bigint/pattern', () => {
+  it('handles money, bigint and pattern fields', async () => {
+    const result = await new DocsGenerator().generate(finSchema, {
+      outputDir: '/tmp/fin',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files.map((f) => f.content).join('\n')
+    expect(text).toContain('money (BRL), minor units')
+    expect(text).toContain('bigint')
+  })
+})
+
+describe('DocsGenerator seeds', () => {
+  it('renders seed rows as a table', async () => {
+    const schema: FabricSchema = {
+      version: '3.0.0',
+      meta: { name: 'S', version: '0.1.0' },
+      entities: {
+        Rule: {
+          name: 'Rule',
+          tags: [],
+          description: 'd',
+          fields: {
+            code: { name: 'code', type: 'string', nullable: false, primaryKey: false, pii: false },
+            status: {
+              name: 'status',
+              type: 'string',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          seeds: [{ code: 'A1', status: 'reviewed' }],
+        },
+      },
+      apis: {},
+    }
+    const result = await new DocsGenerator().generate(schema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files.map((f) => f.content).join('\n')
+    expect(text).toContain('## Seed data')
+    expect(text).toContain('A1')
+    expect(text).toContain('reviewed')
+  })
+})
