@@ -90,7 +90,7 @@ Add `spawns?: SpawnSchema[]` to `EntitySchema`.
 - Normaliser validates `weight` is in range
 - Existing generators ignore the new field
 
-### 11c — System-level rule blocks
+### 11c — System-level rule blocks ✅ Done
 
 Add a top-level `systems` map to `FabricSchema` for global simulation rules
 (weather, magic, economy) that are not entity instances:
@@ -115,7 +115,7 @@ systems?: Record<string, SystemSchema>
 
 ---
 
-## Phase 12 — `generator-bible`
+## Phase 12 — `generator-bible` ✅ Done
 
 A new package `packages/generator-bible` that renders a static HTML/Markdown
 design bible from a fabric.

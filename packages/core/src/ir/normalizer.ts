@@ -10,9 +10,11 @@ import type {
   EndpointSchema,
   GdprCategory,
   SpawnSchema,
+  SystemSchema,
 } from './types'
 import type {
   FabricInput,
+  SystemInput,
   EntityInput,
   FieldInput,
   StateMachineInput,
@@ -231,6 +233,22 @@ function normalizeApi(name: string, raw: ApiInput): ApiSchema {
   return { name, baseUrl: raw.baseUrl, endpoints }
 }
 
+function normalizeSystem(name: string, raw: SystemInput): SystemSchema {
+  if (!raw || typeof raw !== 'object') throw new Error(`systems.${name}: must be an object`)
+  const rules = raw.rules ?? []
+  if (!Array.isArray(rules) || rules.some((r) => typeof r !== 'string')) {
+    throw new Error(`systems.${name}: "rules" must be an array of strings`)
+  }
+  const system: SystemSchema = { name, description: raw.description ?? '', rules: [...rules] }
+  if (raw.parameters) {
+    system.parameters = {}
+    for (const [pName, rawP] of Object.entries(raw.parameters)) {
+      system.parameters[pName] = normalizeField(pName, rawP, `systems.${name}`)
+    }
+  }
+  return system
+}
+
 export function normalizeSchema(raw: unknown): FabricSchema {
   const r = raw as FabricInput
   if (!r || typeof r !== 'object') throw new Error('fabric export must be a plain object')
@@ -246,6 +264,11 @@ export function normalizeSchema(raw: unknown): FabricSchema {
     apis[name] = normalizeApi(name, rawApi)
   }
 
+  const systems: Record<string, SystemSchema> = {}
+  for (const [name, rawSystem] of Object.entries(r.systems ?? {})) {
+    systems[name] = normalizeSystem(name, rawSystem)
+  }
+
   return {
     version: CURRENT_IR_VERSION,
     meta: {
@@ -256,5 +279,7 @@ export function normalizeSchema(raw: unknown): FabricSchema {
     },
     entities,
     apis,
+    // Omitted when empty so fabrics without systems keep byte-identical IR
+    ...(Object.keys(systems).length > 0 ? { systems } : {}),
   }
 }

@@ -138,6 +138,13 @@ export interface SchemaMeta {
   namespace?: string
 }
 
+export interface SystemSchema {
+  name: string
+  description: string
+  rules: string[]
+  parameters?: Record<string, FieldSchema>
+}
+
 export interface FabricSchema {
   version: string
   meta: SchemaMeta
@@ -145,4 +152,5 @@ export interface FabricSchema {
   apis: Record<string, ApiSchema>
   events?: Record<string, EventSchema>
   graphs?: Record<string, GraphSchema>
+  systems?: Record<string, SystemSchema>
 }

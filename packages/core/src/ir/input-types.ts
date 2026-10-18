@@ -95,8 +95,15 @@ export type EntityInput = {
   stateMachine?: StateMachineInput
 }
 
+export type SystemInput = {
+  description: string
+  rules?: string[]
+  parameters?: Record<string, FieldInput>
+}
+
 export type FabricInput = {
   meta: Partial<SchemaMeta> & { name: string }
   entities?: Record<string, EntityInput>
   apis?: Record<string, ApiInput>
+  systems?: Record<string, SystemInput>
 }

@@ -430,3 +430,31 @@ describe('normalizeSchema', () => {
     expect(api.endpoints['GET /books'].auth?.roles).toContain('member')
   })
 })
+
+describe('normalizeSchema systems', () => {
+  it('omits systems when none declared', () => {
+    expect(normalizeSchema({ meta: { name: 'X' } })).not.toHaveProperty('systems')
+  })
+
+  it('normalizes systems with rules and parameters', () => {
+    const ir = normalizeSchema({
+      meta: { name: 'X' },
+      systems: {
+        Weather: {
+          description: 'Weather',
+          rules: ['r1'],
+          parameters: { rainChance: { type: 'number' } },
+        },
+      },
+    })
+    expect(ir.systems?.Weather.name).toBe('Weather')
+    expect(ir.systems?.Weather.rules).toEqual(['r1'])
+    expect(ir.systems?.Weather.parameters?.rainChance.type).toBe('number')
+  })
+
+  it('rejects non-string rules', () => {
+    expect(() =>
+      normalizeSchema({ meta: { name: 'X' }, systems: { S: { description: '', rules: [1] } } }),
+    ).toThrow('rules')
+  })
+})
