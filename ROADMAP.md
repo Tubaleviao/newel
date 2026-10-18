@@ -252,7 +252,7 @@ Calculation logic stays hand-written: behaviors declare the typed contract
 
 All sub-phases are additive (IR minor bump), except where noted.
 
-### 16a — `bigint` and `money` field types
+### 16a — `bigint` and `money` field types ✅ Done
 
 Add `'bigint'` and `'money'` to `FieldType`. `money` is a `bigint` amount in the
 currency's minor unit, with an optional currency code:
@@ -272,7 +272,7 @@ currency?: string // ISO 4217, e.g. 'BRL'; only valid on 'money'
 - Validator rejects `currency` on non-`money` fields
 - Every generator with an exhaustive `FieldType` switch handles both types (tests)
 
-### 16b — String constraints (`pattern`)
+### 16b — String constraints (`pattern`) ✅ Done
 
 Add `pattern?: string` (regex source) to `FieldSchema`, for values such as
 `YearMonth` (`^\d{4}-(0[1-9]|1[0-2])$`) or CNAE codes.
