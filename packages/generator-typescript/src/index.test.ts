@@ -235,4 +235,38 @@ describe('TypeScriptGenerator seeds', () => {
     expect(text).toContain('{ code: "x", bps: 600n },')
     expect(text).toContain('] as const')
   })
+
+  it('emits null for a nullable bigint seeded with null', async () => {
+    const schema: FabricSchema = {
+      version: '3.0.0',
+      meta: { name: 'S', version: '0.1.0' },
+      entities: {
+        Rate: {
+          name: 'Rate',
+          tags: [],
+          description: '',
+          fields: {
+            refund: {
+              name: 'refund',
+              type: 'bigint',
+              nullable: true,
+              primaryKey: false,
+              pii: false,
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          seeds: [{ refund: null }],
+        },
+      },
+      apis: {},
+    }
+    const result = await new TypeScriptGenerator().generate(schema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    expect(result.files[0].content).toContain('{ refund: null },')
+  })
 })

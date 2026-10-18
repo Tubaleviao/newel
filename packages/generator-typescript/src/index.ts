@@ -112,6 +112,7 @@ function generateZodSchema(entity: EntitySchema): string {
 
 function tsSeedLiteral(field: FieldSchema | undefined, v: unknown): string {
   if (field && (field.type === 'bigint' || field.type === 'money')) {
+    if (v === null || v === undefined) return 'null'
     const text = String(v)
     if (!/^-?\d+$/.test(text)) {
       throw new Error(

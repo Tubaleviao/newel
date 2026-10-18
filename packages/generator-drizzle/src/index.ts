@@ -99,6 +99,8 @@ class DrizzleEmitter {
       return `.default(${text}n)`
     }
     if (field.type === 'timestamp' || field.type === 'date') return ''
+    if (field.type === 'decimal' && typeof v === 'number')
+      return `.default(${JSON.stringify(String(v))})`
     if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
       return `.default(${JSON.stringify(v)})`
     }
@@ -319,10 +321,11 @@ class DrizzleEmitter {
       case 'hasMany': {
         // Drizzle infers the join from the target's belongsTo; without one the relation is unusable
         const target = this.schema.entities[rel.target]
-        const hasInverse = Object.values(target.relations).some(
+        // Several belongsTo to the same entity make the inference ambiguous (Drizzle throws), so skip
+        const inverses = Object.values(target.relations).filter(
           (r) => r.kind === 'belongsTo' && r.target === entity.name,
         )
-        if (!hasInverse) return []
+        if (inverses.length !== 1) return []
         return [`  ${rel.name}: ${rel.kind === 'hasOne' ? 'one' : 'many'}(${targetVar}),`]
       }
       default:
