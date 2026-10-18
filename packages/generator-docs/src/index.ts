@@ -35,7 +35,11 @@ function renderFieldsTable(fields: Record<string, FieldSchema>): string {
     `\`${f.name}\``,
     f.type === 'enum' && f.enumValues
       ? `enum (${f.enumValues.map((v) => `\`${v}\``).join(', ')})`
-      : f.type,
+      : f.type === 'money'
+        ? `money${f.currency ? ` (${f.currency})` : ''}, minor units`
+        : f.type === 'bigint'
+          ? 'bigint'
+          : f.type,
     f.nullable ? 'no' : 'yes',
     f.pii ? '✓' : '',
     escMd(f.description ?? ''),
@@ -147,6 +151,23 @@ function renderEntityPage(entity: EntitySchema): string {
 
   if (Object.keys(entity.behaviors).length) {
     lines.push(renderBehaviors(entity.behaviors))
+    lines.push('')
+  }
+
+  if (entity.seeds && entity.seeds.length > 0) {
+    const cols = Object.keys(entity.fields).filter((c) =>
+      entity.seeds!.some((row) => row[c] !== undefined),
+    )
+    const rows = entity.seeds.map((row) =>
+      cols.map((c) => {
+        const v = row[c]
+        if (v === undefined || v === null) return ''
+        return escMd(typeof v === 'object' ? JSON.stringify(v) : String(v))
+      }),
+    )
+    lines.push('## Seed data')
+    lines.push('')
+    lines.push(mdTable(cols, rows))
     lines.push('')
   }
 

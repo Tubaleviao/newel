@@ -151,3 +151,122 @@ describe('TypeScriptGenerator', () => {
     expect(result.artifacts?.['entities']).toEqual(expect.arrayContaining(['Book', 'Member']))
   })
 })
+
+const finSchema: FabricSchema = {
+  version: '3.0.0',
+  meta: { name: 'Fin', version: '0.1.0' },
+  entities: {
+    Charge: {
+      name: 'Charge',
+      tags: [],
+      description: '',
+      fields: {
+        id: { name: 'id', type: 'uuid', nullable: false, primaryKey: true, pii: false },
+        amount: {
+          name: 'amount',
+          type: 'money',
+          currency: 'BRL',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+        count: { name: 'count', type: 'bigint', nullable: false, primaryKey: false, pii: false },
+        period: {
+          name: 'period',
+          type: 'string',
+          pattern: '^\\d{4}-(0[1-9]|1[0-2])$',
+          nullable: false,
+          primaryKey: false,
+          pii: false,
+        },
+      },
+      relations: {},
+      behaviors: {},
+      pii: [],
+      gdpr: {},
+    },
+  },
+  apis: {},
+}
+
+describe('TypeScriptGenerator money/bigint/pattern', () => {
+  it('handles money, bigint and pattern fields', async () => {
+    const result = await new TypeScriptGenerator().generate(finSchema, {
+      outputDir: '/tmp/fin',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files.map((f) => f.content).join('\n')
+    expect(text).toContain('amount: z.bigint()')
+    expect(text).toContain('count: z.bigint()')
+    expect(text).toContain('amount: bigint')
+    expect(text).toContain('.regex(new RegExp(')
+  })
+})
+
+describe('TypeScriptGenerator seeds', () => {
+  it('emits typed as-const arrays with bigint literals', async () => {
+    const schema: FabricSchema = {
+      version: '3.0.0',
+      meta: { name: 'S', version: '0.1.0' },
+      entities: {
+        Rate: {
+          name: 'Rate',
+          tags: [],
+          description: '',
+          fields: {
+            code: { name: 'code', type: 'string', nullable: false, primaryKey: false, pii: false },
+            bps: { name: 'bps', type: 'bigint', nullable: false, primaryKey: false, pii: false },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          seeds: [{ code: 'x', bps: '600' }],
+        },
+      },
+      apis: {},
+    }
+    const result = await new TypeScriptGenerator().generate(schema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    const text = result.files[0].content
+    expect(text).toContain('export const rateSeeds = [')
+    expect(text).toContain('{ code: "x", bps: 600n },')
+    expect(text).toContain('] as const')
+  })
+
+  it('emits null for a nullable bigint seeded with null', async () => {
+    const schema: FabricSchema = {
+      version: '3.0.0',
+      meta: { name: 'S', version: '0.1.0' },
+      entities: {
+        Rate: {
+          name: 'Rate',
+          tags: [],
+          description: '',
+          fields: {
+            refund: {
+              name: 'refund',
+              type: 'bigint',
+              nullable: true,
+              primaryKey: false,
+              pii: false,
+            },
+          },
+          relations: {},
+          behaviors: {},
+          pii: [],
+          gdpr: {},
+          seeds: [{ refund: null }],
+        },
+      },
+      apis: {},
+    }
+    const result = await new TypeScriptGenerator().generate(schema, {
+      outputDir: '/tmp/s',
+      outputs: new Map<string, GeneratorOutput>(),
+    })
+    expect(result.files[0].content).toContain('{ refund: null },')
+  })
+})

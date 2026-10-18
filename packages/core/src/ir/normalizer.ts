@@ -10,9 +10,11 @@ import type {
   EndpointSchema,
   GdprCategory,
   SpawnSchema,
+  SystemSchema,
 } from './types'
 import type {
   FabricInput,
+  SystemInput,
   EntityInput,
   FieldInput,
   StateMachineInput,
@@ -45,7 +47,11 @@ function normalizeField(name: string, raw: FieldInput, context?: string): FieldS
     gdprCategory,
     gdprRetention,
     gdprLegalBasis,
-    defaultValue: raw.defaultValue,
+    defaultValue:
+      typeof raw.defaultValue === 'bigint' ? raw.defaultValue.toString() : raw.defaultValue,
+    // Spread only when set so existing fabrics keep byte-identical IR
+    ...(raw.currency !== undefined ? { currency: raw.currency } : {}),
+    ...(raw.pattern !== undefined ? { pattern: raw.pattern } : {}),
   }
 }
 
@@ -155,6 +161,25 @@ function normalizeSpawns(entityName: string, raw: unknown): SpawnSchema[] | unde
   })
 }
 
+function normalizeSeeds(
+  entity: string,
+  seeds: Record<string, unknown>[],
+  fields: Record<string, FieldSchema>,
+): Record<string, unknown>[] {
+  if (!Array.isArray(seeds)) throw new Error(`entities.${entity}.seeds: must be an array`)
+  return seeds.map((row, i) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      throw new Error(`entities.${entity}.seeds[${i}]: must be an object`)
+    }
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(row)) {
+      const t = fields[k]?.type
+      out[k] = (t === 'bigint' || t === 'money') && typeof v === 'bigint' ? v.toString() : v
+    }
+    return out
+  })
+}
+
 function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
   const fields: Record<string, FieldSchema> = {}
   const pii: string[] = []
@@ -195,6 +220,7 @@ function normalizeEntity(name: string, raw: EntityInput): EntitySchema {
     fields,
     relations: raw.relations ?? {},
     ...(spawns ? { spawns } : {}),
+    ...(raw.seeds ? { seeds: normalizeSeeds(name, raw.seeds, fields) } : {}),
     behaviors,
     stateMachine: raw.stateMachine
       ? normalizeStateMachine(raw.stateMachine, behaviors, name)
@@ -231,6 +257,22 @@ function normalizeApi(name: string, raw: ApiInput): ApiSchema {
   return { name, baseUrl: raw.baseUrl, endpoints }
 }
 
+function normalizeSystem(name: string, raw: SystemInput): SystemSchema {
+  if (!raw || typeof raw !== 'object') throw new Error(`systems.${name}: must be an object`)
+  const rules = raw.rules ?? []
+  if (!Array.isArray(rules) || rules.some((r) => typeof r !== 'string')) {
+    throw new Error(`systems.${name}: "rules" must be an array of strings`)
+  }
+  const system: SystemSchema = { name, description: raw.description ?? '', rules: [...rules] }
+  if (raw.parameters) {
+    system.parameters = {}
+    for (const [pName, rawP] of Object.entries(raw.parameters)) {
+      system.parameters[pName] = normalizeField(pName, rawP, `systems.${name}`)
+    }
+  }
+  return system
+}
+
 export function normalizeSchema(raw: unknown): FabricSchema {
   const r = raw as FabricInput
   if (!r || typeof r !== 'object') throw new Error('fabric export must be a plain object')
@@ -246,6 +288,11 @@ export function normalizeSchema(raw: unknown): FabricSchema {
     apis[name] = normalizeApi(name, rawApi)
   }
 
+  const systems: Record<string, SystemSchema> = {}
+  for (const [name, rawSystem] of Object.entries(r.systems ?? {})) {
+    systems[name] = normalizeSystem(name, rawSystem)
+  }
+
   return {
     version: CURRENT_IR_VERSION,
     meta: {
@@ -256,5 +303,7 @@ export function normalizeSchema(raw: unknown): FabricSchema {
     },
     entities,
     apis,
+    // Omitted when empty so fabrics without systems keep byte-identical IR
+    ...(Object.keys(systems).length > 0 ? { systems } : {}),
   }
 }

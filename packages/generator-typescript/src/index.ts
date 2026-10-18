@@ -13,6 +13,8 @@ const FIELD_TYPE_MAP: Record<string, string> = {
   number: 'number',
   integer: 'number',
   decimal: 'number',
+  bigint: 'bigint',
+  money: 'bigint',
   boolean: 'boolean',
   uuid: 'string',
   timestamp: 'Date',
@@ -51,6 +53,8 @@ function generateZodType(field: FieldSchema): string {
     number: 'z.number()',
     integer: 'z.number().int()',
     decimal: 'z.number()',
+    bigint: 'z.bigint()',
+    money: 'z.bigint()',
     boolean: 'z.boolean()',
     uuid: 'z.string().uuid()',
     timestamp: 'z.date()',
@@ -97,11 +101,36 @@ function generateZodSchema(entity: EntitySchema): string {
   lines.push(`export const ${lcFirst(entity.name)}Schema = z.object({`)
   for (const [, field] of Object.entries(entity.fields)) {
     let zodType = generateZodType(field)
+    if (field.pattern !== undefined)
+      zodType += `.regex(new RegExp(${JSON.stringify(field.pattern)}))`
     if (field.nullable) zodType += '.nullable()'
     lines.push(`  ${field.name}: ${zodType},`)
   }
   lines.push('})')
   return lines.join('\n')
+}
+
+function tsSeedLiteral(field: FieldSchema | undefined, v: unknown): string {
+  if (field && (field.type === 'bigint' || field.type === 'money')) {
+    if (v === null || v === undefined) return 'null'
+    const text = String(v)
+    if (!/^-?\d+$/.test(text)) {
+      throw new Error(
+        `@newel/generator-typescript: ${field.type} field "${field.name}" has non-integer seed value ${JSON.stringify(text)}`,
+      )
+    }
+    return `${text}n`
+  }
+  return JSON.stringify(v)
+}
+
+function generateSeeds(entity: EntitySchema): string | null {
+  if (!entity.seeds || entity.seeds.length === 0) return null
+  const rows = entity.seeds.map((row) => {
+    const props = Object.entries(row).map(([k, v]) => `${k}: ${tsSeedLiteral(entity.fields[k], v)}`)
+    return `  { ${props.join(', ')} },`
+  })
+  return `export const ${lcFirst(entity.name)}Seeds = [\n${rows.join('\n')}\n] as const`
 }
 
 function generateStateEnum(entity: EntitySchema): string | null {
@@ -134,6 +163,8 @@ export class TypeScriptGenerator implements Generator {
       if (stateEnum) sections.push(stateEnum, '')
       sections.push(iface, '')
       sections.push(zod)
+      const seeds = generateSeeds(entity)
+      if (seeds) sections.push('', seeds)
       sections.push(`// #endregion ${entity.name}`)
       sections.push('')
     }

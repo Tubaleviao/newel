@@ -284,6 +284,7 @@ export const userSchema = z.object({
 | `@newel/generator-godot`      | Godot 4.x `.tres` resources + GDScript enums       | —                          |
 | `@newel/generator-ui`         | React forms + state-machine-aware action buttons   | `typescript`               |
 | `@newel/generator-prisma`     | Prisma schema + typed repositories                 | `typescript`               |
+| `@newel/generator-drizzle`    | Drizzle ORM (Postgres) `pgTable` schema files      | —                          |
 | `@newel/generator-express`    | Express router + typed handlers                    | `typescript` (or `prisma`) |
 | `@newel/generator-app`        | Full-stack scaffold (Express + Vite React)         | `express`, `prisma`, `ui`  |
 

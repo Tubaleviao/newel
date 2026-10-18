@@ -22,6 +22,10 @@ export type FieldInput = {
   values?: string[]
   enumValues?: string[]
   foreignKey?: string
+  /** ISO 4217 currency code; only valid on 'money' fields */
+  currency?: string
+  /** Regex source for string-like fields */
+  pattern?: string
   pii?: boolean
   /** Nested GDPR object — alternative to flat gdprCategory/gdprRetention/gdprLegalBasis */
   gdpr?: GdprInput
@@ -91,12 +95,21 @@ export type EntityInput = {
   fields?: Record<string, FieldInput>
   relations?: Record<string, RelationSchema>
   spawns?: SpawnSchema[]
+  /** Seed rows; `bigint`/`money` values may be bigint, integer number or integer string */
+  seeds?: Record<string, unknown>[]
   behaviors?: Record<string, BehaviorInput>
   stateMachine?: StateMachineInput
+}
+
+export type SystemInput = {
+  description: string
+  rules?: string[]
+  parameters?: Record<string, FieldInput>
 }
 
 export type FabricInput = {
   meta: Partial<SchemaMeta> & { name: string }
   entities?: Record<string, EntityInput>
   apis?: Record<string, ApiInput>
+  systems?: Record<string, SystemInput>
 }

@@ -430,3 +430,40 @@ describe('normalizeSchema', () => {
     expect(api.endpoints['GET /books'].auth?.roles).toContain('member')
   })
 })
+
+describe('normalizeSchema systems', () => {
+  it('omits systems when none declared', () => {
+    expect(normalizeSchema({ meta: { name: 'X' } })).not.toHaveProperty('systems')
+  })
+
+  it('normalizes systems with rules and parameters', () => {
+    const ir = normalizeSchema({
+      meta: { name: 'X' },
+      systems: {
+        Weather: {
+          description: 'Weather',
+          rules: ['r1'],
+          parameters: { rainChance: { type: 'number' } },
+        },
+      },
+    })
+    expect(ir.systems?.Weather.name).toBe('Weather')
+    expect(ir.systems?.Weather.rules).toEqual(['r1'])
+    expect(ir.systems?.Weather.parameters?.rainChance.type).toBe('number')
+  })
+
+  it('rejects non-string rules', () => {
+    expect(() =>
+      normalizeSchema({ meta: { name: 'X' }, systems: { S: { description: '', rules: [1] } } }),
+    ).toThrow('rules')
+  })
+
+  it('stores bigint defaultValue as an integer string (JSON-safe IR)', () => {
+    const ir = normalizeSchema({
+      meta: { name: 'X' },
+      entities: { E: { fields: { amount: { type: 'money', defaultValue: 100n } } } },
+    })
+    expect(ir.entities.E.fields.amount.defaultValue).toBe('100')
+    expect(() => JSON.stringify(ir)).not.toThrow()
+  })
+})

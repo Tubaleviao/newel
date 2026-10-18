@@ -1,4 +1,4 @@
-import type { FabricSchema, EntitySchema, StateMachineSchema } from './types'
+import type { FabricSchema, EntitySchema, FieldSchema, StateMachineSchema } from './types'
 
 export interface ValidationError {
   path: string
@@ -86,6 +86,90 @@ function validateStateMachine(
   return { errors, warnings }
 }
 
+function seedValueError(field: FieldSchema, v: unknown): string | null {
+  if (v === null) return field.nullable ? null : 'null is not allowed (field is not nullable)'
+  switch (field.type) {
+    case 'string':
+    case 'email':
+    case 'url':
+    case 'uuid':
+    case 'timestamp':
+    case 'date':
+      if (typeof v !== 'string') return `expected string, got ${typeof v}`
+      break
+    case 'number':
+    case 'decimal':
+      if (typeof v !== 'number' || !Number.isFinite(v)) return 'expected finite number'
+      break
+    case 'integer':
+      if (typeof v !== 'number' || !Number.isInteger(v)) return 'expected integer'
+      break
+    case 'bigint':
+    case 'money':
+      if (!(typeof v === 'string' && /^-?\d+$/.test(v)) && !Number.isSafeInteger(v)) {
+        return 'expected integer (number, bigint or integer string)'
+      }
+      break
+    case 'boolean':
+      if (typeof v !== 'boolean') return 'expected boolean'
+      break
+    case 'enum':
+      if (typeof v !== 'string' || !(field.enumValues ?? []).includes(v)) {
+        return `expected one of [${(field.enumValues ?? []).join(', ')}]`
+      }
+      break
+  }
+  if (field.pattern !== undefined && typeof v === 'string') {
+    try {
+      if (!new RegExp(field.pattern).test(v)) return `does not match pattern ${field.pattern}`
+    } catch {
+      // invalid pattern is reported on the field itself
+    }
+  }
+  return null
+}
+
+function validateSeeds(
+  name: string,
+  entity: EntitySchema,
+  schema: FabricSchema,
+): ValidationError[] {
+  const errors: ValidationError[] = []
+  entity.seeds?.forEach((row, i) => {
+    const loc = `entities.${name}.seeds[${i}]`
+    for (const key of Object.keys(row)) {
+      if (!(key in entity.fields)) errors.push(err(`${loc}.${key}`, `unknown field "${key}"`))
+    }
+    for (const [fName, field] of Object.entries(entity.fields)) {
+      const v = row[fName]
+      if (v === undefined) {
+        // generated SQL/TS seeds emit no column defaults, so every non-null field must be explicit
+        if (!field.nullable) {
+          errors.push(err(`${loc}.${fName}`, `missing required field "${fName}"`))
+        }
+        continue
+      }
+      const msg = seedValueError(field, v)
+      if (msg) errors.push(err(`${loc}.${fName}`, msg))
+      else if (field.foreignKey && v !== null) {
+        const [refEntity, refField = 'id'] = field.foreignKey.split('.')
+        const target = schema.entities[refEntity]
+        if (target?.seeds && !target.seeds.some((s) => String(s[refField]) === String(v))) {
+          errors.push(
+            err(
+              `${loc}.${fName}`,
+              `foreign key "${String(v)}" not found in ${refEntity}.${refField} seeds`,
+            ),
+          )
+        }
+      }
+    }
+  })
+  return errors
+}
+
+const PATTERN_TYPES = new Set(['string', 'email', 'url'])
+
 function validateEntity(
   name: string,
   entity: EntitySchema,
@@ -121,6 +205,25 @@ function validateEntity(
       errors.push(err(`entities.${name}.spawns[${i}].weight`, `weight must be between 0 and 1`))
     }
   })
+
+  errors.push(...validateSeeds(name, entity, schema))
+
+  for (const [fName, field] of Object.entries(entity.fields)) {
+    const loc = `entities.${name}.fields.${fName}`
+    if (field.currency !== undefined && field.type !== 'money') {
+      errors.push(err(`${loc}.currency`, `"currency" is only valid on "money" fields`))
+    }
+    if (field.pattern !== undefined) {
+      if (!PATTERN_TYPES.has(field.type)) {
+        errors.push(err(`${loc}.pattern`, `"pattern" is only valid on string-like fields`))
+      }
+      try {
+        new RegExp(field.pattern)
+      } catch (e) {
+        errors.push(err(`${loc}.pattern`, `invalid regular expression: ${(e as Error).message}`))
+      }
+    }
+  }
 
   for (const [bName, behavior] of Object.entries(entity.behaviors)) {
     if (behavior.auth?.ownerField && !(behavior.auth.ownerField in entity.fields)) {

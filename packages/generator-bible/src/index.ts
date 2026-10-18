@@ -214,6 +214,32 @@ function renderIndex(schema: FabricSchema): string {
     lines.push('')
   }
 
+  const systems = Object.values(schema.systems ?? {})
+  if (systems.length > 0) {
+    lines.push('## Systems')
+    lines.push('')
+    for (const sys of systems.sort((a, b) => a.name.localeCompare(b.name))) {
+      lines.push(`### ${sys.name}`)
+      lines.push('')
+      if (sys.description) {
+        lines.push(sys.description)
+        lines.push('')
+      }
+      if (sys.rules.length > 0) {
+        lines.push('**Rules**')
+        lines.push('')
+        for (const rule of sys.rules) lines.push(`- ${rule}`)
+        lines.push('')
+      }
+      if (sys.parameters && Object.keys(sys.parameters).length > 0) {
+        lines.push('**Parameters**')
+        lines.push('')
+        lines.push(renderFields(sys.parameters))
+        lines.push('')
+      }
+    }
+  }
+
   return lines.join('\n') + '\n'
 }
 

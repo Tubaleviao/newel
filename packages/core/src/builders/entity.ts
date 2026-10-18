@@ -19,6 +19,7 @@ export class EntityBuilder {
   private _fields: Record<string, FieldSchema> = {}
   private _relations: Record<string, RelationSchema> = {}
   private _spawns: SpawnSchema[] = []
+  private _seeds: Record<string, unknown>[] = []
   private _behaviors: Record<string, BehaviorSchema> = {}
   private _stateMachine: ReturnType<StateMachineBuilder['toIR']> | undefined
   private _pii: string[] = []
@@ -70,6 +71,12 @@ export class EntityBuilder {
     return this
   }
 
+  /** Add reference-data rows. On bigint/money fields, bigint values are stored as integer strings. */
+  seed(...rows: Record<string, unknown>[]): this {
+    for (const row of rows) this._seeds.push({ ...row })
+    return this
+  }
+
   spawn(target: string, weight: number, conditions?: string[]): this {
     if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0 || weight > 1) {
       throw new Error(
@@ -96,6 +103,15 @@ export class EntityBuilder {
     return this
   }
 
+  private seedRowIR(row: Record<string, unknown>): Record<string, unknown> {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(row)) {
+      const t = this._fields[k]?.type
+      out[k] = (t === 'bigint' || t === 'money') && typeof v === 'bigint' ? v.toString() : v
+    }
+    return out
+  }
+
   toIR(): EntitySchema {
     return {
       name: this._name,
@@ -104,6 +120,7 @@ export class EntityBuilder {
       goal: this._goal,
       fields: { ...this._fields },
       relations: { ...this._relations },
+      ...(this._seeds.length ? { seeds: this._seeds.map((s) => this.seedRowIR(s)) } : {}),
       ...(this._spawns.length ? { spawns: this._spawns.map((s) => ({ ...s })) } : {}),
       behaviors: { ...this._behaviors },
       stateMachine: this._stateMachine,

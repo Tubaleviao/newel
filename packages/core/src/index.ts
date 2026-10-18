@@ -14,6 +14,7 @@ export type { ValidationResult, ValidationError, ValidationWarning } from './ir/
 export { defineEntity, defineApi, defineFabric } from './ir/define'
 export type {
   FabricInput,
+  SystemInput,
   EntityInput,
   FieldInput,
   ApiInput,
@@ -41,6 +42,7 @@ export type {
   EndpointSchema,
   EventSchema,
   GraphSchema,
+  SystemSchema,
   SchemaMeta,
   GdprCategory,
   GdprLegalBasis,

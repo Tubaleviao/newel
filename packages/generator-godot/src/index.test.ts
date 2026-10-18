@@ -684,4 +684,34 @@ describe('GodotGenerator', () => {
     }
     await expect(gen.generate(schema, makeCtx())).rejects.toThrow('is a GDScript reserved word')
   })
+
+  it('does not duplicate a .tres key when a field is named description', async () => {
+    const gen = new GodotGenerator()
+    const schema: FabricSchema = {
+      ...minimalSchema,
+      entities: {
+        Item: {
+          name: 'Item',
+          tags: ['item'],
+          description: 'An item entity',
+          fields: {
+            description: {
+              name: 'description',
+              type: 'string',
+              nullable: false,
+              primaryKey: false,
+              pii: false,
+              unique: false,
+              immutable: false,
+              indexed: false,
+            },
+          },
+        },
+      },
+      apis: {},
+    } as unknown as FabricSchema
+    const out = await gen.generate(schema, makeCtx())
+    const tres = out.files.find((f) => f.path.endsWith('.tres'))!
+    expect(tres.content.match(/^description =/gm)).toHaveLength(1)
+  })
 })
